@@ -11,7 +11,7 @@ Para compilar y probar las estrategias ejecuta:
 
 ## Implementación
 
-En la carpeta `src/managers` se enceuntran los módulos que deben modificar para
+En la carpeta `src/managers` se encuentran los módulos que deben modificar para
 la implementación de cada estrategia: `bnb`, `seg` y `pag`.
 
 Las funciones a implementar en cada estrategia sonlas mismas (solo cambia el
