@@ -10,7 +10,7 @@
 #define NO_ONWER -1
 
 typedef unsigned char byte;
-typedef byte* memory_t;
+typedef byte *memory_t;
 typedef size_t addr_t;
 
 // Inicializa la memoria
