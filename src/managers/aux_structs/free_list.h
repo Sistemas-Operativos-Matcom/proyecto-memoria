@@ -5,7 +5,7 @@
 
 typedef struct fl_node
 {
-    int pos;
+    size_t pos;
     size_t size;
     struct fl_node *prev;
     struct fl_node *next;
@@ -26,9 +26,9 @@ void fl_init_list(free_list_t* list, size_t total_mem);
 void fl_reset_list(free_list_t* list, size_t total_mem);
 // Obtiene de la lista el primer segmento con al menos
 // size bytes y pone su direccion en addr
-int fl_get_memory(free_list_t* list,size_t size, int* addr);
+int fl_get_memory(free_list_t* list,size_t size, size_t* addr);
 // Se libera (de ser posible) un trozo de memoria de tamaño size
 // que se encuentre en la posicion addr
-int fl_free_memory(free_list_t* list,size_t size, int addr);
+int fl_free_memory(free_list_t* list,size_t size, size_t addr);
 
 #endif

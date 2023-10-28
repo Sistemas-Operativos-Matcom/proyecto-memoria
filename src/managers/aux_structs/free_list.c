@@ -42,7 +42,7 @@ void fl_reset_list(free_list_t* list, size_t total_mem) {
     fl_init_list(list, total_mem);
 }
 
-int fl_get_memory(free_list_t* list,size_t size, int* addr) {
+int fl_get_memory(free_list_t* list,size_t size, size_t* addr) {
     if (list->size <= 0)return FAIL;
 
     int status = FAIL;
@@ -100,8 +100,8 @@ int fl_get_memory(free_list_t* list,size_t size, int* addr) {
     return status;
 }
 
-int fl_free_memory(free_list_t* list,size_t size, int addr) {
-    if (list->size < 0 || size > list->size) return FAIL;
+int fl_free_memory(free_list_t* list,size_t size, size_t addr) {
+    if (size > list->size) return FAIL;
 
     // Si la lista esta vacia significa que se reservo toda la
     // memoria por lo que es valido liberarlo
@@ -119,7 +119,7 @@ int fl_free_memory(free_list_t* list,size_t size, int addr) {
 
     fl_node_t* node = list->head;
     while (node != NULL) {
-        int nxt_idx = (node->next != NULL) ? node->next->pos : list->max_pos;
+        size_t nxt_idx = (node->next != NULL) ? (size_t) node->next->pos : list->max_pos;
 
         // Buscar el espacio que deberia ser liberado
         if (node->pos <= addr && addr <= nxt_idx) {

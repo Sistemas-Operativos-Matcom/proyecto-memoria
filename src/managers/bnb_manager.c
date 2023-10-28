@@ -33,7 +33,7 @@ void m_bnb_init(int argc, char **argv) {
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out) {
   free_list_t* list = &slices[curr_slice].heap;
-  int _out = -1;
+  size_t _out = -1;
 
   // Intentar obtener la memoria
   int status = fl_get_memory(list, size, &_out);
@@ -86,7 +86,7 @@ int m_bnb_pop(byte *out) {
   int v_sp = slices[curr_slice].stack_ptr;
   
   // Si el sp se pasa del tamaño maximo, error
-  if (v_sp + 1 > slice_size) {
+  if (v_sp + 1 > (int) slice_size) {
     return MEM_FAIL;
   }
 
@@ -101,7 +101,7 @@ int m_bnb_pop(byte *out) {
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
   // Si la direccion no pertenece al slice, error
-  if (addr < 0 || addr >= slices[curr_slice].bound) return MEM_FAIL;
+  if (addr >= (addr_t) slices[curr_slice].bound) return MEM_FAIL;
 
   // Obtener la direccion fisica que se desea obtener
   int _addr = (int) addr + slices[curr_slice].base;
@@ -116,7 +116,7 @@ int m_bnb_load(addr_t addr, byte *out) {
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
   // Si la direccion no pertenece al slice, error
-  if (addr < 0 || addr >= slices[curr_slice].bound) return MEM_FAIL;
+  if (addr >= (addr_t) slices[curr_slice].bound) return MEM_FAIL;
 
   // Obtener la direccion fisica que se desea obtener
   int _addr = (int) addr + slices[curr_slice].base;
