@@ -18,7 +18,6 @@ static size_t VPN_SHIFT;
 static free_list_t* FREE_LIST; // Esta free_list tiene las paginas, no memoria per-se
 static pag_process_t* procs;
 static size_t curr_proc =  0;
-static byte* memory;
 static int last_proc = 0;
 static bool is_init = false;
 bool init_again = false;
@@ -35,7 +34,6 @@ void m_pag_init(int argc, char **argv) {
   if (is_init) {
     fl_reset_list(FREE_LIST, MEM_SIZE / PAGE_SIZE);
     free(procs);
-    free(memory);
     init_again = true;
   }
   else {
@@ -44,7 +42,6 @@ void m_pag_init(int argc, char **argv) {
   }
 
   procs = (pag_process_t*) malloc(MAX_PROC_COUNT * sizeof(pag_process_t));
-  memory = (byte*) malloc(MEM_SIZE * sizeof(byte)); 
   last_proc = 0;
   curr_proc = 0;
 
@@ -60,6 +57,8 @@ int m_pag_malloc(size_t size, ptr_t *out) {
   
   if (fl_get_memory(FREE_LIST, size, &addr))
     return MEM_FAIL;
+  
+  m_set_owner(addr * PAGE_SIZE, addr * PAGE_SIZE + size * PAGE_SIZE);
 
   // Encontrar una posicion donde guardar los segmentos reservados
   size_t pos = find_space(&procs[curr_proc], size);
@@ -88,6 +87,8 @@ int m_pag_free(ptr_t ptr) {
   if (fl_free_memory(FREE_LIST, page_count, procs[curr_proc].vpn[first_page])) 
     return MEM_FAIL;
 
+  m_unset_owner(first_page * PAGE_SIZE, first_page * PAGE_SIZE + page_count * PAGE_SIZE);
+
   // Marcar la memoria como no valida
   for (size_t i = first_page; page_count; i++, page_count--) {
     procs[curr_proc].valid[i] = false;
@@ -113,6 +114,8 @@ int m_pag_push(byte val, ptr_t *out) {
     if (fl_get_memory(FREE_LIST, 1, &tmp))
       return MEM_FAIL;
     
+    m_set_owner(tmp * PAGE_SIZE, (tmp + 1) * PAGE_SIZE);
+    
     procs[curr_proc].vpn[page] = tmp;
     procs[curr_proc].valid[page] = true;
   }
@@ -121,7 +124,7 @@ int m_pag_push(byte val, ptr_t *out) {
   size_t addr = procs[curr_proc].vpn[page] * PAGE_SIZE + offset;
 
   // Guardar el valor ahi
-  memory[addr] = val;
+  m_write(addr, val);
   
   // Calcular el nuevo stack point
   sp = (page << VPN_SHIFT) | offset;
@@ -152,10 +155,21 @@ int m_pag_pop(byte *out) {
   size_t addr = procs[curr_proc].vpn[page] * PAGE_SIZE + offset;
 
   // Guardar en out el resultado
-  *out = memory[addr];
+  *out = m_read(addr);
 
   // Actualizar el stack point
-  procs[curr_proc].stack_point = sp + 1;
+  procs[curr_proc].stack_point = ++ sp;
+
+  // Si se sale de una pagina
+  if (page != (sp & VPN_MASK) >> VPN_SHIFT) {
+    addr = procs[curr_proc].vpn[page];
+    
+    // Liberar esa pagina
+    if (fl_free_memory(FREE_LIST, 1, addr))
+      return MEM_FAIL;
+    
+    m_unset_owner(addr * PAGE_SIZE, (addr + 1) * PAGE_SIZE);
+  }
 
   //Retornar con exito
   return MEM_SUCCESS;
@@ -176,7 +190,7 @@ int m_pag_load(addr_t addr, byte *out) {
     return MEM_FAIL;
   
   // Retornar con exito
-  *out = memory[_addr];
+  *out = m_read(_addr);
   return MEM_SUCCESS;
 }
 
@@ -194,7 +208,7 @@ int m_pag_store(addr_t addr, byte val) {
   if (_addr > MAX_ADDR || !procs[curr_proc].valid[page])
     return MEM_FAIL;
 
-  memory[_addr] = val;
+  m_write(_addr, val);
    
   // Retornar con exito
   return MEM_SUCCESS;

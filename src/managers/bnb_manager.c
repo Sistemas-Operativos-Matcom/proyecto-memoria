@@ -9,7 +9,6 @@ static unsigned char is_init = 0;
 static int last_assigned = -1;
 static size_t slice_size = 0;
 static int curr_slice = -1;
-static byte* memory;
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
@@ -24,9 +23,6 @@ void m_bnb_init(int argc, char **argv) {
   last_assigned = -1;
   curr_slice = -1;
   is_init = 1;
-
-  // Asignar un arreglo que simula la memoria
-  memory = (byte*) malloc(m_size() * sizeof(byte));
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
@@ -71,7 +67,7 @@ int m_bnb_push(byte val, ptr_t *out) {
   slices[curr_slice].stack_ptr --;
 
   // Guardar el valor en la memoria
-  memory[p_sp] = val;
+  m_write(p_sp, val);
 
   // Actualizar el puntero de salida
   out->addr = v_sp;
@@ -92,7 +88,7 @@ int m_bnb_pop(byte *out) {
 
   int _addr = v_sp + slices[curr_slice].base;
   
-  *out = memory[_addr];
+  *out = m_read(_addr);
   slices[curr_slice].stack_ptr ++;
 
   return MEM_SUCCESS;
@@ -107,7 +103,7 @@ int m_bnb_load(addr_t addr, byte *out) {
   int _addr = (int) addr + slices[curr_slice].base;
   
   // Asignar el valor buscado en out
-  *out = memory[_addr];
+  *out = m_read(_addr);
 
   // Retornar con exito
   return MEM_SUCCESS;
@@ -122,7 +118,7 @@ int m_bnb_store(addr_t addr, byte val) {
   int _addr = (int) addr + slices[curr_slice].base;
 
   // Asignar el valor en la direccion correcta
-  memory[_addr] = val;
+  m_write(_addr, val);
 
   // Retornar con exito
   return MEM_SUCCESS;
@@ -168,6 +164,8 @@ void m_bnb_on_ctx_switch(process_t process) {
 
   // Guardar el proceso como proceso actual
   curr_slice = p;
+
+  m_set_owner(slices[p].base, slices[p].base + slices[p].bound);
 }
 
 // Notifica que un proceso ya terminó su ejecución
@@ -175,6 +173,7 @@ void m_bnb_on_end_process(process_t process) {
   // Buscamos el pid en los slices y se asigna a -1
   for (int i = 0; i <= last_assigned; i++) {
     if (slices[i].owner_pid == process.pid) {
+      m_unset_owner(slices[i].base, slices[i].base + slices[i].bound);
       slices[i].owner_pid = -1;
       return;
     }
