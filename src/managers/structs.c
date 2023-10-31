@@ -13,7 +13,7 @@ List Init() // Inicializa la lista de base and bounds
 
 void Delete(int position, List *list) // Elimina el elemento en la posición dada
 {
-    for (int i = position; i < list->length; i++)
+    for (size_t i = position; i < list->length; i++)
     {
         list->list_start[i] = list->list_start[i + 1];
     }
@@ -22,7 +22,7 @@ void Delete(int position, List *list) // Elimina el elemento en la posición dad
 
 void Remove(bandb value, List *list) // Elimina un elemento de la lista
 {
-    for (int i = 0; i < list->size; i++)
+    for (size_t i = 0; i < list->size; i++)
     {
         if (value.process.pid == list->list_start[i].process.pid)
         {
@@ -33,7 +33,7 @@ void Remove(bandb value, List *list) // Elimina un elemento de la lista
 
 bandb *Find(process_t process, List *list) // Devuelve una referencia del objeto que se quiere buscar
 {
-    for (int i = 0; i < list->length; i++)
+    for (size_t i = 0; i < list->length; i++)
     {
         if (list->list_start[i].process.pid == process.pid)
             return &list->list_start[i];
@@ -54,7 +54,7 @@ void FreeList(List *list) // Libera el espacio de la lista en memoria
 
 int Exist(process_t process, List *list) // verifica si un elemento existe en la lista
 {
-    for (int i = 0; i < list->length; i++)
+    for (size_t i = 0; i < list->length; i++)
     {
         if (list->list_start[i].process.pid == process.pid)
             return 1;
@@ -71,14 +71,14 @@ void Push(bandb value, List *list)
 
 // Métodos de la Linked List
 
-LFList Init_LF(byte size)
+LFList Init_LF(size_t size)
 {
     LFelement node = {0, size, NULL, NULL};
     LFList list = {&node};
     return list;
 }
 
-void Free_Space(byte address, byte size, LFList *list)
+void Free_Space(size_t address, size_t size, LFList *list)
 {
     if (list->first == NULL)
     {
@@ -115,9 +115,15 @@ void Free_Space(byte address, byte size, LFList *list)
     }
 }
 
-LFelement *Fill_Space(byte size, LFList *list)
+LFelement *Fill_Space(size_t size, LFList *list)
 {
+    FILE *debug_Fill_Space;
+    debug_Fill_Space = fopen("./Debug/Debug.txt", "w");
+
     LFelement *node = list->first;
+
+    fprintf(debug_Fill_Space, "%lu", node->size);
+    fclose(debug_Fill_Space);
     while (node->size < size)
     {
         node = node->next;
@@ -133,5 +139,60 @@ LFelement *Fill_Space(byte size, LFList *list)
     {
         node->size -= size;
         return node;
+    }
+}
+
+// Métodos de la máscara de direcciones
+
+mask Init_Mask()
+{
+    map_addr *start = malloc(64 * sizeof(map_addr));
+    mask new = {start, 0, 64};
+    return new;
+}
+
+void Check_Size_Mask(mask *list) // Método Auxiliar de la lista para checkear el tamaño de la lista
+{
+    if (list->length + 1 >= list->size)
+        list = realloc(list->start, list->size * 2);
+}
+
+void Add_Mask(byte dir_v, size_t dir_r, mask *list)
+{
+    Check_Size_Mask(list);
+    map_addr new = {dir_v, dir_r};
+    list->start[list->length] = new;
+    list->length++;
+}
+
+size_t Search_addr(byte dir_v, mask *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (list->start[i].addr_v == dir_v)
+        {
+            return list->start[i].addr_r;
+        }
+    }
+    return 0;
+}
+
+void Delete_dir(size_t position, mask *list)
+{
+    for (size_t i = position; i < list->length; i++)
+    {
+        list->start[i] = list->start[i + 1];
+    }
+    list->length--;
+}
+
+void Remove_addr(byte dir_v, mask *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (list->start[i].addr_v == dir_v)
+        {
+            Delete_dir(i, list);
+        }
     }
 }

@@ -2,26 +2,40 @@
 #include "../memory.h"
 #include "../utils.h"
 
+typedef struct Map_address
+{
+    byte addr_v;
+    size_t addr_r;
+} map_addr;
+
+typedef struct Mask_addr
+{
+    map_addr *start;
+    size_t length;
+    size_t size;
+} mask;
+
 typedef struct b_and_b
 {
     process_t process;
-    byte base;
-    byte bounds;
-    byte heap;
-    byte stack;
+    size_t base;
+    size_t bounds;
+    size_t heap;
+    mask mask_addr;
+    size_t stack;
 } bandb;
 
 typedef struct List
 {
     bandb *list_start;
-    int length;
-    int size;
+    size_t length;
+    size_t size;
 } List;
 
 typedef struct LF_Element
 {
-    byte start;
-    byte size;
+    size_t start;
+    size_t size;
     struct LF_Element *previous;
     struct LF_Element *next;
 } LFelement;
@@ -48,8 +62,18 @@ void FreeList(List *list);
 
 // Métodos de la Linked List
 
-LFList Init_LF(byte size);
+LFList Init_LF(size_t size);
 
-LFelement *Fill_Space(byte size, LFList *list);
+LFelement *Fill_Space(size_t size, LFList *list);
 
-void Free_Space(byte address, byte size, LFList *list);
+void Free_Space(size_t address, size_t size, LFList *list);
+
+//
+
+mask Init_Mask();
+
+void Add_Mask(byte dir_v, size_t dir_r, mask *list);
+
+size_t Search_addr(byte dir_v, mask *list);
+
+void Remove_addr(byte dir_v, mask *list);
