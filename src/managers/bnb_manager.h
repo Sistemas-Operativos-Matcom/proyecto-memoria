@@ -6,7 +6,7 @@
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv);
-
+    
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out);
