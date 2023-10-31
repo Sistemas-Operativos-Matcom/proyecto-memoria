@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "stack.h"
+#include "stack_bnb.h"
 stack *Init_s(int size)
 {
     stack *s = (stack *)malloc(sizeof(stack));

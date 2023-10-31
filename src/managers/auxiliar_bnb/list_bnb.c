@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "list.h"
+#include "list_bnb.h"
 IntList *Init_l()
 {
     IntList *l = (IntList *)malloc(sizeof(IntList));

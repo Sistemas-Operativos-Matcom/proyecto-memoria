@@ -1,18 +1,16 @@
 #include "bnb_manager.h"
-#include "auxiliar/list.h"
+#include "auxiliar_bnb/list_bnb.h"
 #include "stdio.h"
 // #include "auxiliar/stack.h"
 #include "../utils.h"
-/*
-Si es necesario modificar la estructura `ptr_t` pueden hacerlo, solo no deben
-cambiar su nombre ni eliminar el campo `addr`.
-*/
+// El puntero representa la posición en la memoria virtual del proceso luego de
+// reservar memoria para el código del programa.
 static addr_t puntero;
 static process_bb *process_act;
 static IntList *l;
 static size_t *virtual_mem;
 static size_t virtual_mem_c;
-static size_t bb_value = 512;
+static size_t bb_value = 256;
 
 /*
   Se llama cada vez que se inicia un caso de prueba. Recibe como parámetros la
@@ -38,31 +36,50 @@ void m_bnb_init(int argc, char **argv)
 */
 int m_bnb_malloc(size_t size, ptr_t *out)
 {
+
   /*
     Escribe como ocupada la memoria virtual que se encontro libre luego de la reservada por
     el codigo del programa.
   */
+  if (puntero + size >= bb_value)
+  {
+    // no hay memoria suficiente
+    fprintf(stderr, "No se dispone de ese tamaño de memoria.");
+    return 1;
+  }
   for (size_t i = puntero; i < bb_value; i++)
   {
     if (process_act->memory[i] != 1)
     {
-      if (i + size >= bb_value)
+      size_t j = 0;
+      for (; j < size && ((i + j) < bb_value); j++)
       {
-        // no hay memoria suficiente
-        fprintf(stderr, "No se dispone de ese tamaño de memoria.");
-        return 1;
+        if (process_act->memory[i + j] == 1)
+          break;
       }
-      out->addr = process_act->base + i;
+      if (j == size)
+      {
+        out->addr = process_act->base + i;
+        out->size = size;
+        for (size_t j = 0; j < size; j++)
+          process_act->memory[i + j] = 1;
+        return 0;
+        break;
+      }
+      else
+        i += j;
+
+      /* out->addr = process_act->base + i;
       out->size = size;
       for (size_t j = 0; j < size; j++)
       {
         process_act->memory[i + j] = 1;
       }
       return 0;
-      break;
+      break; */
     }
   }
-  return 0;
+  return 1;
 }
 /*
   Libera el espacio de memoria al que apunta `ptr`. Esta función debe devolver 0 si

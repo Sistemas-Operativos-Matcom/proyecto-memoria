@@ -1,7 +1,7 @@
 #ifndef LIST_H
 #define LIST_H
 #include <stdlib.h>
-#include "process.h"
+#include "process_bnb.h"
 typedef struct List
 {
     size_t len;

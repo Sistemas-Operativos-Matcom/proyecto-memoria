@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "process.h"
+#include "process_bnb.h"
 process_bb *Init_p(int pid, size_t bound, size_t pos)
 {
     process_bb *p = (process_bb *)malloc(sizeof(process_bb));

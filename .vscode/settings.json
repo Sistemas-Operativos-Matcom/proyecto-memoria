@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "stack_pag.h": "c",
+        "stdio.h": "c"
+    }
+}
