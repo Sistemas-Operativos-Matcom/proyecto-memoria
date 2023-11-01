@@ -1,11 +1,11 @@
 #include "bnb_manager.h"
-
 #include "stdio.h"
+#include "../memory.h"
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  memory_t vm;
+  
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
