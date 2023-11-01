@@ -162,6 +162,7 @@ Context_t_bnb* curr;
 // printf("##size %d \n", curr->size);
 // printf("##heap pointer %d \n", curr->heap_pointer);
 // printf("##stack pointer %d \n", curr->stack_pointer);
+#include "Structures/List.c"
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv)
