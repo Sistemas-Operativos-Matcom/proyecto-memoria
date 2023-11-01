@@ -2,17 +2,15 @@
 #include <stdlib.h>
 #include "process_pag.h"
 
-process_pag *Init_p_pag(int pid, size_t pag_code, size_t pag_table_c)
+process_pag *Init_p_pag(int pid, size_t pag_size, size_t pag_table_c)
 {
     process_pag *p = (process_pag *)malloc(sizeof(process_pag));
-    p->pid = pid; /*
-     p->pag_code = (size_t *)malloc(pag_code * sizeof(size_t));
-     p->pag_heap = (size_t *)malloc(pag_table_c * sizeof(size_t));
-     p->pag_stack = (size_t *)malloc(pag_table_c * sizeof(size_t)); */
-    p->pag_process = (size_t *)calloc(pag_table_c, sizeof(size_t));
+    p->pid = pid;
+    p->pag_process = (size_t *)malloc(pag_table_c * sizeof(size_t));
     p->pag_process_c = 0;
-    p->pag_process_free = (size_t *)calloc(pag_table_c, sizeof(size_t));
-
+    p->pag_process_free = (size_t **)malloc(pag_table_c * sizeof(size_t *));
+    for (size_t i = 0; i < pag_table_c; i++)
+        p->pag_process_free[i] = (size_t *)malloc(pag_size * sizeof(size_t));
     p->s = Init_s_pag(pag_table_c);
     return p;
 }

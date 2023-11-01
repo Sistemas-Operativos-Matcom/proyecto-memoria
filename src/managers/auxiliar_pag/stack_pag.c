@@ -19,9 +19,10 @@ void Free_s_pag(stack *s)
 }
 int Push_s_pag(stack *s, size_t pag, size_t pos_pag)
 {
+    // printf("size pila: %u\n top pila: %i", s->stack_size, s->top);
     if (s->top == s->stack_size - 1)
     {
-        fprintf(stderr, "Stack overflow\n");
+        fprintf(stderr, "Stack overflow este\n");
         return 1;
     }
     s->top++;
@@ -50,6 +51,7 @@ dupla *Pop_s_pag(stack *s)
         return 0;
     }
     dupla *value = s->stack_s[s->top];
+    // printf("top: %u value: %zu\n", s->top, s->stack_s[s->top]->pos_pag);
     s->top--;
     return value;
 }
