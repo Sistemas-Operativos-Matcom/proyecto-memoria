@@ -13,15 +13,15 @@
 
 typedef struct Free_List_bnb
 {
-  int m_size;
+  addr_t m_size;
   int *data;
 } Free_list_t_bnb;
-Free_list_t_bnb *Build_Free_List_bnb(int m_size)
+Free_list_t_bnb *Build_Free_List_bnb(addr_t m_size)
 {
   Free_list_t_bnb *f = malloc(sizeof(Free_list_t_bnb));
   f->m_size = m_size;
   f->data = (int *)malloc(sizeof(int) * m_size + 1);
-  for (int i = 0; i < m_size; i++)
+  for (addr_t i = 0; i < m_size; i++)
   {
     f->data[i] = 0;
   }
@@ -37,7 +37,7 @@ addr_t get_last_position_bnb(Free_list_t_bnb *f)
   }
   return max;
 }
-addr_t find_free_space_bnb(Free_list_t_bnb *f, int size)
+addr_t find_free_space_bnb(Free_list_t_bnb *f, addr_t size)
 {
   // Va iterando por todas las posciones buscando una cantidad
   // contigua de espacio que sea igual al size, y toma la
@@ -51,12 +51,12 @@ addr_t find_free_space_bnb(Free_list_t_bnb *f, int size)
   }
   return -1;
 }
-addr_t allocate_space_bnb(Free_list_t_bnb *f, int size)
+addr_t allocate_space_bnb(Free_list_t_bnb *f, addr_t size)
 {
   // Retorna el valor de la direccion donde se guardaran los
   // datos.
   addr_t adr = find_free_space_bnb(f, size);
-  if (adr != -1)
+  if (adr != (addr_t)-1)
   {
     for (addr_t i = adr; i < adr + size; i++)
     {
@@ -66,7 +66,7 @@ addr_t allocate_space_bnb(Free_list_t_bnb *f, int size)
   return adr;
 }
 
-addr_t free_space_bnb(Free_list_t_bnb *f, addr_t adr, int size)
+addr_t free_space_bnb(Free_list_t_bnb *f, addr_t adr, addr_t size)
 {
   // Retorna el valor de la direccion donde se guardaran los
   // datos.
@@ -130,14 +130,14 @@ void add_context_to_list_bnb(Context_List_t_bnb *contextList, Context_t_bnb *con
   contextList->contexts[contextList->count] = context;
   contextList->count++;
 }
-delete_context_list_bnb(Context_List_t_bnb *contextList, int pid)
+addr_t delete_context_list_bnb(Context_List_t_bnb *contextList, int pid)
 {
-  for (size_t i = 0; i < contextList->count; i++)
+  for (int i = 0; i < contextList->count; i++)
   {
     if (contextList->contexts[i]->pid == pid)
     {
       Context_t_bnb *ptr = contextList->contexts[i];
-      for (size_t j = i; j < contextList->count - 1; j++)
+      for (int j = i; j < contextList->count - 1; j++)
       {
         contextList->contexts[j] = contextList->contexts[j + 1];
         free(ptr);
@@ -156,13 +156,12 @@ Context_List_t_bnb *contextList;
 Free_list_t_bnb *freeList;
 Context_t_bnb* curr; 
 
-// printf("##pid %d \n", curr->pid);
-// printf("##base %d \n", curr->base);
-// printf("##bound %d \n", curr->bound);
-// printf("##size %d \n", curr->size);
-// printf("##heap pointer %d \n", curr->heap_pointer);
-// printf("##stack pointer %d \n", curr->stack_pointer);
-#include "Structures/List.c"
+// printf("##pid %lld \n", curr->pid);
+// printf("##base %lld \n", curr->base);
+// printf("##bound %lld \n", curr->bound);
+// printf("##size %lld \n", curr->size);
+// printf("##heap pointer %lld \n", curr->heap_pointer);
+// printf("##stack pointer %lld \n", curr->stack_pointer);
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv)
@@ -179,12 +178,12 @@ int m_bnb_malloc(size_t size, ptr_t *out)
 
   printf("!!Malloc\n");
   addr_t adr = allocate_space_bnb(curr->free_list, size);
-  if(adr == -1)
+  if(adr == (addr_t)-1)
     return 1;
   // Tenemos el address
   curr->heap_pointer = get_last_position_bnb(curr->free_list);
-  printf("##adr fake%d \n", adr);
-  printf("##adr real and returned %d \n", curr->base+adr);
+  printf("##adr fake%lld \n", adr);
+  printf("##adr real and returned %lld \n", curr->base+adr);
 
   out->addr = curr->base+adr;
   out->size = size;
@@ -206,7 +205,7 @@ int m_bnb_free(ptr_t ptr)
 int m_bnb_push(byte val, ptr_t *out)
 {
   addr_t m_adr = curr->stack_pointer;
-  // printf("##m_adr %d \n", m_adr);
+  // printf("##m_adr %lld \n", m_adr);
   m_write(m_adr,val);
   out->addr = m_adr;
   out->size = 1;
@@ -245,7 +244,7 @@ void m_bnb_on_ctx_switch(process_t process)
   // I need to have some persistence of the data of the current proccess
   // that I have in memory.
   printf("!!Context Switch\n");
-  for (size_t i = 0; i < contextList->count; i++)
+  for (int i = 0; i < contextList->count; i++)
   {
     if(contextList->contexts[i]->pid == process.pid)
     {
@@ -261,7 +260,7 @@ void m_bnb_on_ctx_switch(process_t process)
   // Ponerlo en memoria 
   // Actualizar el curr.
   addr_t adr = allocate_space_bnb(freeList,context_size_bnb);
-  if(adr == -1)
+  if(adr == (addr_t)-1)
   {
     fprintf(stderr, "No hay espacio en memoria para el proceso : ContextSwitch");
     exit(1);
@@ -275,9 +274,9 @@ void m_bnb_on_ctx_switch(process_t process)
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process)
 {
-  for (size_t i = 0; i < contextList->count; i++)
+  for (int i = 0; i < contextList->count; i++)
   {
-    if(contextList->contexts[i] == process.pid)
+    if(contextList->contexts[i]->pid == process.pid)
     {
       m_unset_owner(contextList->contexts[i]->base,contextList->contexts[i]->bound);
       break;

@@ -6,7 +6,7 @@
 #pragma region 
 typedef struct Free_List
 {
-    int m_size;
+    addr_t m_size;
     int* data; 
 } Free_list_t;
 Free_list_t* Build_Free_List(int m_size)
@@ -30,7 +30,7 @@ addr_t get_last_position(Free_list_t* f)
     }
     return max;
 }
-addr_t find_free_space(Free_list_t* f, int size)
+addr_t find_free_space(Free_list_t* f, addr_t size)
 {
     // Va iterando por todas las posciones buscando una cantidad 
     // contigua de espacio que sea igual al size, y toma la 
@@ -44,12 +44,12 @@ addr_t find_free_space(Free_list_t* f, int size)
     }
     return -1;
 }
-addr_t allocate_space(Free_list_t* f, int size)
+addr_t allocate_space(Free_list_t* f, addr_t size)
 {
     // Retorna el valor de la direccion donde se guardaran los 
     // datos.
     addr_t adr = find_free_space(f,size);
-    if(adr != -1)
+    if(adr != (addr_t)-1)
     {
         for (addr_t i = adr; i < adr+size; i++)
         {
@@ -59,7 +59,7 @@ addr_t allocate_space(Free_list_t* f, int size)
     return adr; 
 }
 
-addr_t free_space(Free_list_t* f,addr_t adr, int size)
+addr_t free_space(Free_list_t* f,addr_t adr, addr_t size)
 {
     // Retorna el valor de la direccion donde se guardaran los 
     // datos.
@@ -124,14 +124,14 @@ void add_context_to_list(Context_List_t* contextList, Context_t* context)
     contextList->contexts[contextList->count] = context;
     contextList->count ++ ;
 }
-delete_context_list(Context_List_t* contextList, int pid)
+addr_t delete_context_list(Context_List_t* contextList, int pid)
 {
-    for (size_t i = 0; i < contextList->count; i++)
+    for (int i = 0; i < contextList->count; i++)
     {
         if(contextList->contexts[i]->pid == pid)
         {
             Context_t* ptr = contextList->contexts[i];
-            for (size_t j = i; j < contextList->count-1; j++)
+            for (int j = i; j < contextList->count-1; j++)
             {
                 contextList->contexts[j] = contextList->contexts[j+1];
                 free(ptr);
@@ -180,8 +180,8 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  free_space(curr_pag->free_list,ptr.addr,ptr.size);
+  return 0;
 }
 
 // Agrega un elemento al stack
@@ -193,11 +193,11 @@ int m_pag_push(byte val, ptr_t *out) {
     curr_pag->stack_pages[0] = adr;
     curr_pag->stack_pages_count++;
     m_set_owner(adr*pag_size,(adr+1)*pag_size);
-    printf("!!adr %d \n", adr);
+    printf("!!adr %lld \n", adr);
   }
   // aqui ya tengo stack . 
   addr_t m_adr = curr_pag->stack_pointer + pag_size*curr_pag->stack_pages[curr_pag->stack_pages_count-1];
-  printf("!!m_adr %d \n", m_adr);
+  printf("!!m_adr %lld \n", m_adr);
   curr_pag->stack_pointer++;
   m_write(m_adr,val);
   out->addr = m_adr;
@@ -228,7 +228,7 @@ int m_pag_store(addr_t addr, byte val) {
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_pag_on_ctx_switch(process_t process) {
-  for (size_t i = 0; i < contextList_pag->count; i++)
+  for (int i = 0; i < contextList_pag->count; i++)
   {
     if(contextList_pag->contexts[i]->pid == process.pid)
     {
@@ -249,13 +249,13 @@ void m_pag_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process) {
-  for (size_t i = 0; i < curr_pag->heap_pages_count; i++)
+  for (int i = 0; i < curr_pag->heap_pages_count; i++)
   {
     int t = curr_pag->heap_pages[i];
     freeList_pag->data[t] = 0;
     m_unset_owner(pag_size*t,pag_size*(t+1));
   }
-  for (size_t i = 0; i < curr_pag->stack_pages_count; i++)
+  for (int i = 0; i < curr_pag->stack_pages_count; i++)
   {
     int t = curr_pag->stack_pages[i];
     freeList_pag->data[t] = 0;
