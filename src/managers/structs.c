@@ -1,8 +1,5 @@
 #include "structs.h"
 
-#define Error 1
-#define Ok 1
-
 //-----------------------------------------------------NODOS----------------------------------------------------
 
 // Conectar nodos en una lista

@@ -1,6 +1,9 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#define Error 1
+#define Ok 0
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
