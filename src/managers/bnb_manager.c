@@ -1,20 +1,24 @@
 #include "bnb_manager.h"
-
 #include "stdio.h"
+
+
+// La intencion de poner todo este codigo aqui 
+// fue que me perimitiera usar el debuger, por alguna razon
+// cuando importaba el codigo el debuger crasheaba. 
 
 // Structures
 #pragma region
 // FreeList
 #pragma region
 
-typedef struct Free_List
+typedef struct Free_List_bnb
 {
   int m_size;
   int *data;
-} Free_list_t;
-Free_list_t *Build_Free_List(int m_size)
+} Free_list_t_bnb;
+Free_list_t_bnb *Build_Free_List_bnb(int m_size)
 {
-  Free_list_t *f = malloc(sizeof(Free_list_t));
+  Free_list_t_bnb *f = malloc(sizeof(Free_list_t_bnb));
   f->m_size = m_size;
   f->data = (int *)malloc(sizeof(int) * m_size + 1);
   for (int i = 0; i < m_size; i++)
@@ -23,7 +27,7 @@ Free_list_t *Build_Free_List(int m_size)
   }
   return f;
 }
-addr_t get_last_position(Free_list_t *f)
+addr_t get_last_position_bnb(Free_list_t_bnb *f)
 {
   addr_t max = 0;
   for (addr_t i = 0; i < f->m_size; i++)
@@ -33,7 +37,7 @@ addr_t get_last_position(Free_list_t *f)
   }
   return max;
 }
-addr_t find_free_space(Free_list_t *f, int size)
+addr_t find_free_space_bnb(Free_list_t_bnb *f, int size)
 {
   // Va iterando por todas las posciones buscando una cantidad
   // contigua de espacio que sea igual al size, y toma la
@@ -47,11 +51,11 @@ addr_t find_free_space(Free_list_t *f, int size)
   }
   return -1;
 }
-addr_t allocate_space(Free_list_t *f, int size)
+addr_t allocate_space_bnb(Free_list_t_bnb *f, int size)
 {
   // Retorna el valor de la direccion donde se guardaran los
   // datos.
-  addr_t adr = find_free_space(f, size);
+  addr_t adr = find_free_space_bnb(f, size);
   if (adr != -1)
   {
     for (addr_t i = adr; i < adr + size; i++)
@@ -62,7 +66,7 @@ addr_t allocate_space(Free_list_t *f, int size)
   return adr;
 }
 
-addr_t free_space(Free_list_t *f, addr_t adr, int size)
+addr_t free_space_bnb(Free_list_t_bnb *f, addr_t adr, int size)
 {
   // Retorna el valor de la direccion donde se guardaran los
   // datos.
@@ -89,20 +93,20 @@ typedef struct Context
   addr_t bound;
   addr_t heap_pointer;
   addr_t stack_pointer;
-  Free_list_t *free_list;
-} Context_t;
+  Free_list_t_bnb *free_list;
+} Context_t_bnb;
 
-Context_t *New_Context(process_t *proc, int context_size, addr_t adr)
+Context_t_bnb *New_Context_bnb(process_t *proc, int context_size, addr_t adr)
 {
-  Context_t *result = (Context_t *)malloc(sizeof(Context_t));
+  Context_t_bnb *result = (Context_t_bnb *)malloc(sizeof(Context_t_bnb));
   result->pid = proc->pid;
   result->size = proc->program->size;
   result->base = adr;
   result->bound = adr + context_size;
   result->heap_pointer = adr + result->size;
   result->stack_pointer = result->bound-1;
-  result->free_list = Build_Free_List(context_size);
-  allocate_space(result->free_list,result->size);
+  result->free_list = Build_Free_List_bnb(context_size);
+  allocate_space_bnb(result->free_list,result->size);
   return result;
 }
 #pragma endregion
@@ -111,28 +115,28 @@ Context_t *New_Context(process_t *proc, int context_size, addr_t adr)
 typedef struct Context_list
 {
   int count;
-  Context_t **contexts;
-} Context_List_t;
+  Context_t_bnb **contexts;
+} Context_List_t_bnb;
 
-Context_List_t *New_Context_List(int size)
+Context_List_t_bnb *New_Context_List_bnb(int size)
 {
-  Context_List_t *result = malloc(sizeof(Context_List_t));
+  Context_List_t_bnb *result = malloc(sizeof(Context_List_t_bnb));
   result->count = 0;
-  result->contexts = malloc(sizeof(Context_t) * size);
+  result->contexts = malloc(sizeof(Context_t_bnb) * size);
   return result;
 }
-void add_context_to_list(Context_List_t *contextList, Context_t *context)
+void add_context_to_list_bnb(Context_List_t_bnb *contextList, Context_t_bnb *context)
 {
   contextList->contexts[contextList->count] = context;
   contextList->count++;
 }
-delete_context_list(Context_List_t *contextList, int pid)
+delete_context_list_bnb(Context_List_t_bnb *contextList, int pid)
 {
   for (size_t i = 0; i < contextList->count; i++)
   {
     if (contextList->contexts[i]->pid == pid)
     {
-      Context_t *ptr = contextList->contexts[i];
+      Context_t_bnb *ptr = contextList->contexts[i];
       for (size_t j = i; j < contextList->count - 1; j++)
       {
         contextList->contexts[j] = contextList->contexts[j + 1];
@@ -147,10 +151,10 @@ delete_context_list(Context_List_t *contextList, int pid)
 #pragma endregion
 #pragma endregion
 
-int context_size = 1000;
-Context_List_t *contextList;
-Free_list_t *freeList;
-Context_t* curr; 
+int context_size_bnb = 1000;
+Context_List_t_bnb *contextList;
+Free_list_t_bnb *freeList;
+Context_t_bnb* curr; 
 
 // printf("##pid %d \n", curr->pid);
 // printf("##base %d \n", curr->base);
@@ -163,8 +167,8 @@ Context_t* curr;
 void m_bnb_init(int argc, char **argv)
 {
   printf("!!Init\n");
-  contextList = New_Context_List(m_size());
-  freeList = Build_Free_List(m_size());
+  contextList = New_Context_List_bnb(m_size());
+  freeList = Build_Free_List_bnb(m_size());
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
@@ -173,11 +177,11 @@ int m_bnb_malloc(size_t size, ptr_t *out)
 {
 
   printf("!!Malloc\n");
-  addr_t adr = allocate_space(curr->free_list, size);
+  addr_t adr = allocate_space_bnb(curr->free_list, size);
   if(adr == -1)
     return 1;
   // Tenemos el address
-  curr->heap_pointer = get_last_position(curr->free_list);
+  curr->heap_pointer = get_last_position_bnb(curr->free_list);
   printf("##adr fake%d \n", adr);
   printf("##adr real and returned %d \n", curr->base+adr);
 
@@ -189,7 +193,12 @@ int m_bnb_malloc(size_t size, ptr_t *out)
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr)
 {
-  
+  // puede que este bugeado... :)
+    for (size_t i = ptr.addr; i < ptr.addr+ptr.size; i++)
+    {
+      curr->free_list->data[i] = 0;
+    }
+    return 0;
 }
 
 // Agrega un elemento al stack
@@ -197,7 +206,6 @@ int m_bnb_push(byte val, ptr_t *out)
 {
   addr_t m_adr = curr->stack_pointer;
   // printf("##m_adr %d \n", m_adr);
-
   m_write(m_adr,val);
   out->addr = m_adr;
   out->size = 1;
@@ -251,14 +259,14 @@ void m_bnb_on_ctx_switch(process_t process)
   // Guardarlo en nuestra persistencia de datos
   // Ponerlo en memoria 
   // Actualizar el curr.
-  addr_t adr = allocate_space(freeList,context_size);
+  addr_t adr = allocate_space_bnb(freeList,context_size_bnb);
   if(adr == -1)
   {
     fprintf(stderr, "No hay espacio en memoria para el proceso : ContextSwitch");
     exit(1);
   }
-  Context_t* new = New_Context(&process, context_size,adr);
-  add_context_to_list(contextList,new);
+  Context_t_bnb* new = New_Context_bnb(&process, context_size_bnb,adr);
+  add_context_to_list_bnb(contextList,new);
   m_set_owner(new->base,new->bound);
   curr = new;
   return;
@@ -274,5 +282,5 @@ void m_bnb_on_end_process(process_t process)
       break;
     }
   }
-  delete_context_list(contextList,process.pid);
+  delete_context_list_bnb(contextList,process.pid);
 }
