@@ -3,13 +3,13 @@
 #include "structs.h"
 #include "memory.h"
 
-process_t actual_proc;
+static process_t actual_proc;
 
-List bnb;
+static List bnb;
 
-LFList frees;
+static LFList frees;
 
-FILE *debug_bnb;
+static FILE *debug_bnb;
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv)
@@ -97,8 +97,12 @@ int m_bnb_store(addr_t addr, byte val)
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process)
 {
+    fprintf(debug_bnb, "%lu", frees.first.size);
+    fclose(debug_bnb);
+
     if (Exist(process, &bnb) == 0) // verifico primero que el proceso nuevo ya tenga un espacio en memoria reservado
     {
+
         LFelement *filled = Fill_Space(128, &frees);
 
         mask newmask = Init_Mask();                                                                                                       // si no es asi le reservo 64 bytes de memoria

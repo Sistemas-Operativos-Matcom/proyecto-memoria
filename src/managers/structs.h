@@ -42,7 +42,7 @@ typedef struct LF_Element
 
 typedef struct LF_List
 {
-    LFelement *first;
+    LFelement first;
 
 } LFList;
 

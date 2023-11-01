@@ -70,60 +70,85 @@ void Push(bandb value, List *list)
 }
 
 // Métodos de la Linked List
-
 LFList Init_LF(size_t size)
 {
     LFelement node = {0, size, NULL, NULL};
-    LFList list = {&node};
+    LFList list = {node};
     return list;
 }
 
 void Free_Space(size_t address, size_t size, LFList *list)
 {
-    if (list->first == NULL)
-    {
-        LFelement new = {address, size, NULL, NULL};
-        list->first = &new;
-        return;
-    }
+    LFelement *node = &list->first;
 
-    LFelement *node = list->first;
-    while (node->next != NULL || node->start < address)
+    if (address < node->start) // si el espacio a liberar esta antes que el primer nodo
     {
-        node = node->next;
-    }
-    if (node->previous->start + node->previous->size == address)
-    {
-        node->previous->size += size;
         if (node->start == address + size)
         {
-            node->previous->size += node->size;
-            node->previous->next = node->next;
-            free(node);
+            node->start = address;
+            node->size += size;
+        }
+        else
+        {
+            LFelement *temp = malloc(sizeof(LFelement));
+            *temp = *node;
+            LFelement new = {address, size, NULL, temp};
+            list->first = new;
         }
     }
-    else if (node->start == address + size)
+    else if (address >= node->start + node->size) // si esta despues del primer nodo
     {
-        node->start = address;
-        node->size += size;
-    }
-    else
-    {
-        LFelement new = {address, size, node->previous, node};
-        node->previous->next = &new;
-        node->previous = &new;
+        while (node->next != NULL && node->next->start <= address) // mientras el espacio a liberar sea mayor que el siguiente nodo
+        {
+            node = node->next; // muevete al siguiente nodo
+        }
+
+        if (node->next == NULL)
+        {
+            if (address == node->start + node->size)
+            {
+                node->size += size;
+            }
+            else
+            {
+                LFelement *new = malloc(sizeof(LFelement));
+                LFelement element = {address, size, node, NULL};
+                *new = element;
+                node->next = new;
+            }
+        }
+        else
+        {
+            if (node->start + node->size == address)
+            {
+                node->size += size;
+            }
+            else if (node->next->start == address + size)
+            {
+                node->next->start = address;
+                node->next->size += size;
+            }
+            else
+            {
+                LFelement *temp1 = malloc(sizeof(LFelement));
+                LFelement *temp2 = malloc(sizeof(LFelement));
+                *temp1 = *node;
+                *temp2 = *node->next;
+                LFelement *new = malloc(sizeof(LFelement));
+                LFelement element = {address, size, temp1, temp2};
+                *new = element;
+                node->next->previous = new;
+                node->next = new;
+            }
+        }
     }
 }
 
-LFelement *Fill_Space(size_t size, LFList *list)
+LFelement Fill_Space(size_t size, LFList *list)
 {
-    FILE *debug_Fill_Space;
-    debug_Fill_Space = fopen("./Debug/Debug.txt", "w");
 
-    LFelement *node = list->first;
+    LFelement *node = &list->first;
 
-    fprintf(debug_Fill_Space, "%lu", node->size);
-    fclose(debug_Fill_Space);
     while (node->size < size)
     {
         node = node->next;
@@ -131,15 +156,32 @@ LFelement *Fill_Space(size_t size, LFList *list)
 
     if (node->size == size)
     {
-        node->previous->next = node->next;
-        node->next->previous = node->previous;
-        return node->previous;
+        if (node->previous == NULL && node->next == NULL)
+        {
+            list->first = (LFelement){0, 0, NULL, NULL};
+        }
+
+        else if (node->previous == NULL)
+        {
+            node->next->previous = NULL;
+        }
+        else if (node->next == NULL)
+        {
+            node->previous->next = NULL;
+        }
+        else
+        {
+
+            node->previous->next = node->next;
+            node->next->previous = node->previous;
+            return *node->previous;
+        }
     }
     else
     {
         node->size -= size;
-        return node;
     }
+    return *node;
 }
 
 // Métodos de la máscara de direcciones
