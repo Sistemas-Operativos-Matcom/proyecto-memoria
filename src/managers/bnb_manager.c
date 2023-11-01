@@ -3,22 +3,30 @@
 #include "stdio.h"
 
 // Esta función se llama cuando se inicializa un caso de prueba
-void m_bnb_init(int argc, char **argv) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+void m_bnb_init(int argc, char **argv) 
+{
+  
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
-int m_bnb_malloc(size_t size, ptr_t *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+int m_bnb_malloc(size_t size, ptr_t *out) 
+{
+  
 }
 
 // Libera un espacio de memoria dado un puntero.
-int m_bnb_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+int m_bnb_free(ptr_t ptr) 
+{
+  //Verificando el espacio reservado del puntero
+  if(ptr.size==0)
+  {
+    return 1;
+  }
+  //Liberando espacio de memoria del puntero
+  //free();
+
+
 }
 
 // Agrega un elemento al stack
