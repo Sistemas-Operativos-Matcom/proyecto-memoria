@@ -95,6 +95,7 @@ byte mem_pop() {
     exit(1);
   }
   printf("[INFO] (pid: %d) Poped %d from stack\n", g_cpid, out);
+  printf("mem %i \n", out);
   return out;
 }
 

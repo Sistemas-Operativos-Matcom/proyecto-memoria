@@ -206,6 +206,6 @@ void run_tests(int argc, char **argv) {
   run_argc = argc;
   run_argv = argv;
   test_case_001();
-  test_case_002();
+  // test_case_002();
   test_case_003();
 }

@@ -44,15 +44,15 @@ void zip(free_space* temp) {
 
 
 // Función para insertar un elemento al final de la lista
-void insert(free_space** head, int base, int bound) {
+void insert(free_space* head, int base, int bound) {
     free_space* newfree_space = createfree_space(base, bound);
     
-    if (*head == NULL) {
-        *head = newfree_space;
+    if (head == NULL) {
+        head = newfree_space;
     }
     else
     {
-        free_space* temp = *head;
+        free_space* temp = head;
         // Iterar por los espacios libres hasta encontrar el lugar en el que debería ir este espacio nuevo
         while (temp->next != NULL && temp->next->base < base)
         {
@@ -87,13 +87,13 @@ void insert(free_space** head, int base, int bound) {
 }
 
 // Reservar espacio en la FreeList
-void delete(free_space** head, int bound) {
-    if (*head == NULL) {
+void delete(free_space* head, int bound) {
+    if (head == NULL) {
         printf("La lista está vacía.\n");
         return;
     }
 
-    free_space* current = *head;
+    free_space* current = head;
 
     // if (current->base == base) {
     //     head = current->next;
@@ -138,12 +138,12 @@ void delete(free_space** head, int bound) {
 }
 
 // Función de prueba para imprimir los elementos de la lista
-void printList(free_space** head) {
+void printList(free_space* head) {
     if (head == NULL) {
         printf("La lista está vacía.\n");
         return;
     }
-    free_space* temp = *head;
+    free_space* temp = head;
     printf("Elementos en la lista: ");
     while (temp != NULL) {
         printf(": %d - ", temp->base);
@@ -155,16 +155,16 @@ void printList(free_space** head) {
 
 int main(int argc, char const *argv[])
 {
-    free_space* freelist = NULL;
+    free_space* freelist = createfree_space(-2, 0);
 
-    insert(&freelist, 5, 10);
-    printList(&freelist);
-    insert(&freelist, 25, 3);
-    printList(&freelist);
-    insert(&freelist, 15, 10);
-    printList(&freelist);
-    delete(&freelist, 10);
-    printList(&freelist);
+    insert(freelist, 5, 10);
+    printList(freelist);
+    insert(freelist, 25, 3);
+    printList(freelist);
+    insert(freelist, 15, 10);
+    printList(freelist);
+    delete(freelist, 10);
+    printList(freelist);
     // printf("hello");
     return 0;
 }

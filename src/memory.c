@@ -1,5 +1,7 @@
 #include "memory.h"
-
+#include "managers/bnb_manager.h"
+#include "managers/pag_manager.h"
+#include "managers/seg_manager.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,6 +147,7 @@ void set_curr_owner(int owner) {
 }
 
 void mem_end() {
+  totalfree();
   fprintf(g_log_file, "end");
   clean();
 }
