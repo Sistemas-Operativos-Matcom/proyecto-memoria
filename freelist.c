@@ -83,7 +83,7 @@ void insert(free_space* head, int base, int bound) {
         
     }
 
-    printf("Elemento insertado correctamente.");
+    // printf("Elemento insertado correctamente.");
 }
 
 // Reservar espacio en la FreeList

@@ -21,48 +21,46 @@ free_space* createfree_space(int base, int bound) {
 
 // Función para agrupar los espacios vacios adyacentes
 void zip(free_space* temp) {
-    while (temp->next != NULL)
+  while (temp->next != NULL)
+  {
+    // Agrupar el espacio libre actual al siguiente, y eliminar este
+    if (temp->base + temp->bound == temp->next->base)
     {
-      // Agrupar el espacio libre actual al siguiente, y eliminar este
-      if (temp->base + temp->bound == temp->next->base)
-      {
-          temp->bound = temp->bound + temp->next->bound;
-          temp->next = temp->next->next;
-      }
-
-      // Si en este punto solo tengo un nodo no tengo con que comparar
-      if (temp->next == NULL)
-      {
-          break;
-      }
-      
-      // Si ya no puedo seguir agrupando con este nodo paso a analizar el siguiente
-      if (temp->base + temp->bound != temp->next->base)
-      {
-          temp = temp->next;   
-      }
+      temp->bound = temp->bound + temp->next->bound;
+      temp->next = temp->next->next;
     }
+
+    // Si en este punto solo tengo un nodo no tengo con que comparar
+    if (temp->next == NULL)
+    {
+      break;
+    }
+    
+    // Si ya no puedo seguir agrupando con este nodo paso a analizar el siguiente
+    if (temp->base + temp->bound != temp->next->base)
+    {
+        temp = temp->next;   
+    }
+  }
 }
 
 // Reservar espacio en el heap y retorna -1 o la dirección reservada
-int reserve(free_space** head, int bound) {
+int reserve(free_space* heap, int bound) {
   
   // No hay espacios libres en el heap
-  if (*head == NULL) {
+  if (heap->base == -2) {
       return -1;
   }
 
-  free_space* current = *head;
-
   // Buscar el lugar para ocupar
-  while (current != NULL)
+  while (heap->base != -2)
   {
-    current = current->next;
+    heap = heap->next;
   
-    if(current->bound > bound)
+    if(heap->bound > bound)
     {
-      current->bound -= bound;
-      return current->bound;
+      heap->bound -= bound;
+      return heap->bound;
     }
   }
 
@@ -70,107 +68,103 @@ int reserve(free_space** head, int bound) {
 }
 
 // Función de prueba para imprimir los elementos de la lista
-void printList(free_space** head) {
-    if (head == NULL) {
-        printf("La lista está vacía.\n");
-        return;
-    }
-    free_space* temp = *head;
-    printf("Elementos en la lista: ");
-    while (temp != NULL) {
-        printf(": %d - ", temp->base);
-        printf("%d :", temp->bound);
-        temp = temp->next;
-    }
-    printf("\n");
+void printList(free_space* heap) {
+  if (heap == NULL) {
+      printf("La lista está vacía.\n");
+      return;
+  }
+  
+  printf("Elementos en la lista: ");
+  while (heap != NULL) {
+      printf(": %d - ", heap->base);
+      printf("%d :", heap->bound);
+      heap = heap->next;
+  }
+  printf("\n");
 }
 
-int belong(free_space** head, int addr) {
+int belong(free_space* heap, int addr) {
 
-  if (head == NULL) {
+  if (heap == NULL) {
     // printf("La lista está vacía.\n");
     return 0;
   }
 
-  free_space* temp = *head;
-  while (temp != NULL)
+  while (heap != NULL)
   {
-    if (temp->base < addr && addr < temp->base + temp->bound)
+    if (heap->base < addr && addr < heap->base + heap->bound)
     {
       return 1;
     }
     
-    temp = temp->next;
+    heap = heap->next;
   }
 
   return 0;
   
 }
 
-int isFree(free_space** head, int base, int bound) {
+int isFree(free_space* heap, int base, int bound) {
 
-  if (head == NULL) {
+  if (heap == NULL) {
     // printf("La lista está vacía.\n");
     return 0;
   }
 
-  free_space* temp = *head;
-  while (temp != NULL)
+  while (heap != NULL)
   {
-    if((temp->base < base && base < temp->base+temp->bound) || (temp->base < base+bound && base+bound < temp->base+temp->bound))
+    if((heap->base < base && base < heap->base+heap->bound) || (heap->base < base+bound && base+bound < heap->base+heap->bound))
     {
       return 1;
     }
 
-    temp = temp->next;
+    heap = heap->next;
   }
 
   return 0;
 }
+
 // Función para agregar un espacio en el heap
-int insert(free_space** head, int base, int bound) {
-    free_space* newfree_space = createfree_space(base, bound);
-    
-    if (*head == NULL) {
-        *head = newfree_space;
-    }
-    else
+int insert(free_space* heap, int base, int bound) {
+  free_space* newfree_space = createfree_space(base, bound);
+  
+  if (heap == NULL) {
+    heap = newfree_space;
+  }
+  else
+  {
+    if (isFree(heap, base, bound))
     {
-      if (isFree(head, base, bound))
-      {
-        return 1;
-      }
-
-      free_space* temp = *head;
-
-      // Iterar por los espacios libres hasta encontrar el lugar en el que debería ir este espacio nuevo
-      while (temp->next != NULL && temp->next->base < base)
-      {
-          temp = temp->next;
-      }
-      
-      // Insertar el espacio libre
-      newfree_space->next = temp->next;
-      temp->next = newfree_space;
-
-      // Agrupar espacios libres adyacentes
-      zip(temp);
-        
+      return 1;
     }
 
-    return 0;
+    // Iterar por los espacios libres hasta encontrar el lugar en el que debería ir este espacio nuevo
+    while (heap->next != NULL && heap->next->base < base)
+    {
+        heap = heap->next;
+    }
+    
+    // Insertar el espacio libre
+    newfree_space->next = heap->next;
+    heap->next = newfree_space;
+
+    // Agrupar espacios libres adyacentes
+    zip(heap);
+      
+  }
+
+  return 0;
 }
 
-void destroid(free_space** head) {
-  free_space* temp = *head;
-  if (temp == NULL)
+void destroid(free_space* heap) {
+  free_space* temp;
+  while (heap != NULL)
   {
+    temp = heap;
+    heap = heap->next;
     free(temp);
-    return;
   }
-  free(temp);
-  destroid(temp->next);
-  
+  free(heap);
 }
 
 
@@ -179,7 +173,7 @@ typedef struct Context {
   int pid;
   int base;
   int heap_addr;
-  free_space** heap;
+  free_space* heap;
   int heap_size;
   int ptr_stack;
 } t_context;
@@ -211,9 +205,13 @@ void m_bnb_init(int argc, char **argv) {
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out) {
-  
+
   // Reservar espacio en el heap del proceso
   int addr = reserve(mem_partition[current_process_index].heap, size);
+  // FILE* fichero;
+  // fichero = fopen("hola.txt", "a");
+  // fprintf(fichero, "hola %d\n", 0);
+  // fclose(fichero);
   if (addr == -1)
   {
     // Si en el heap no hay espacio libre comprobar que al incrementar el tamaño del heap no se solapa con el stack
@@ -255,7 +253,7 @@ int m_bnb_push(byte val, ptr_t *out) {
   
   m_write(mem_partition[current_process_index].ptr_stack, val);
   out = m_read(mem_partition[current_process_index].ptr_stack);
-  printf("direccion push %d\n", mem_partition[current_process_index].ptr_stack); 
+  // printf("direccion push %d\n", mem_partition[current_process_index].ptr_stack); 
   mem_partition[current_process_index].ptr_stack -= 1;
 
   return 0;
@@ -266,9 +264,6 @@ int m_bnb_pop(byte *out) {
 
   mem_partition[current_process_index].ptr_stack += 1;
   *out = m_read(mem_partition[current_process_index].ptr_stack);
-
-  // printf("%d\n",out);
-  // printf("direction pop %d\n",mem_partition[current_process_index].ptr_stack);
 
   return 0;
 }
@@ -282,14 +277,11 @@ int m_bnb_load(addr_t addr, byte *out) {
   // Verificar que addr sea una dirección que ya haya reservado
   if (belong(mem_partition[current_process_index].heap, addr) || (mem_partition[current_process_index].heap_size < addr && addr <= mem_partition[current_process_index].ptr_stack))
   {
-    printf("hoo");
+    // printf("hoo");
     return 1;
   }
 
   *out = m_read(base + heap_addr + addr);
-  printf("   valueee %d\n", *out);
-  // byte out1 = m_read(addr+1);
-  // printf("value %d\n", out1);
   return 0;
 }
 
@@ -304,10 +296,10 @@ int m_bnb_store(addr_t addr, byte val) {
   {
     return 1;
   }
-  printf("holaaa\n");
+  // printf("holaaa\n");
   m_write(base + heap_addr + addr, val);
-  printf("storeado %i", m_read(base + heap_addr + addr));
-  printf(" de %d\n", val);
+  // printf("storeado %i", m_read(base + heap_addr + addr));
+  // printf(" de %d\n", val);
   return 0;
 }
 
@@ -328,12 +320,12 @@ void m_bnb_on_ctx_switch(process_t process) {
   {
     if(mem_partition[i].pid == -1)
     {
-      printf("%d to %d\n",1024*i, 1024*i + 1023);
+      // printf("%d to %d\n",1024*i, 1024*i + 1023);
       m_set_owner(1024*i,1024*i + 1023);
       current_process_index = i;
       mem_partition[i].pid = process.pid;
       mem_partition[i].base = 1024*i;
-      mem_partition[i].heap = (free_space**)malloc(sizeof(free_space**));
+      mem_partition[i].heap = createfree_space(-2,0);
       mem_partition[i].heap_addr = process.program->size;
       mem_partition[i].heap_size = 0;
       mem_partition[i].ptr_stack = 1024*i + 1023;
@@ -345,15 +337,16 @@ void m_bnb_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
-  
+
+
   // Buscar el proceso para terminarlo
   for (int i = 0; i < total_count_process; i++)
   {
     if(mem_partition[i].pid == process.pid)
     {
       mem_partition[i].pid = -1;
-      destroid(mem_partition[i].heap);
-      free(mem_partition[i].heap);
+      // destroid(mem_partition[i].heap);
+      // free(mem_partition[i].heap);
       m_unset_owner(1024*i,1024*i + 1023);
 
       return;
@@ -363,5 +356,9 @@ void m_bnb_on_end_process(process_t process) {
 
 void totalfree() {
 
+  // FILE* fichero;
+  // fichero = fopen("hola.txt", "a+");
+  // fprintf(fichero, "hola %d\n", 0);
+  // fclose(fichero);
   free(mem_partition);
 }
