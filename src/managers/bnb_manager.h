@@ -32,4 +32,18 @@ void m_bnb_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process);
 
+// Crea un espacio de memoria virtual
+typedef struct MemoryBlock {
+    int is_allocated;
+    int owner;
+    size_t size;
+    
+    size_t start_addr;
+    size_t end_addr;
+
+    size_t heap;
+    size_t stack;
+} memory_block;
+
+
 #endif
