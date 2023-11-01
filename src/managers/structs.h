@@ -64,7 +64,7 @@ void FreeList(List *list);
 
 LFList Init_LF(size_t size);
 
-LFelement *Fill_Space(size_t size, LFList *list);
+LFelement Fill_Space(size_t size, LFList *list);
 
 void Free_Space(size_t address, size_t size, LFList *list);
 

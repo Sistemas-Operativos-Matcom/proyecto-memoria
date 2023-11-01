@@ -11,9 +11,9 @@ List Init() // Inicializa la lista de base and bounds
     return new;
 }
 
-void Delete(int position, List *list) // Elimina el elemento en la posición dada
+void Delete(size_t position, List *list) // Elimina el elemento en la posición dada
 {
-    for (size_t i = position; i < list->length; i++)
+    for (size_t i = position; i < list->length - 1; i++)
     {
         list->list_start[i] = list->list_start[i + 1];
     }
@@ -22,7 +22,7 @@ void Delete(int position, List *list) // Elimina el elemento en la posición dad
 
 void Remove(bandb value, List *list) // Elimina un elemento de la lista
 {
-    for (size_t i = 0; i < list->size; i++)
+    for (size_t i = 0; i < list->length; i++)
     {
         if (value.process.pid == list->list_start[i].process.pid)
         {
@@ -176,12 +176,13 @@ LFelement Fill_Space(size_t size, LFList *list)
             node->next->previous = node->previous;
             return *node->previous;
         }
+        return *node;
     }
     else
     {
         node->size -= size;
+        return (LFelement){node->start + node->size, size, NULL, NULL};
     }
-    return *node;
 }
 
 // Métodos de la máscara de direcciones

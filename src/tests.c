@@ -7,6 +7,7 @@
 
 static int run_argc;
 static char **run_argv;
+FILE *debug;
 
 static size_t curr_pid = 0;
 
@@ -44,12 +45,12 @@ void test_case_001()
       PROCESS_FROM(0),
       PROCESS_FROM(1),
   };
+  debug = fopen("./Debug/Debug.txt", "w");
   ctx_switch(processes[0]);    // Cambia de contexto al proceso 0
   ptr_t p0_x = mem_malloc(4);  // Reserva memoria para 4 bytes
   mem_store(at(p0_x), 10);     // Guarda el valor 10 en la posición 0
   mem_store(at(p0_x) + 1, 20); // Guarda el valor 20 en la posición 1
   mem_push(70);                // Añade al stack el valor 70
-
   ctx_switch(processes[1]);    // Cambia de contexto al proceso 1
   ptr_t p1_x = mem_malloc(2);  // Reserva 2 bytes de memoria
   mem_store(at(p1_x), 30);     // Guarda el valor 30 en la posición 0
@@ -68,6 +69,7 @@ void test_case_001()
 
   end_process(processes[0]);
   end_process(processes[1]);
+
   end_sim(); // Termina la simulación
 }
 
