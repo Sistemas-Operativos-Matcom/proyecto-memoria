@@ -2,17 +2,17 @@
 
 #include "stdio.h"
 #define current context[actual_pid]
-#include "queue.h"
+#include "stack.h"
 
 // para usar el codigo heap y stack los tratare todos en una matriz
 // donde si hay un uno es heap, dos stack, tres codigo
-// y la stack se ira llevando tambien en un queue
+// y la stack se ira llevando tambien en un stack
 
 typedef struct Context {
   int pid;    
   int pages[4];
   int data[4][512];
-  struct queue* stack;
+  struct stack* stack;
 } t_context;
 
 t_context* context; // contexto de los procesos
@@ -62,7 +62,7 @@ int fill_code(int pos, int a, int b) {
   }
 }
 
-int fill_heap(int a, int size) {
+int fill_heap(int a, int size, int value) {
   // mapea a las direcciones locales y tomandolo como si fuera un array consecutivo escribe
   int ini_page = dir_page(a); 
   int ini_local = dir_local(a); 
@@ -74,7 +74,7 @@ int fill_heap(int a, int size) {
     while (j < 512)
     {
       if (take == size) return 0;
-      current.data[i][j] = 1;
+      current.data[i][j] = value;
       printf("%i %i \n", i, j);
       take++;
       j++;
@@ -103,15 +103,16 @@ void m_pag_init(int argc, char **argv) {
   for (size_t i = 0; i < page_frame_size; i++) {
     page_frame[i] = -1; // esta vacia la memoria
     context[i].pid = -1;  
-    context[i].stack = new_queue(10000);
+    context[i].stack = new_stack(10000);
     for (size_t j = 0; j < 3; j++) {
       context[i].pages[j] = -1;
     }
   }
 
-  enqueue(context[0].stack, 43);
-  enqueue(context[0].stack, 45);
-  printf("queue %i\n", front((context[0].stack)));
+  // enstack(context[0].stack, 43);
+  // enstack(context[0].stack, 45);
+  // enstack(context[1].stack, 456);
+  // printf("stack %i\n", size((context[1].stack)));
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
@@ -145,7 +146,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
       if (take == size) { 
         out->addr = init; // guarda la direccion relativa a la memoria del proceso
         out->size = size;
-        fill_heap(init, size);
+        fill_heap(init, size, 1);
         return 0;
       }
     }
@@ -155,8 +156,9 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  int addr = ptr.addr;
+  int size = ptr.size;
+  fill_heap(addr, size, 0);
 }
 
 // Agrega un elemento al stack
@@ -178,11 +180,15 @@ int m_pag_push(byte val, ptr_t *out) {
       if (current.data[i][j] == 0) {
         int p = i * 512 + j;
         int pos = current.pages[i] * 512 + j;
-        printf("%i\n", p);
-        m_write(pos, val);
-        printf("size %i", size(context->stack));
-        enqueue(context->stack, p);
-        printf("front %i\n", front(context->stack));
+        printf("%i\n", current.pid);
+        m_write(pos, val); 
+        enstack(current.stack, p);
+        current.data[i][j] = 2;
+        printf("front %i\n", p);
+        if (current.pid == 0 && p == 243) {
+          // destack(current.stack);
+          // printf("front 1 %i\n", size(current.stack));
+        } 
         return 0;
       } 
     }
@@ -193,7 +199,7 @@ int m_pag_push(byte val, ptr_t *out) {
 // Quita un elemento del stack
 int m_pag_pop(byte *out) {
   int addr = front(current.stack);
-  dequeue(current.stack);
+  destack(current.stack);
   
   int page = dir_page(addr);
   int local = dir_local(addr);
@@ -275,6 +281,7 @@ void m_pag_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  int pid = search_context(process.pid);
+  
+  return;
 }

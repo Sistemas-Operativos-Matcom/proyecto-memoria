@@ -30,6 +30,6 @@ test_manager () {
     fi
 }
 
-# test_manager bnb
-# test_manager seg
+test_manager bnb
+test_manager seg
 test_manager pag
