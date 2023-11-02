@@ -4,6 +4,27 @@
 #include "../memory.h"
 #include "../utils.h"
 
+typedef struct celda {
+  addr_t addr;
+  size_t tam;
+}celda_t;
+
+typedef struct lista {
+  celda_t *celda;
+  int actual;
+  int size;
+} lista_t;
+
+
+void iniciar();
+
+addr_t reservar_memoria(size_t tam);
+
+void liberar_memoria(addr_t direc, size_t tam);
+
+addr_t r_memory(size_t tam, lista_t l);
+int l_memory(lista_t l, ptr_t ptr);
+
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv);
 
