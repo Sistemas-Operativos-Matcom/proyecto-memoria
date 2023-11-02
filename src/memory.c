@@ -1,4 +1,5 @@
 #include "memory.h"
+#include "managers/bnb_manager.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -146,5 +147,6 @@ void set_curr_owner(int owner) {
 
 void mem_end() {
   fprintf(g_log_file, "end");
+  // freeContext();
   clean();
 }
