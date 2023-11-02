@@ -91,7 +91,6 @@ typedef struct Context
   int size;
   addr_t base;
   addr_t bound;
-  addr_t heap_pointer;
   addr_t stack_pointer;
   Free_list_t_bnb *free_list;
 } Context_t_bnb;
@@ -103,7 +102,6 @@ Context_t_bnb *New_Context_bnb(process_t *proc, int context_size, addr_t adr)
   result->size = proc->program->size;
   result->base = adr;
   result->bound = adr + context_size;
-  result->heap_pointer = adr + result->size;
   result->stack_pointer = result->bound-1;
   result->free_list = Build_Free_List_bnb(context_size);
   allocate_space_bnb(result->free_list,result->size);
@@ -166,7 +164,6 @@ Context_t_bnb* curr;
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv)
 {
-  printf("!!Init\n");
   contextList = New_Context_List_bnb(m_size());
   freeList = Build_Free_List_bnb(m_size());
 }
@@ -175,15 +172,9 @@ void m_bnb_init(int argc, char **argv)
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out)
 {
-
-  printf("!!Malloc\n");
   addr_t adr = allocate_space_bnb(curr->free_list, size);
   if(adr == (addr_t)-1)
     return 1;
-  // Tenemos el address
-  curr->heap_pointer = get_last_position_bnb(curr->free_list);
-  printf("##adr fake%lld \n", adr);
-  printf("##adr real and returned %lld \n", curr->base+adr);
 
   out->addr = curr->base+adr;
   out->size = size;
@@ -193,11 +184,8 @@ int m_bnb_malloc(size_t size, ptr_t *out)
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr)
 {
-  // puede que este bugeado... :)
-    for (size_t i = ptr.addr; i < ptr.addr+ptr.size; i++)
-    {
-      curr->free_list->data[i] = 0;
-    }
+    if (free_space_bnb(curr->free_list,ptr.addr,ptr.size) == (addr_t)-1)
+      return 1;
     return 0;
 }
 
@@ -205,7 +193,6 @@ int m_bnb_free(ptr_t ptr)
 int m_bnb_push(byte val, ptr_t *out)
 {
   addr_t m_adr = curr->stack_pointer;
-  // printf("##m_adr %lld \n", m_adr);
   m_write(m_adr,val);
   out->addr = m_adr;
   out->size = 1;

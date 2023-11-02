@@ -143,10 +143,6 @@ addr_t delete_context_list(Context_List_t* contextList, int pid)
     return 1;
 }
 
-addr_t translate_vpf(int page_size,int page, addr_t v_adr)
-{
-    return page_size*page+v_adr;
-}
 #pragma endregion
 
 
@@ -193,9 +189,8 @@ int m_pag_push(byte val, ptr_t *out) {
     curr_pag->stack_pages[0] = adr;
     curr_pag->stack_pages_count++;
     m_set_owner(adr*pag_size,(adr+1)*pag_size);
-    printf("!!adr %lld \n", adr);
   }
-  // aqui ya tengo stack . 
+  // Aqui ya tengo creada la pagina del stack. 
   addr_t m_adr = curr_pag->stack_pointer + pag_size*curr_pag->stack_pages[curr_pag->stack_pages_count-1];
   printf("!!m_adr %lld \n", m_adr);
   curr_pag->stack_pointer++;
