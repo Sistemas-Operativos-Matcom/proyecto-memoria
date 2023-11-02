@@ -1,0 +1,19 @@
+{
+  "C_Cpp.errorSquiggles": "disabled",
+  "files.associations": {
+    "array": "c",
+    "string_view": "c",
+    "type_traits": "c",
+    "__node_handle": "c",
+    "__split_buffer": "c",
+    "deque": "c",
+    "iterator": "c",
+    "map": "c",
+    "queue": "c",
+    "set": "c",
+    "string": "c",
+    "unordered_map": "c",
+    "vector": "c",
+    "free_list.h": "c"
+  }
+}

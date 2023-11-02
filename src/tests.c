@@ -43,6 +43,7 @@ void test_case_001() {
 
   ctx_switch(processes[0]);     // Cambia de contexto al proceso 0
   ptr_t p0_x = mem_malloc(4);   // Reserva memoria para 4 bytes
+    printf("hola\n");
   mem_store(at(p0_x), 10);      // Guarda el valor 10 en la posición 0
   mem_store(at(p0_x) + 1, 20);  // Guarda el valor 20 en la posición 1
   mem_push(70);                 // Añade al stack el valor 70
