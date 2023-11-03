@@ -1,50 +1,52 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "list.h"
+#include "process_pag.h"
+#include "process_list.h"
 
 // Devuelve la cantidad de elementos de la lista
-int length(sizeList_t *list)
+int length(process_List_t *list)
 {
     return list->len;
 }
 
 // Inicializa la estructura
-sizeList_t *init()
+process_List_t *init()
 {
-    sizeList_t *l = (sizeList_t *)malloc(sizeof(sizeList_t));
+    process_List_t *l = (process_List_t *)malloc(sizeof(process_List_t));
     l->len = 0;
     l->size = 10;
-    l->data = (size_t *)malloc(l->size * sizeof(size_t));
+    l->data = (process_pag_t **)malloc(l->size * sizeof(process_pag_t *));
     return l;
 }
 
 // Resetea la estructura ya instanciada
-void reset(sizeList_t *l)
+void reset(process_List_t *l)
 {
-    l->len = 0; // Reset the length to 0
-
-    // Free every element of the data array
-    for (int i = 0; i < l->size; i++)
+    for (int i = 0; i < l->len; i++)
     {
-        free(l->data[i]);
+        free(l->data[i]); // Free each element pointed by data
     }
-
-    free(l->data);                                                  // Free the memory allocated for the data array
-    l->size = 10;                                                   // Reset the size to the default value
-    l->data = (size_t *)realloc(l->data, l->size * sizeof(size_t)); // Allocate memory for the data array
+    free(l->data);                                                         // Free the memory allocated for the data array
+    l->len = 0;                                                            // Reset the length to 0
+    l->size = 10;                                                          // Reset the size to the default value
+    l->data = (process_pag_t **)malloc(l->size * sizeof(process_pag_t *)); // Allocate memory for the data array
 }
 
-// Devuelve el caracter de una posición
-size_t get(sizeList_t *l, int i)
+// Devuelve el proceso de una posición
+process_pag_t *get(process_List_t *l, int i)
 {
     if (i >= 0 && i < l->len)
         return l->data[i];
     else
-        return -1;
+    {
+        printf("index out of range");
+        exit(1);
+    }
 }
 
 // Setea un valor en una posición
-int set(sizeList_t *l, int i, size_t c)
+int set(process_List_t *l, int i, process_pag_t *c)
 {
     if (i >= 0 && i < l->len)
     {
@@ -56,7 +58,7 @@ int set(sizeList_t *l, int i, size_t c)
 }
 
 // Verifica que el índice se encuentre dentro del tamaño de la lista
-int validIndex(sizeList_t *l, int i)
+int validIndex(process_List_t *l, int i)
 {
     if (i < 0 || i > l->len) // check i is valid
         return -1;
@@ -64,10 +66,10 @@ int validIndex(sizeList_t *l, int i)
 }
 
 // Aumenta el tamaño de la lista si es necesario
-void increaseSize(sizeList_t *l)
+void increaseSize(process_List_t *l)
 {
     l->size = l->size * 2;
-    size_t *newData = (size_t *)realloc(l->data, l->size * sizeof(size_t));
+    process_pag_t **newData = (process_pag_t **)realloc(l->data, l->size * sizeof(process_pag_t *));
     if (newData != NULL)
     {
         l->data = newData;
@@ -80,7 +82,7 @@ void increaseSize(sizeList_t *l)
 }
 
 // Inserta un elemento en una posición definida
-int insert(sizeList_t *l, int i, size_t c)
+int insert(process_List_t *l, int i, process_pag_t *c)
 {
     // index was invalid
     if (validIndex(l, i) == -1)
@@ -99,7 +101,7 @@ int insert(sizeList_t *l, int i, size_t c)
 }
 
 // Inserta un elemento al final de la lista
-void push(sizeList_t *l, size_t c)
+void push(process_List_t *l, process_pag_t *c)
 {
     if (l->len == l->size)
         increaseSize(l);
@@ -107,42 +109,19 @@ void push(sizeList_t *l, size_t c)
     l->len++;
 }
 
-size_t *pop(sizeList_t *l)
+process_pag_t *pop(process_List_t *l)
 {
-    size_t *result = get(l, l->len - 1);
+    process_pag_t *result = get(l, l->len - 1);
     l->len--;
     if (l->len < l->size / 2)
     {
         l->size /= 2;
-        l->data = (size_t *)realloc(l->data, l->size * sizeof(size_t *));
-    }
-}
-// Función para imprimir todos los elementos de la lista
-void printAll(sizeList_t *l)
-{
-    printf("La lista tiene %d elementos:\n", l->len);
-    for (int i = 0; i < l->len; i++)
-    {
-        printf("%c ", l->data[i]);
-    }
-    printf("\n");
-}
-
-// Función para imprimir el elemento de una posición específica de la lista
-void printAt(sizeList_t *l, int i)
-{
-    if (i >= 0 && i < l->len)
-    {
-        printf("El elemento en la posición %d es: %c\n", i, l->data[i]);
-    }
-    else
-    {
-        printf("Posición inválida\n");
+        l->data = (process_pag_t **)realloc(l->data, l->size * sizeof(process_pag_t *));
     }
 }
 
 // Función para eliminar el elemento de una posición específica de la lista
-int deleteAt(sizeList_t *l, int i)
+int deleteAt(process_List_t *l, int i)
 {
     if (i < 0 || i >= l->len)
     { // Verificar si la posición es válida
@@ -161,7 +140,7 @@ int deleteAt(sizeList_t *l, int i)
     if (l->len < l->size / 2)
     {
         l->size /= 2;
-        l->data = (size_t *)realloc(l->data, l->size * sizeof(size_t));
+        l->data = (process_pag_t **)realloc(l->data, l->size * sizeof(process_pag_t *));
     }
 
     return 0;
