@@ -11,7 +11,7 @@ typedef struct {
     struct Node* head;
 } FreeList;
 
-void insert(FreeList* freeList, int size);
+void insert(FreeList* freeList, int value, int size);
 
 void print(FreeList* freeList);
 

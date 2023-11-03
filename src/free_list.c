@@ -13,9 +13,9 @@
 //     struct Node* head;
 // } FreeList;
 
-void insert(FreeList* freeList, int size) {
+void insert(FreeList* freeList, int value, int size) {
     struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
-    newNode->value = (int)malloc(size);
+    newNode->value = value;
     newNode->size = size;
     newNode->next = NULL;
 
