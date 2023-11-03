@@ -45,6 +45,10 @@ void m_pag_init(int argc, char **argv) {
   last_proc = 0;
   curr_proc = 0;
 
+  for (size_t i = 0; i < MAX_PROC_COUNT; i++) {
+    procs[i].pid = -1;
+  }
+
   is_init = true;
 }
 
@@ -65,7 +69,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
   // Guardar en out la direccion virtual donde estara la memoria
   out->addr = pos * PAGE_SIZE;
-  
+  out->size = size * PAGE_SIZE;
 
   // Guardar las paginas que se reservaron
   for (size_t i = pos; size; i++, size--) {

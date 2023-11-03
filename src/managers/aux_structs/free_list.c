@@ -28,7 +28,7 @@ void fl_init_list(free_list_t* list, size_t total_mem) {
 }
 
 void fl_reset_list(free_list_t* list, size_t total_mem) {
-    if (list->size > 0) {
+    if (list->size != 0) {
         // Vaciar la lista de los nodos existentes
         fl_node_t* node = list->head;
         while (node != NULL)
@@ -37,13 +37,14 @@ void fl_reset_list(free_list_t* list, size_t total_mem) {
             free(node);
             node = _node;
         }
+        list->size = 0;
     }
 
     fl_init_list(list, total_mem);
 }
 
 int fl_get_memory(free_list_t* list,size_t size, size_t* addr) {
-    if (list->size <= 0)return FAIL;
+    if (list->size == 0)return FAIL;
 
     int status = FAIL;
 
@@ -80,6 +81,9 @@ int fl_get_memory(free_list_t* list,size_t size, size_t* addr) {
 
                 //Actualizar el tamaño de la lista
                 list->size--;
+
+                // Actualizar la cabeza de la lista
+                list->head = node->next;
             }
             
             // Eliminar el nodo viejo
@@ -101,7 +105,7 @@ int fl_get_memory(free_list_t* list,size_t size, size_t* addr) {
 }
 
 int fl_free_memory(free_list_t* list,size_t size, size_t addr) {
-    if (size > list->size) return FAIL;
+    if (size > list->max_pos) return FAIL;
 
     // Si la lista esta vacia significa que se reservo toda la
     // memoria por lo que es valido liberarlo
@@ -119,10 +123,11 @@ int fl_free_memory(free_list_t* list,size_t size, size_t addr) {
 
     fl_node_t* node = list->head;
     while (node != NULL) {
-        size_t nxt_idx = (node->next != NULL) ? (size_t) node->next->pos : list->max_pos;
-
+        size_t prv_idx = node->pos + node->size;
+        size_t nxt_idx = (node->next != NULL) ? node->next->pos + node->next->size : list->max_pos;
+        
         // Buscar el espacio que deberia ser liberado
-        if (node->pos <= addr && addr <= nxt_idx) {
+        if ((prv_idx <= addr && addr + size <= nxt_idx) || (addr + size - 1 <= node->pos)) {
             // Crear un nuevo nodo para la memoria liberada
             fl_node_t* tmp = (fl_node_t*) malloc(sizeof(fl_node_t));
 
@@ -135,6 +140,25 @@ int fl_free_memory(free_list_t* list,size_t size, size_t addr) {
 
             //Actualizar el tamaño de la lista
             list->size++;
+
+            // Caso corner: la memoria a liberar esta al inicio
+            if (addr + size - 1 <= node->pos) {
+                list->head = tmp;
+                
+                // Si los nodos colisionan, se unen
+                if (node->pos == addr + size - 1) {
+                    tmp->next = node->next;
+                    tmp->size += node->size;
+                    free(node);
+                }
+                // Sino, solo se conectan
+                else {
+                    tmp->next = node;
+                }
+
+                status = SUCCESS;
+                break;
+            }
 
             // Si el nodo anterior colisiona con el actual, se fusionan
             if (prev != NULL && (size_t) prev->pos + prev->size == tmp->pos) {
