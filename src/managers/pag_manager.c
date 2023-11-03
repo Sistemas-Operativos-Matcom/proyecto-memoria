@@ -183,6 +183,7 @@ int m_pag_push(byte val, ptr_t *out) {
         printf("%i\n", current.pid);
         m_write(pos, val); 
         enstack(current.stack, p);
+        out = front(current.stack);
         current.data[i][j] = 2;
         printf("front %i\n", p);
         if (current.pid == 0 && p == 243) {

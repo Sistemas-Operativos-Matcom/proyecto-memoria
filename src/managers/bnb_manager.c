@@ -94,7 +94,7 @@ int m_bnb_push(byte val, ptr_t *out) {
   }
   // guarda y obten
   m_write(current.p_stack + current.base, val);
-  out = m_read(current.p_stack + current.base);
+  out = current.p_stack;
  
   current.p_stack--; 
   return 0;
