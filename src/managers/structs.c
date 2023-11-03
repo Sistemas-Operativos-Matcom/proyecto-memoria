@@ -70,16 +70,16 @@ void Push(bandb value, List *list)
 }
 
 // Métodos de la Linked List
-LFList Init_LF(size_t size)
+lf_list Init_LF(size_t size)
 {
-    LFelement node = {0, size, NULL, NULL};
-    LFList list = {node};
+    lf_element node = {0, size, NULL, NULL};
+    lf_list list = {node};
     return list;
 }
 
-void Free_Space(size_t address, size_t size, LFList *list)
+void Free_Space(size_t address, size_t size, lf_list *list)
 {
-    LFelement *node = &list->first;
+    lf_element *node = &list->first;
 
     if (address < node->start) // si el espacio a liberar esta antes que el primer nodo
     {
@@ -90,9 +90,9 @@ void Free_Space(size_t address, size_t size, LFList *list)
         }
         else
         {
-            LFelement *temp = malloc(sizeof(LFelement));
+            lf_element *temp = malloc(sizeof(lf_element));
             *temp = *node;
-            LFelement new = {address, size, NULL, temp};
+            lf_element new = {address, size, NULL, temp};
             list->first = new;
         }
     }
@@ -111,8 +111,8 @@ void Free_Space(size_t address, size_t size, LFList *list)
             }
             else
             {
-                LFelement *new = malloc(sizeof(LFelement));
-                LFelement element = {address, size, node, NULL};
+                lf_element *new = malloc(sizeof(lf_element));
+                lf_element element = {address, size, node, NULL};
                 *new = element;
                 node->next = new;
             }
@@ -130,12 +130,12 @@ void Free_Space(size_t address, size_t size, LFList *list)
             }
             else
             {
-                LFelement *temp1 = malloc(sizeof(LFelement));
-                LFelement *temp2 = malloc(sizeof(LFelement));
+                lf_element *temp1 = malloc(sizeof(lf_element));
+                lf_element *temp2 = malloc(sizeof(lf_element));
                 *temp1 = *node;
                 *temp2 = *node->next;
-                LFelement *new = malloc(sizeof(LFelement));
-                LFelement element = {address, size, temp1, temp2};
+                lf_element *new = malloc(sizeof(lf_element));
+                lf_element element = {address, size, temp1, temp2};
                 *new = element;
                 node->next->previous = new;
                 node->next = new;
@@ -144,10 +144,10 @@ void Free_Space(size_t address, size_t size, LFList *list)
     }
 }
 
-LFelement Fill_Space(size_t size, LFList *list)
+lf_element Fill_Space(size_t size, lf_list *list)
 {
 
-    LFelement *node = &list->first;
+    lf_element *node = &list->first;
 
     while (node->size < size)
     {
@@ -158,7 +158,7 @@ LFelement Fill_Space(size_t size, LFList *list)
     {
         if (node->previous == NULL && node->next == NULL)
         {
-            list->first = (LFelement){0, 0, NULL, NULL};
+            list->first = (lf_element){0, 0, NULL, NULL};
         }
 
         else if (node->previous == NULL)
@@ -181,7 +181,7 @@ LFelement Fill_Space(size_t size, LFList *list)
     else
     {
         node->size -= size;
-        return (LFelement){node->start + node->size, size, NULL, NULL};
+        return (lf_element){node->start + node->size, size, NULL, NULL};
     }
 }
 
@@ -238,4 +238,137 @@ void Remove_addr(byte dir_v, mask *list)
             Delete_dir(i, list);
         }
     }
+}
+
+book InitBook()
+{
+    dpage *start = malloc(64 * sizeof(dpage));
+    book new = {start, 0, 64};
+    return new;
+}
+
+void Check_Book_Size(book *book)
+{
+    if (book->lenght + 1 >= book->size)
+        book = realloc(book->start, book->size * 2);
+}
+
+void Add_DPage(page dir_v, page dir_r, book *book)
+{
+    Check_Book_Size(book);
+    dpage new = {dir_v, dir_r};
+    book->start[book->lenght] = new;
+    book->lenght++;
+}
+
+void Delete_Page(size_t position, book *book)
+{
+    for (size_t i = position; i < book->lenght; i++)
+    {
+        book->start[i] = book->start[i + 1];
+    }
+    book->lenght--;
+}
+
+void Remove_DPage(page pag, book *book)
+{
+    for (size_t i = 0; i < book->lenght; i++)
+    {
+        if (book->start[i].virtural_page.addr == pag.addr)
+        {
+            Delete_Page(i, book);
+        }
+    }
+}
+
+int Exist_Page(size_t number, book *book)
+{
+    for (size_t i = 0; i < book->lenght; i++)
+    {
+        if (book->start[i].virtural_page.page_num == number)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+page *Find_Page(size_t number, book *book)
+{
+    for (size_t i = 0; i < book->lenght; i++)
+    {
+        if (book->start[i].virtural_page.page_num == number)
+        {
+            return &book->start[i].real_page;
+        }
+    }
+    return NULL;
+}
+
+// Métodos de la lista de TablePages
+tablepagelist InitTable()
+{
+    tablepage *start = malloc(64 * sizeof(tablepage));
+    tablepagelist new = {start, 0, 64};
+    return new;
+}
+
+void Check_size_table(tablepagelist *list)
+{
+    if (list->length + 1 >= list->size)
+        list = realloc(list->start, list->size * 2);
+}
+
+void AddTable(process_t process, size_t heap, size_t stack, tablepagelist *list)
+{
+    Check_size_table(list);
+    book newbook = InitBook();
+    mask newmask = Init_Mask();
+    tablepage new = {process, newbook, heap, stack, newmask};
+    list->start[list->length] = new;
+    list->length++;
+}
+
+void DeleteTable(size_t position, tablepagelist *list)
+{
+    for (size_t i = position; i < list->length; i++)
+    {
+        list->start[i] = list->start[i + 1];
+    }
+    list->length--;
+}
+
+void RemoveTable(process_t process, tablepagelist *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (process.pid == list->start[i].process.pid)
+        {
+            DeleteTable(i, list);
+        }
+    }
+}
+
+tablepage *Find_table(process_t process, tablepagelist *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (process.pid == list->start[i].process.pid)
+        {
+            return &list->start[i];
+        }
+    }
+    return NULL;
+}
+
+int Exist_table(process_t process, tablepagelist *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (process.pid == list->start[i].process.pid)
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
