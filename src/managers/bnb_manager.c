@@ -94,8 +94,6 @@ int m_bnb_free(ptr_t ptr) {
   // Si ptr se encuentra dentro del rango reservado por el proceso actual
   if (start_addr <= ptr.addr && ptr.addr + ptr.size < start_addr + actual_size_addr) {
     STATE = 0;
-
-    m_unset_owner(ptr.addr, ptr.addr + ptr.size - 1);
     
     virtual_memory[start_addr].size -= ptr.size;    
   }
