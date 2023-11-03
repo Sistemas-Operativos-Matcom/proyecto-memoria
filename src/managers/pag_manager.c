@@ -97,11 +97,39 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr) {
-  size_t actual_page = (size_t)(ptr.addr / BLOCK_SIZE);
-  
-  // Todo
+  size_t actual_page_frame = (size_t)(ptr.addr / BLOCK_SIZE);
+  size_t end_page_frame = (size_t)((ptr.addr + ptr.size) / BLOCK_SIZE);
+  int found = 0;
 
-  return 1;
+  if (end_page_frame >= num_page_frames || ptr.size > linear_page_table[actual_process_index].heap) {
+    return 1;
+  }
+
+  for (size_t i = actual_page_frame; i < end_page_frame; i++)
+  {
+    if (virtual_memory[i] != actual_process_pid) {
+      found = 1;
+      break;
+    }
+  }
+  
+  if (found) {
+    return 1;
+  }
+  
+  linear_page_table[actual_process_index].heap -= ptr.size;
+  size_t page_frame;
+
+  for (size_t i = 0; i < PAGES; i++) {
+    page_frame = linear_page_table[actual_process_index].page_table[i];
+
+    if (page_frame > actual_page_frame && page_frame <= end_page_frame) {
+      m_unset_owner(page_frame * BLOCK_SIZE, (page_frame + 1) * BLOCK_SIZE - 1);
+      linear_page_table[actual_page_frame].page_table[i] = -1;
+    }
+  }
+
+  return 0;
 }
 
 // Agrega un elemento al stack
