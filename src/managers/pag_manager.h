@@ -32,4 +32,15 @@ void m_pag_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process);
 
+// Contiene la informacion relacionada a cada proceso
+typedef struct PTE {
+    byte is_allocated;
+
+    int owner;
+    size_t *page_table;
+
+    size_t heap;
+    size_t stack;
+} page_table_entry;
+
 #endif
