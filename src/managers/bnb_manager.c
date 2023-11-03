@@ -7,9 +7,7 @@ static process_t actual_proc;
 
 static List bnb;
 
-static LFList frees;
-
-static FILE *debug_bnb;
+static lf_list frees;
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv)
@@ -100,7 +98,7 @@ void m_bnb_on_ctx_switch(process_t process)
 {
     if (!Exist(process, &bnb)) // verifico primero que el proceso nuevo ya tenga un espacio en memoria reservado
     {
-        LFelement filled = Fill_Space(512, &frees);
+        lf_element filled = Fill_Space(512, &frees);
         mask newmask = Init_Mask();                                                                                                      // si no es asi le reservo 64 bytes de memoria
         bandb new = {process, filled.start, filled.size, filled.start + process.program->size, newmask, filled.start + filled.size - 1}; // creo un objeto bandb donde alammceno el proceso con su información de su memoria reservada
         Push(new, &bnb);                                                                                                                 // lo agrego a la lista de bandb
