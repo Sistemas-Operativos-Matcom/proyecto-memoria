@@ -8,10 +8,10 @@
 #include "../utils.h"
 #include "../tests.h"
 #include "../memory.c"
-
+#include "process_list.h"
 #define PAGE_SIZE 128
 
-sizeList_t *list_of_process;
+process_List_t *list_of_process;
 sizeList_t *free_page_frames;
 int is_list_of_process_created = 0;
 process_pag_t *current;
@@ -21,10 +21,10 @@ void m_pag_init(int argc, char **argv)
 {
   if (is_list_of_process_created)
   {
-    list_of_process = init();
+    list_of_process = p_init();
     is_list_of_process_created = 1;
   }
-  reset(list_of_process);
+  p_reset(list_of_process);
 
   sizeList_t *free_page_frames = init();
   free_page_frames->size = m_size() / PAGE_SIZE;
@@ -48,7 +48,7 @@ int m_pag_malloc(size_t size, ptr_t *out)
       {
         set(current->v_memory->heap, i - j, 1);
       }
-      out->addr = i - size - 1;
+      out->addr = (i - size - 1) + current->process.program->size;
       return 0;
     }
     if (get(current->v_memory->heap, i) == 0)
@@ -137,11 +137,11 @@ int m_pag_store(addr_t addr, byte val)
   //   }
 
   // poniendo en ocupado cierta pagina de current_process
-  for (size_t i = 0; i < physical_mem->free_page_frames->len; i++)
+  for (size_t i = 0; i < free_page_frames->len; i++)
   {
-    if (get(physical_mem->free_page_frames, i) == 0)
+    if (get(free_page_frames, i) == 0)
     {
-      set(physical_mem->free_page_frames, i, 1);
+      set(free_page_frames, i, 1);
       push(current->page_frames_indexed_by_virtual_pages, i); // add nueva pagina a la tabla de pagina de current process
       break;
     }
@@ -157,7 +157,7 @@ void m_pag_on_ctx_switch(process_t process)
   int is_new_process = 1;
   for (size_t i = 0; i < list_of_process->len; i++)
   {
-    if (get(list_of_process, i).process.pid == process.pid)
+    if (p_get(list_of_process, i)->process.pid == process.pid)
     {
       is_new_process = 0;
     }
@@ -166,16 +166,16 @@ void m_pag_on_ctx_switch(process_t process)
   {
     // inicializar las cosas del process_pag este
     process_pag_t *new_process = init_process_pag(process);
-    push(list_of_process, new_process); // arreglar list.c para q funcione con process tambien
+    p_push(list_of_process, new_process);
   }
   // sustituir
   if (list_of_process->len > 0)
   {
     for (size_t i = 0; i < length(list_of_process); i++)
     {
-      if (get(list_of_process, i).process.pid == process.pid) // arreglar get para q devuelva un process_page_t *
+      if (p_get(list_of_process, i)->process.pid == process.pid)
       {
-        current = get(list_of_process, i);
+        current = p_get(list_of_process, i);
       }
     }
   }
@@ -189,5 +189,5 @@ void m_pag_on_ctx_switch(process_t process)
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process)
 {
-  deleteAt(list_of_process, current->process.pid); // funciona asumiendo q siempre hagan el primer cambio de contexto a cada proceso en orden de su pid
+  p_deleteAt(list_of_process, current);
 }

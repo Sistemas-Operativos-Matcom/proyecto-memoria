@@ -4,14 +4,8 @@
 #include "process_pag.h"
 #include "process_list.h"
 
-// Devuelve la cantidad de elementos de la lista
-int length(process_List_t *list)
-{
-    return list->len;
-}
-
 // Inicializa la estructura
-process_List_t *init()
+process_List_t *p_init()
 {
     process_List_t *l = (process_List_t *)malloc(sizeof(process_List_t));
     l->len = 0;
@@ -21,7 +15,7 @@ process_List_t *init()
 }
 
 // Resetea la estructura ya instanciada
-void reset(process_List_t *l)
+void p_reset(process_List_t *l)
 {
     for (int i = 0; i < l->len; i++)
     {
@@ -34,7 +28,7 @@ void reset(process_List_t *l)
 }
 
 // Devuelve el proceso de una posición
-process_pag_t *get(process_List_t *l, int i)
+process_pag_t *p_get(process_List_t *l, int i)
 {
     if (i >= 0 && i < l->len)
         return l->data[i];
@@ -46,7 +40,7 @@ process_pag_t *get(process_List_t *l, int i)
 }
 
 // Setea un valor en una posición
-int set(process_List_t *l, int i, process_pag_t *c)
+int p_set(process_List_t *l, int i, process_pag_t *c)
 {
     if (i >= 0 && i < l->len)
     {
@@ -58,7 +52,7 @@ int set(process_List_t *l, int i, process_pag_t *c)
 }
 
 // Verifica que el índice se encuentre dentro del tamaño de la lista
-int validIndex(process_List_t *l, int i)
+int p_validIndex(process_List_t *l, int i)
 {
     if (i < 0 || i > l->len) // check i is valid
         return -1;
@@ -66,7 +60,7 @@ int validIndex(process_List_t *l, int i)
 }
 
 // Aumenta el tamaño de la lista si es necesario
-void increaseSize(process_List_t *l)
+void p_increaseSize(process_List_t *l)
 {
     l->size = l->size * 2;
     process_pag_t **newData = (process_pag_t **)realloc(l->data, l->size * sizeof(process_pag_t *));
@@ -82,14 +76,14 @@ void increaseSize(process_List_t *l)
 }
 
 // Inserta un elemento en una posición definida
-int insert(process_List_t *l, int i, process_pag_t *c)
+int p_insert(process_List_t *l, int i, process_pag_t *c)
 {
     // index was invalid
     if (validIndex(l, i) == -1)
         return -1;
 
     if (l->len == l->size)
-        increaseSize(l);
+        p_increaseSize(l);
 
     for (int j = l->len; j > i; j--)
         l->data[j] = l->data[j - 1];
@@ -101,15 +95,15 @@ int insert(process_List_t *l, int i, process_pag_t *c)
 }
 
 // Inserta un elemento al final de la lista
-void push(process_List_t *l, process_pag_t *c)
+void p_push(process_List_t *l, process_pag_t *c)
 {
     if (l->len == l->size)
-        increaseSize(l);
+        p_increaseSize(l);
     l->data[length(l)] = c;
     l->len++;
 }
 
-process_pag_t *pop(process_List_t *l)
+process_pag_t *p_pop(process_List_t *l)
 {
     process_pag_t *result = get(l, l->len - 1);
     l->len--;
@@ -121,7 +115,7 @@ process_pag_t *pop(process_List_t *l)
 }
 
 // Función para eliminar el elemento de una posición específica de la lista
-int deleteAt(process_List_t *l, int i)
+int p_deleteAt(process_List_t *l, int i)
 {
     if (i < 0 || i >= l->len)
     { // Verificar si la posición es válida
