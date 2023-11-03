@@ -67,22 +67,7 @@ int reserve(free_space* heap, int bound) {
   return -1;
 }
 
-// Función de prueba para imprimir los elementos de la lista
-void printList(free_space* heap) {
-  if (heap == NULL) {
-      printf("La lista está vacía.\n");
-      return;
-  }
-  
-  printf("Elementos en la lista: ");
-  while (heap != NULL) {
-      printf(": %d - ", heap->base);
-      printf("%d :", heap->bound);
-      heap = heap->next;
-  }
-  printf("\n");
-}
-
+// Pregunta si esa direccion pertenece a algun espacio libre
 int belong(free_space* heap, int addr) {
 
   if (heap == NULL) {
@@ -104,10 +89,10 @@ int belong(free_space* heap, int addr) {
   
 }
 
+// Pregunta en la free list si hay un espacio vacio de un size especifico
 int isFree(free_space* heap, int base, int bound) {
 
   if (heap == NULL) {
-    // printf("La lista está vacía.\n");
     return 0;
   }
 
@@ -156,6 +141,7 @@ int insert(free_space* heap, int base, int bound) {
   return 0;
 }
 
+// Funcion para eliminar la free list
 void destroid(free_space* heap) {
   free_space* temp;
   while (heap != NULL)
@@ -362,3 +348,4 @@ void totalfree() {
   // fclose(fichero);
   free(mem_partition);
 }
+

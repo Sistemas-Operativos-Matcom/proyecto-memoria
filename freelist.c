@@ -42,96 +42,53 @@ void zip(free_space* temp) {
     }
 }
 
-
 // Función para insertar un elemento al final de la lista
 void insert(free_space* head, int base, int bound) {
     free_space* newfree_space = createfree_space(base, bound);
     
-    if (head == NULL) {
-        head = newfree_space;
+    if (head->base == -2 && head->next == NULL) {
+        head->next = newfree_space;
     }
     else
     {
-        free_space* temp = head;
         // Iterar por los espacios libres hasta encontrar el lugar en el que debería ir este espacio nuevo
-        while (temp->next != NULL && temp->next->base < base)
+        while (head->next != NULL && head->next->base < base)
         {
-            temp = temp->next;
+            head = head->next;
         }
-        newfree_space->next = temp->next;
-        temp->next = newfree_space;
+        newfree_space->next = head->next;
+        head->next = newfree_space;
 
-        zip(temp);
-        // // Revisar si puedo fusionar el espacio que quiero añadir al anterior
-        // if (temp->base + temp->bound == base)
-        // {
-        //     temp->bound = temp->bound + bound;
-        //     printf("Elemento %d actualizado correctamente.\n", temp->base);
-        //     return;
-        // }
-
-        // // Revisar si puedo fusionar el espacio que quiero añadir al siguiente
-        // if (temp->next != NULL && base + bound == temp->next->base)
-        // {
-        //     temp->next->base = base;
-        //     temp->next->bound = temp->next->bound + bound;
-        //     printf("Elemento %d actualizado correctamente.\n", base);
-        //     return;
-        // }
-        
-        
+        zip(head);
         
     }
 
-    // printf("Elemento insertado correctamente.");
+    printf("Elemento insertado correctamente.");
 }
 
 // Reservar espacio en la FreeList
 void delete(free_space* head, int bound) {
-    if (head == NULL) {
+    if (head->base == -2 && head->next == NULL) {
         printf("La lista está vacía.\n");
         return;
     }
 
-    free_space* current = head;
-
-    // if (current->base == base) {
-    //     head = current->next;
-    //     free(current);
-    //     printf("Elemento %d borrado correctamente.\n", base);
-    //     return;
-    // }
-
-    // while (current != NULL && current->base != base) {
-    //     previous = current;
-    //     current = current->next;
-    // }
-
-    // if (current == NULL) {
-    //     printf("Elemento %d no encontrado en la lista.\n", base);
-    //     return;
-    // }
-
-    // previous->next = current->next;
-    // free(current);
-    // printf("Elemento %d borrado correctamente.\n", base);
-
     // Buscar el lugar para ocupar
-    while (current->bound < bound && current->next != NULL)
+    while (head->bound < bound && head->next != NULL)
     {
-        current = current->next;
+        head = head->next;
     }
 
-    if(current == NULL)
+    if(head->base == -2)
     {
-        printf("Imposible reservar, no hay espacio libre");
+        printf("Imposible reservar, no hay espacio libre\n");
         return;
     }
 
-    if(current->bound > bound)
+    if(head->bound > bound)
     {
-        current->bound = current->bound - bound;
-        printf("Espacio reservado correctamente");
+        head->bound = head->bound - bound;
+        printf("Espacio reservado correctamente\n");
         return;
     }
     
@@ -139,16 +96,16 @@ void delete(free_space* head, int bound) {
 
 // Función de prueba para imprimir los elementos de la lista
 void printList(free_space* head) {
-    if (head == NULL) {
+    if (head->base == -2 && head->next == NULL) {
         printf("La lista está vacía.\n");
         return;
     }
-    free_space* temp = head;
+    
     printf("Elementos en la lista: ");
-    while (temp != NULL) {
-        printf(": %d - ", temp->base);
-        printf("%d :", temp->bound);
-        temp = temp->next;
+    while (head->next != NULL) {
+        printf(": %d - ", head->next->base);
+        printf("%d :", head->next->bound);
+        head = head->next;
     }
     printf("\n");
 }
@@ -171,3 +128,4 @@ int main(int argc, char const *argv[])
 
 //         5-10          15-10         25-3
 // ----- | ----- ----- | ----- ----- | ---
+
