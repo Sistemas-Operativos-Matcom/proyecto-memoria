@@ -32,4 +32,22 @@ void m_bnb_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process);
 
+// Devuelve la posicion en el array de vm del pid
+// si no esta devuelve la primera posicion desocupada
+int find_pid(int pid);
+
+// Virtual memory con todos sus datos
+// ip --> instruction pointer (final del heap)
+// fake_ip --> instruction pointer (donde se guardo el ultimo dato)
+// sp --> stack pointer (inicio del stack)
+typedef struct vm {
+  addr_t base;
+  addr_t ip;
+  int *owner_ptr_heap;
+  addr_t fake_ip;
+  addr_t sp;
+  addr_t bounds;
+  int pid;
+} vm_t;
+
 #endif

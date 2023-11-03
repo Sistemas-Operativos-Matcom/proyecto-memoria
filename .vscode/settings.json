@@ -1,6 +1,9 @@
 {
     "files.associations": {
         "memory.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "random": "c",
+        "limits": "c",
+        "test,txt": "c"
     }
 }
