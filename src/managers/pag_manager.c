@@ -47,21 +47,23 @@ void zip_pag(free_space* temp) {
 // Reservar espacio en el heap y retorna -1 o la dirección reservada
 int reserve_pag(free_space* heap, int bound) {
   
+
   // No hay espacios libres en el heap
   if (heap->base == -2) {
       return -1;
   }
 
   // Buscar el lugar para ocupar
-  while (heap->base != -2)
+  while (heap != NULL)
   {
-    heap = heap->next;
-  
+
     if(heap->bound > bound)
     {
       heap->bound -= bound;
       return heap->bound;
     }
+
+    heap = heap->next;
   }
 
   return -1;
@@ -161,9 +163,9 @@ void destroid_pag(free_space* heap) {
 // Estructura del contexto
 typedef struct Context {
   int pid;
-  free_space* heap_freeLists[200];
-  int heap_pages[200];
-  int stack_pages[200];
+  free_space* heap_freeLists[32];
+  int heap_pages[32];
+  int stack_pages[32];
   int stack_pointer;
 } t_context;
 
@@ -172,98 +174,223 @@ typedef struct Context {
 int* phisic_memory;  // direcciones de la memoria fisica
 t_context* processes; // array de contextos de los procesos en curso
 int phisic_memory_total; // cantidad de pages frames de la memoria fisica
-int current_process_index;
+int current_process_index_pag;
+
+// Funcion para pedir una nueva pageframe
+int reserve_pageframe() {
+
+  for (int i = 0; i < phisic_memory_total; i++)
+  {
+    if (phisic_memory[i] == -1)
+    {
+      phisic_memory[i] = processes[current_process_index_pag].pid;
+      m_set_owner(i*32, i*32 + 31);
+      return i;
+    }
+  }
+
+  // VALIDAR QUE HACER CON ESTE RETORNO 
+  return -1;
+  
+}
+
+// Liberar una pageframe
+void free_pageframe(int page_index) {
+  
+  phisic_memory[page_index] = -1;
+  m_unset_owner(page_index*32, page_index*32 + 31);
+
+}
+
+
+
+
 
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv) {
   
-  current_process_index = -1;
+  current_process_index_pag = -1;
   int memory = m_size(); // memoria total
-  phisic_memory_total = memory/128;
+  phisic_memory_total = (int)(memory/32);
   phisic_memory = (int*)malloc(sizeof(int)*phisic_memory_total);
 
-  // Inicializando la lista de contextos
-  processes = (t_context*)malloc(sizeof(t_context)*200);
+  for (int i = 0; i < phisic_memory_total; i++)
+  {
+    phisic_memory[i] = -1;
+  }
   
-  for (int i = 0; i < 100; i++)
+
+  // Inicializando la lista de contextos
+  processes = (t_context*)malloc(sizeof(t_context)*10);
+  
+  for (int i = 0; i < 10; i++)
   {
     processes[i].pid = -1;
   }
-  
+
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_pag_malloc(size_t size, ptr_t *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+
+  int heap_page_index = 0;
+  while (heap_page_index < 32 && processes[current_process_index_pag].heap_freeLists[heap_page_index]->base != -2)
+  {
+
+    int addr = reserve_pag(processes[current_process_index_pag].heap_freeLists[heap_page_index], size);
+
+    if (addr != -1)
+    {
+      out->addr = 32*heap_page_index + addr;
+      return 0;
+    }
+
+    heap_page_index++;
+  }
+
+  if (heap_page_index == 32)
+  {
+    return 1;
+  }
+
+  processes[current_process_index_pag].heap_pages[heap_page_index] = reserve_pageframe();
+  processes[current_process_index_pag].heap_freeLists[heap_page_index] = createfree_space_pag(0, 32-size);
+
+  out->addr = 32*heap_page_index + 32-size;
+
+  return 0;
+  
 }
 
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  return 0;
 }
 
 // Agrega un elemento al stack
 int m_pag_push(byte val, ptr_t *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  
+  int page_index = (int)(processes[current_process_index_pag].stack_pointer/32);
+
+  if (processes[current_process_index_pag].stack_pages[page_index] == -1)
+  {
+    processes[current_process_index_pag].stack_pages[page_index] = reserve_pageframe();
+  }
+  
+  int page = processes[current_process_index_pag].stack_pages[page_index];
+  int offset = (int)(processes[current_process_index_pag].stack_pointer % 32);
+
+  m_write(32*page + offset, val);
+
+  processes[current_process_index_pag].stack_pointer++;
+    
+  // FILE* fichero;
+  // fichero = fopen("hola.txt", "a");
+  // fprintf(fichero, "direccion %d\n", 32*page + offset);
+  // fclose(fichero);
+  return 0;
 }
 
 // Quita un elemento del stack
 int m_pag_pop(byte *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  
+  processes[current_process_index_pag].stack_pointer--;
+
+  int stack = processes[current_process_index_pag].stack_pointer;
+  if (stack % 32 == 31)
+  {
+    free_pageframe((stack + 1)/32);
+  }
+
+  int page = processes[current_process_index_pag].stack_pages[stack/32];
+
+  *out = m_read(32*page + stack%32);
+  return 0;
 }
 
 // Carga el valor en una dirección determinada
 int m_pag_load(addr_t addr, byte *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  
+  int page = processes[current_process_index_pag].heap_pages[(int)(addr/32)];
+
+  *out = m_read(32*page + (addr % 32));
+
+  return 0;
+  
 }
 
 // Almacena un valor en una dirección determinada
 int m_pag_store(addr_t addr, byte val) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  
+  // Verificar que la pagina a la que pertenece la direccion
+  // haya sido reservada por el proceso
+  int page = processes[current_process_index_pag].heap_pages[(int)(addr/32)];
+  if (phisic_memory[page] != processes[current_process_index_pag].pid)
+  {
+    return 1;
+  }
+
+  // Verificar que la direccion no es un espacio libre en el heap
+  if (belong_pag(processes[current_process_index_pag].heap_freeLists[(int)(addr/32)],addr))
+  {
+    // FILE* fichero;
+    // fichero = fopen("hola.txt", "a");
+    // fprintf(fichero, "hola %d\n", (int)(addr/32));
+    // fclose(fichero);
+    return 1;
+  }
+    // FILE* fichero;
+    // fichero = fopen("hola.txt", "a");
+    // fprintf(fichero, "hola %d\n", page);
+    // fclose(fichero);
+
+  m_write(32*page + (addr % 32), val);
+  return 0;
+  
 }
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_pag_on_ctx_switch(process_t process) {
   
   // Si el proceso ya fue inicializado cambiar de contexto
-  for (size_t i = 0; i < 100; i++)
+  for (size_t i = 0; i < 10; i++)
   {
     if (processes[i].pid == process.pid)
     {
-      current_process_index = i;
+      current_process_index_pag = i;
       return;
     }
   }
 
   // En caso que el proceso sea nuevo
-  for (size_t i = 0; i < 100; i++)
+  for (int i = 0; i < 10; i++)
   {
     if (processes[i].pid == -1)
     {
-      current_process_index = i;
+      current_process_index_pag = i;
       // Inicializar el contexto
       processes[i].pid = process.pid;
       processes[i].stack_pointer = 0;
-      for (int j = 0; j < 200; j++)
+
+      for (int j = 0; j < 32; j++)
       {
         processes[i].heap_freeLists[j] = createfree_space_pag(-2,0);
       }
-      for (int j = 0; j < 200; j++)
+      processes[i].heap_freeLists[0] = createfree_space_pag(0,31);
+
+      for (int j = 0; j < 32; j++)
       {
         processes[i].heap_pages[j] = -1;
       }
-      for (int j = 0; j < 200; j++)
+      processes[i].heap_pages[0] = reserve_pageframe();
+      
+      for (int j = 0; j < 32; j++)
       {
         processes[i].stack_pages[j] = -1;
       }
+      processes[i].stack_pages[0] = reserve_pageframe();
       
       return;
     }
@@ -273,6 +400,44 @@ void m_pag_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  
+  for (int i = 0; i < 10; i++)
+  {
+    if (processes[i].pid == process.pid)
+    {
+      int count = 0;
+      // while (processes[i].heap_freeLists[count]->base != 2)
+      // {
+      //   destroid_pag(processes[i].heap_freeLists[count]);
+      //   count++;
+      // }
+
+      count = 0;
+      while (processes[i].heap_pages[count] != -1)
+      {
+        free_pageframe(processes[i].heap_pages[count]);
+        count++;
+      }
+
+      count = 0;
+      while (processes[i].stack_pages[count] != -1)
+      {
+        free_pageframe(processes[i].stack_pages[count]);
+        count++;
+      }
+      
+      processes[i].pid = -1;
+      return;
+    }
+    
+  }
+  
 }
+
+// Liberar estructuras reservadas en pag
+void m_pag_totalfree() {
+
+  free(processes);
+  free(phisic_memory);
+}
+

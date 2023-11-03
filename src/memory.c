@@ -148,6 +148,7 @@ void set_curr_owner(int owner) {
 
 void mem_end() {
   totalfree();
+  m_pag_totalfree();
   fprintf(g_log_file, "end");
   clean();
 }

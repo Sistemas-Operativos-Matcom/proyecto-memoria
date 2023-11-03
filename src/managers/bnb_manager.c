@@ -169,13 +169,13 @@ typedef struct Context {
 
 // Variables globales
 t_context* mem_partition; 
-int current_process_index;
+int current_process_index_bnb;
 int total_count_process;
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
 
-  current_process_index = -1;
+  current_process_index_bnb = -1;
   // Reservar espacios para trabajar con tantos procesos en la memoria segun su capacidad
   int memory = m_size(); // memoria total
   total_count_process = memory/1024;
@@ -193,7 +193,7 @@ void m_bnb_init(int argc, char **argv) {
 int m_bnb_malloc(size_t size, ptr_t *out) {
 
   // Reservar espacio en el heap del proceso
-  int addr = reserve(mem_partition[current_process_index].heap, size);
+  int addr = reserve(mem_partition[current_process_index_bnb].heap, size);
   // FILE* fichero;
   // fichero = fopen("hola.txt", "a");
   // fprintf(fichero, "hola %d\n", 0);
@@ -201,23 +201,23 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
   if (addr == -1)
   {
     // Si en el heap no hay espacio libre comprobar que al incrementar el tamaño del heap no se solapa con el stack
-    int p_stack = mem_partition[current_process_index].ptr_stack;
-    if(mem_partition[current_process_index].ptr_stack == 0)
+    int p_stack = mem_partition[current_process_index_bnb].ptr_stack;
+    if(mem_partition[current_process_index_bnb].ptr_stack == 0)
     {
       p_stack = 1024;
     }
     
-    if (mem_partition[current_process_index].heap_size + (int)size >= p_stack)
+    if (mem_partition[current_process_index_bnb].heap_size + (int)size >= p_stack)
     {
       // printf("%d\n",(int)size);
-      // printf("%d\n",mem_partition[current_process_index].ptr_stack);
+      // printf("%d\n",mem_partition[current_process_index_bnb].ptr_stack);
       printf("No se puede reservar espacio porque no hay suficiente\nProgram Terminated\n");
 		  return 1;
     }
     else
     {
-      out->addr = mem_partition[current_process_index].heap_size;
-      mem_partition[current_process_index].heap_size += size;
+      out->addr = mem_partition[current_process_index_bnb].heap_size;
+      mem_partition[current_process_index_bnb].heap_size += size;
       return 0;
     }
   }
@@ -230,17 +230,17 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 // (preguntar si liberar un espacio que ya estaba libre debe ser causa de algun error o retornar 1 ===== si)
 int m_bnb_free(ptr_t ptr) {
 
-  return insert(mem_partition[current_process_index].heap ,ptr.addr ,ptr.size);
+  return insert(mem_partition[current_process_index_bnb].heap ,ptr.addr ,ptr.size);
   
 }
 
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out) {
   
-  m_write(mem_partition[current_process_index].ptr_stack, val);
-  out = m_read(mem_partition[current_process_index].ptr_stack);
-  // printf("direccion push %d\n", mem_partition[current_process_index].ptr_stack); 
-  mem_partition[current_process_index].ptr_stack -= 1;
+  m_write(mem_partition[current_process_index_bnb].ptr_stack, val);
+  out = m_read(mem_partition[current_process_index_bnb].ptr_stack);
+  // printf("direccion push %d\n", mem_partition[current_process_index_bnb].ptr_stack); 
+  mem_partition[current_process_index_bnb].ptr_stack -= 1;
 
   return 0;
 }
@@ -248,8 +248,8 @@ int m_bnb_push(byte val, ptr_t *out) {
 // Quita un elemento del stack
 int m_bnb_pop(byte *out) {
 
-  mem_partition[current_process_index].ptr_stack += 1;
-  *out = m_read(mem_partition[current_process_index].ptr_stack);
+  mem_partition[current_process_index_bnb].ptr_stack += 1;
+  *out = m_read(mem_partition[current_process_index_bnb].ptr_stack);
 
   return 0;
 }
@@ -257,11 +257,11 @@ int m_bnb_pop(byte *out) {
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
   
-  int base = mem_partition[current_process_index].base;
-  int heap_addr = mem_partition[current_process_index].heap_addr;
+  int base = mem_partition[current_process_index_bnb].base;
+  int heap_addr = mem_partition[current_process_index_bnb].heap_addr;
 
   // Verificar que addr sea una dirección que ya haya reservado
-  if (belong(mem_partition[current_process_index].heap, addr) || (mem_partition[current_process_index].heap_size < addr && addr <= mem_partition[current_process_index].ptr_stack))
+  if (belong(mem_partition[current_process_index_bnb].heap, addr) || (mem_partition[current_process_index_bnb].heap_size < addr && addr <= mem_partition[current_process_index_bnb].ptr_stack))
   {
     // printf("hoo");
     return 1;
@@ -274,11 +274,11 @@ int m_bnb_load(addr_t addr, byte *out) {
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
   
-  int base = mem_partition[current_process_index].base;
-  int heap_addr = mem_partition[current_process_index].heap_addr;
+  int base = mem_partition[current_process_index_bnb].base;
+  int heap_addr = mem_partition[current_process_index_bnb].heap_addr;
 
   // Verificar que addr sea una dirección que ya haya reservado
-  if (belong(mem_partition[current_process_index].heap, (int)addr) || (mem_partition[current_process_index].heap_size < (int)addr && (int)addr < mem_partition[current_process_index].ptr_stack))
+  if (belong(mem_partition[current_process_index_bnb].heap, (int)addr) || (mem_partition[current_process_index_bnb].heap_size < (int)addr && (int)addr < mem_partition[current_process_index_bnb].ptr_stack))
   {
     return 1;
   }
@@ -297,7 +297,7 @@ void m_bnb_on_ctx_switch(process_t process) {
   {
     if(mem_partition[i].pid == process.pid)
     {
-      current_process_index = i;
+      current_process_index_bnb = i;
       return;
     }
   }
@@ -308,7 +308,7 @@ void m_bnb_on_ctx_switch(process_t process) {
     {
       // printf("%d to %d\n",1024*i, 1024*i + 1023);
       m_set_owner(1024*i,1024*i + 1023);
-      current_process_index = i;
+      current_process_index_bnb = i;
       mem_partition[i].pid = process.pid;
       mem_partition[i].base = 1024*i;
       mem_partition[i].heap = createfree_space(-2,0);
@@ -323,7 +323,6 @@ void m_bnb_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
-
 
   // Buscar el proceso para terminarlo
   for (int i = 0; i < total_count_process; i++)
@@ -340,6 +339,7 @@ void m_bnb_on_end_process(process_t process) {
   }
 }
 
+// Liberar estructuras reservadas en el bnb
 void totalfree() {
 
   // FILE* fichero;

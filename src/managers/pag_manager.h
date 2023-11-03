@@ -32,4 +32,7 @@ void m_pag_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process);
 
+// Liberar estructuras reservadas en pag
+void m_pag_totalfree();
+
 #endif
