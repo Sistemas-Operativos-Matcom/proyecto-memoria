@@ -139,6 +139,7 @@ void test_case_003() {
 
   ctx_switch(processes[0]);
   ptr_t p0_x = mem_malloc(6);
+  // printf("hola4 -- %d\n", p0_x.addr);
   mem_store(at(p0_x), 10);
   mem_store(at(p0_x) + 1, 20);
   mem_store(at(p0_x) + 2, 30);

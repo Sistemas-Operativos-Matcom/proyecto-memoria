@@ -14,7 +14,14 @@ void m_bnb_init(int argc, char **argv) {
   bounds = 1024;
   currentContext = 0;
 
+  // *spaces = ptr_t *spaces;
   spaces = (ptr_t *)malloc(m_size()/bounds * sizeof(ptr_t));
+  
+  for (size_t i = 0; i < m_size()/bounds; i++)
+  {
+    spaces[i].ocupado = 0;
+  }
+  
 
   for (size_t i = 0; i < m_size()/bounds; i++)
   {
@@ -35,15 +42,13 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
   if (bloque != NULL) {
       // printf("Bloque de memoria disponible de tamaño %d encontrado.\n", bloque->size);
   } else {
-      printf("No se encontró un bloque de memoria disponible del tamaño deseado.\n");
+      // printf("No se encontró un bloque de memoria disponible del tamaño deseado.\n");
       return 1;
   }
-  // printf("\n");
+
 
   out->size = size;
   out->addr = bloque->value;
-
-  // printf("puntero reservaI -- %d\n", out->addr);
 
   
   // Eliminar bloque de memoria disponible
@@ -65,18 +70,17 @@ int m_bnb_free(ptr_t ptr) {
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out) {
 
-  out = spaces[currentContext].topStack;
   m_write( spaces[currentContext].addr + spaces[currentContext].topStack, val);
+  out = m_read(spaces[currentContext].addr + spaces[currentContext].topStack);
+
   spaces[currentContext].topStack--;
   return 0;
 }
 
 // Quita un elemento del stack
 int m_bnb_pop(byte *out) {
-  spaces[currentContext].topStack = spaces[currentContext].topStack + spaces[currentContext].addr + 1;
-  // printf("hola4 -- %d\n",  spaces[currentContext].topStack);
-  *out = spaces[currentContext].topStack;
-  printf("hola4 -- %d\n", *out);
+  spaces[currentContext].topStack++;
+  *out = m_read(spaces[currentContext].addr + spaces[currentContext].topStack);//
   return 0;
 }
 
@@ -88,7 +92,6 @@ int m_bnb_load(addr_t addr, byte *out) {
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
-  // printf("%d\n---------------",  addr);
   m_write(addr, val);
   return 0;
 }
@@ -98,10 +101,8 @@ void m_bnb_on_ctx_switch(process_t process) {
 
   int foundIt = 0;
   int space = -1;
-  // // printf("%d\n---------------", ((process_t)(&spaces[0].addr)).pid);
   for (size_t i = 0; i < m_size()/bounds; i++)
   {
-    // printf("hola %d\n", spaces[i].process.pid);
     if (spaces[i].process.pid == process.pid)
     {
       currentContext = i;
@@ -116,13 +117,11 @@ void m_bnb_on_ctx_switch(process_t process) {
 
   if(space != -1)
   {
-
     spaces[space].ocupado = 1;
     spaces[space].process = process;
     currentContext = space;
     m_set_owner(spaces[currentContext].addr, spaces[currentContext].addr + bounds-1);
     insert(&spaces[space].freeList, spaces[currentContext].addr + process.program->size, (bounds - process.program->size)/2 );
-    // printf("codigo -- %d\n", process.program->size);
   }
   
 }
@@ -132,6 +131,7 @@ void m_bnb_on_end_process(process_t process) {
   for (size_t i = 0; i < m_size()/bounds; i++)
   {
     if(spaces[i].ocupado && spaces[i].process.pid == process.pid){
+      m_unset_owner(spaces[currentContext].addr, spaces[currentContext].addr + bounds-1);
       spaces[i].ocupado = 0;
       return;
     }
