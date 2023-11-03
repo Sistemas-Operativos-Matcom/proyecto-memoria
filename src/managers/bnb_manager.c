@@ -2,10 +2,20 @@
 
 #include "stdio.h"
 
+// Crea el espacio virtual de la memoria
 static memory_block *virtual_memory;
+
+// Contiene la direccion donde comienza el bloque al que pertenecen
+// los procesos 
 static size_t *process_addr;
+
+// Contiene la direccion donde comienza el bloque del proceso actual
 static size_t actual_start_addr;
+
+// Contiene la cantidad de bloques en que estaa dividida la memoria
 static int cant_blocks;
+
+// Contiene el ID del proceso actual
 static int actual_process_pid;
 
 #define BLOCK_SIZE 1024
