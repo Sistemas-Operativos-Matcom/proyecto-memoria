@@ -1,6 +1,6 @@
 #ifndef PCB
 
-#include "address_space.h"
+#include "../address_space.h"
 
 // PCB stands for Process Control Block
 typedef struct pcb *pcb;

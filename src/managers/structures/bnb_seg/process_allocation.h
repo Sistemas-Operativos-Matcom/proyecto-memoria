@@ -1,6 +1,6 @@
 #ifndef PROCESS_ALLOCATION
 
-#include "../space_block.h"
+#include "pcb.h"
 
 typedef struct process_allocation *process_allocation;
 struct process_allocation
