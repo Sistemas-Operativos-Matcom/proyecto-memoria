@@ -120,7 +120,6 @@ void m_bnb_on_ctx_switch(process_t process)
       if (block != NULL)
       {
         m_set_owner(block->start, block->end);
-        break;
       }
     }
   }

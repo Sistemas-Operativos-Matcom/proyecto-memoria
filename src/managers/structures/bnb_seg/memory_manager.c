@@ -147,6 +147,13 @@ pcb create_process_seg(memory_manager manager, int pid, size_t code_size)
     add_process_allocation(manager, pid, heap_bounds[0], heap_bounds[1] - 1);
     add_process_allocation(manager, pid, stack_bounds[0], stack_bounds[1] - 1);
 
+    printf("code_l: %lld \n", code_bounds[0]);
+    printf("code_u: %lld \n", code_bounds[1] - 1);
+    printf("heap_l: %lld \n", heap_bounds[0]);
+    printf("heap_u: %lld \n", heap_bounds[1] - 1);
+    printf("stack_l: %lld \n", stack_bounds[0]);
+    printf("stack_u: %lld \n", stack_bounds[1] - 1);
+
     return new_pcb(pid, code_size, heap_bounds[0], heap_bounds[1] - 1, stack_bounds[0], stack_bounds[1] - 1);
 }
 
@@ -155,6 +162,7 @@ bool change_process_mm(memory_manager manager, process_t process, bool on_bnb)
 {
     pcb _pcb = find_process(manager, process.pid);
 
+    printf("Cuba: %d \n", process.pid);
     if (_pcb == NULL)
     {
         if (on_bnb)
