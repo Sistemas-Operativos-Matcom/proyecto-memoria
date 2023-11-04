@@ -27,6 +27,7 @@ typedef struct ptr {
   addr_t topStack;
   process_t process;
   FreeList freeList;
+  addr_t topHeap;
 } ptr_t;
 
 #endif

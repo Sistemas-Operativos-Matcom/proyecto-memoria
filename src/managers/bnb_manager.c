@@ -43,7 +43,14 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
       // printf("Bloque de memoria disponible de tamaño %d encontrado.\n", bloque->size);
   } else {
       // printf("No se encontró un bloque de memoria disponible del tamaño deseado.\n");
-      return 1;
+      if(spaces[currentContext].topHeap + size < spaces[currentContext].topStack)
+      {
+        insert(&spaces[currentContext].freeList, spaces[currentContext].addr + spaces[currentContext].topHeap,  size);
+        spaces[currentContext].topHeap += size;
+        bloque = search(&spaces[currentContext].freeList, size);
+      }
+      else
+        return 1;
   }
 
 
@@ -69,6 +76,9 @@ int m_bnb_free(ptr_t ptr) {
 
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out) {
+
+  if(spaces[currentContext].topHeap == spaces[currentContext].topStack-1)
+    return 1;
 
   m_write( spaces[currentContext].addr + spaces[currentContext].topStack, val);
   out = m_read(spaces[currentContext].addr + spaces[currentContext].topStack);
@@ -119,9 +129,9 @@ void m_bnb_on_ctx_switch(process_t process) {
   {
     spaces[space].ocupado = 1;
     spaces[space].process = process;
+    spaces[space].topHeap = process.program->size +1;
     currentContext = space;
-    m_set_owner(spaces[currentContext].addr, spaces[currentContext].addr + bounds-1);
-    insert(&spaces[space].freeList, spaces[currentContext].addr + process.program->size, (bounds - process.program->size)/2 );
+    m_set_owner(spaces[space].addr, spaces[space].addr + bounds-1);
   }
   
 }
