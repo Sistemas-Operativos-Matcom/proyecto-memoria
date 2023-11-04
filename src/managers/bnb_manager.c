@@ -33,8 +33,8 @@ int m_bnb_malloc(size_t size, ptr_t *out)
 int m_bnb_free(ptr_t ptr)
 {
     bandb *proc = Find(actual_proc, &bnb);
-    byte from_addr = Search_addr(ptr.addr, &proc->mask_addr);
-    byte to_addr = from_addr + ptr.size;
+    size_t from_addr = Search_addr(ptr.addr, &proc->mask_addr);
+    size_t to_addr = from_addr + ptr.size;
     for (size_t i = to_addr; i < proc->heap; i++)
     {
         m_write(from_addr, m_read(to_addr));

@@ -1,7 +1,5 @@
-#include "mem_sim.h"
-
 #include <stdio.h>
-
+#include "mem_sim.h"
 #include "manager.h"
 #include "memory.h"
 #include "utils.h"

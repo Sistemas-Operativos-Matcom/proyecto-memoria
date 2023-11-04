@@ -30,8 +30,23 @@ int m_seg_malloc(size_t size, ptr_t *out)
 // Libera un espacio de memoria dado un puntero.
 int m_seg_free(ptr_t ptr)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  seg_register *reg = Search_Register(actual_proc, &reg_list);
+  size_t from_addr = Search_addr(ptr.addr, &reg->mask);
+  size_t to_addr = from_addr + ptr.size;
+  for (size_t i = to_addr; i < reg->heap_pointer; i++)
+  {
+    m_write(from_addr, m_read(to_addr));
+    from_addr++;
+  }
+  for (size_t i = 0; i < reg->mask.length; i++)
+  {
+    if (reg->mask.start[i].addr_v >= ptr.addr)
+    {
+      reg->mask.start[i].addr_r -= ptr.size;
+    }
+  }
+  reg->heap_pointer -= ptr.size;
+  return 0;
 }
 
 // Agrega un elemento al stack

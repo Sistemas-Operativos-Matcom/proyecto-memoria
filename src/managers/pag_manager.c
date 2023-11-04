@@ -29,8 +29,23 @@ int m_pag_malloc(size_t size, ptr_t *out)
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  tablepage *table = Find_table(actual_proc, &tablelist);
+  size_t from_addr = Search_addr(ptr.addr, &table->mask);
+  size_t to_addr = from_addr + ptr.size;
+  for (size_t i = to_addr; i < table->heap; i++)
+  {
+    m_write(from_addr, m_read(to_addr));
+    from_addr++;
+  }
+  for (size_t i = 0; i < table->mask.length; i++)
+  {
+    if (table->mask.start[i].addr_v >= ptr.addr)
+    {
+      table->mask.start[i].addr_r -= ptr.size;
+    }
+  }
+  table->heap -= ptr.size;
+  return 0;
 }
 
 // Agrega un elemento al stack
