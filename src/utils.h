@@ -28,6 +28,8 @@ typedef struct ptr {
   process_t process;
   FreeList freeList;
   addr_t topHeap;
+
+  FreeList Stack;
 } ptr_t;
 
 #endif

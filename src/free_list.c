@@ -49,6 +49,37 @@ struct Node* search(FreeList* freeList, int size) {
     return NULL;
 }
 
+struct Node* grownIf(FreeList* freeList, int size) {
+    struct Node* temp = freeList->head;
+    while (temp != NULL) {
+        if (temp->size < size) {
+            temp->size++;
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+struct Node* grownThis(FreeList* freeList, int value) {
+    struct Node* temp = freeList->head;
+    while (temp != NULL) {
+        if (temp->value == value) {
+            temp->size++;
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+struct Node* searchL(FreeList* freeList) {
+    struct Node* temp = freeList->head;
+    while (temp->next != NULL) {
+        temp = temp->next;
+    }
+    return temp;
+}
+
 void delete(FreeList* freeList, struct Node* node) {
     if (node == freeList->head) {
         freeList->head = freeList->head->next;
@@ -59,8 +90,26 @@ void delete(FreeList* freeList, struct Node* node) {
         }
         temp->next = node->next;
     }
-    // free((void*)node->value);
-    // free(node);
+}
+
+void deleteLast(FreeList* freeList) {
+    
+    struct Node* temp = freeList->head;
+    struct Node* temp2 = temp->next;
+
+    if(temp2 == NULL)
+    {
+        temp->next = NULL;
+        return;
+    }
+
+    while (temp2->next != NULL) {
+        temp = temp2->next;
+        temp2 = temp2->next;
+    }
+
+    temp->next = NULL;
+
 }
 
 // int main() {
