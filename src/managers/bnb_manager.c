@@ -53,6 +53,9 @@ void m_bnb_init(int argc, char **argv) {
     virtual_memory[i].is_allocated = 0;
     virtual_memory[i].owner = NO_ONWER;
     virtual_memory[i].size = 0;
+
+    /* Reseteo la direccion del proceso */
+    process_addr[i] = -1;
   }
 }
 
@@ -60,6 +63,21 @@ void m_bnb_init(int argc, char **argv) {
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out) {
   int found = 1;
+
+  if (process_addr[actual_process_pid] != -1lu) {
+
+    if (virtual_memory[actual_start_addr].stack - virtual_memory[actual_start_addr].heap >= size) {
+      out->addr = virtual_memory[actual_start_addr].heap;
+      out->size = size;
+      
+      virtual_memory[actual_start_addr].heap += size;
+      virtual_memory[actual_start_addr].size += size;
+
+      return 0;
+    }
+
+    return 1;
+  }
 
   // Busca un bloque libre de tamanio mayor o igual que size, lo reserva con m_set_owner
   for (size_t i = 0, addr = 0; addr < m_size(); i ++, addr += BLOCK_SIZE) {
@@ -73,10 +91,11 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 
       virtual_memory[i].is_allocated = 1;
       virtual_memory[i].owner        = actual_process_pid;
-      virtual_memory[i].size         = size;
+      virtual_memory[i].size         += size;
+      virtual_memory[i].heap         += size;
       
       out->addr = addr + CODE_SIZE;
-      out->size = 1;
+      out->size = size;
 
       break;
     }
@@ -89,13 +108,16 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 int m_bnb_free(ptr_t ptr) {
   int STATE = 1;
   size_t start_addr = virtual_memory[actual_start_addr].start_addr;
-  size_t actual_size_addr  = virtual_memory[actual_start_addr].size;
+  size_t actual_heap  = virtual_memory[actual_start_addr].heap;
 
   // Si ptr se encuentra dentro del rango reservado por el proceso actual
-  if (start_addr <= ptr.addr && ptr.addr + ptr.size < start_addr + actual_size_addr) {
+  if (start_addr <= ptr.addr && ptr.addr + ptr.size <= actual_heap) {
     STATE = 0;
     
-    virtual_memory[start_addr].size -= ptr.size;    
+    printf(">> size: %lu\n", ptr.size);
+
+    virtual_memory[actual_start_addr].heap -= ptr.size;
+    virtual_memory[actual_start_addr].size -= ptr.size;
   }
   
   return STATE;
@@ -174,6 +196,7 @@ void m_bnb_on_end_process(process_t process) {
   size_t end_addr  = virtual_memory[actual_start_addr].end_addr;
   
   m_unset_owner(start_addr, end_addr);
+  process_addr[process.pid] = -1;
 
   virtual_memory[addr].heap = start_addr;
   virtual_memory[addr].stack = end_addr;

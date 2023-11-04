@@ -77,6 +77,22 @@ void m_pag_init(int argc, char **argv) {
 int m_pag_malloc(size_t size, ptr_t *out) {
   int found = 1;
 
+  size_t page = linear_page_table[actual_process_index].heap / BLOCK_SIZE;
+
+  if (linear_page_table[actual_process_index].page_table[page] != -1lu) {
+    size_t into_page_frame = linear_page_table[actual_process_index].heap % BLOCK_SIZE;
+
+    if (BLOCK_SIZE - into_page_frame >= size) {
+      linear_page_table[actual_process_index].heap += size;
+      
+      return 0;
+    }
+
+    size_t rest = BLOCK_SIZE - into_page_frame;
+    linear_page_table[actual_process_index].heap += rest;
+    size -= rest;
+  }
+
   for(size_t i = 0; i < num_page_frames; i++) {
     if (virtual_memory[i] == -1) {
       found = 0;
@@ -86,6 +102,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
       virtual_memory[i] = actual_process_pid;
       linear_page_table[actual_process_index].page_table[0] = i;
+      linear_page_table[actual_process_index].heap += size;
       m_set_owner(i * BLOCK_SIZE, (i + 1) * BLOCK_SIZE - 1);
 
       break;
