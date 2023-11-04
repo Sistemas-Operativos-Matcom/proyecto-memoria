@@ -4,6 +4,17 @@
 #include "../memory.h"
 #include "../utils.h"
 
+typedef struct info_proceso {
+    byte asignado;
+
+    int usuario;
+    size_t *page_table;
+
+    size_t heap;
+    size_t stack;
+} info_proceso_t;
+
+
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv);
 
