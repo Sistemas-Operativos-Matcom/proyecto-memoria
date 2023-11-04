@@ -10,9 +10,9 @@ typedef struct Piece
     int process;
 } Piece_t;
 
-typedef struct List
-{
-    Piece_t pieces[m_size() / 1024];
-}List_t;
+// typedef struct List
+// {
+//     Piece_t *pieces;
+// }List_t;
 
 #endif
