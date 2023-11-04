@@ -2,6 +2,9 @@
 
 #include "memory_manager.h"
 
+static const float SIZE_PROPORTION = 0.15;
+static size_t STANDARD_SIZE;
+
 // from bnb/seg memory manager
 process_allocation find_allocation_mm(memory_manager manager, int pid)
 {
@@ -61,6 +64,8 @@ bool remove_process_allocation(memory_manager manager, int pid)
 
 memory_manager new_memory_manager(size_t memory_size)
 {
+    STANDARD_SIZE = memory_size * SIZE_PROPORTION;
+
     memory_manager manager = (memory_manager)malloc(sizeof(struct memory_manager));
     manager->memory_size = memory_size;
 
@@ -126,6 +131,9 @@ pcb create_process_bnb(memory_manager manager, int pid, size_t code_size)
 {
     size_t process_size = code_size + STANDARD_SIZE;
     addr_t *bounds = get_space_free_list(manager->space_list, process_size, first_fit);
+    
+    if (bounds == NULL)
+        fprintf(stderr, "Out of memory"), exit(1);
 
     add_process_allocation(manager, pid, bounds[0], bounds[1] - 1);
 
@@ -142,6 +150,9 @@ pcb create_process_seg(memory_manager manager, int pid, size_t code_size)
     addr_t *code_bounds = get_space_free_list(manager->space_list, code_size, first_fit);
     addr_t *heap_bounds = get_space_free_list(manager->space_list, STANDARD_SIZE / 2, first_fit);
     addr_t *stack_bounds = get_space_free_list(manager->space_list, STANDARD_SIZE / 2, first_fit);
+
+    if (code_bounds == NULL || heap_bounds == NULL || stack_bounds == NULL)
+        fprintf(stderr, "Out of memory"), exit(1);
 
     add_process_allocation(manager, pid, code_bounds[0], code_bounds[1] - 1);
     add_process_allocation(manager, pid, heap_bounds[0], heap_bounds[1] - 1);
@@ -162,7 +173,6 @@ bool change_process_mm(memory_manager manager, process_t process, bool on_bnb)
 {
     pcb _pcb = find_process(manager, process.pid);
 
-    printf("Cuba: %d \n", process.pid);
     if (_pcb == NULL)
     {
         if (on_bnb)

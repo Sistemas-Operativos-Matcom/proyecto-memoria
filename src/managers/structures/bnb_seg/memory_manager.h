@@ -1,6 +1,6 @@
 #ifndef MEMORY_MANAGER
 
-#define STANDARD_SIZE 500
+// #define STANDARD_SIZE 1000
 
 #include "../../../utils.h"
 #include "process_allocation.h"

@@ -32,7 +32,7 @@ int m_seg_malloc(size_t size, ptr_t *out)
 int m_seg_free(ptr_t ptr)
 {
   address_space virtual_space = manager->current->virtual_space;
-  if (!deallocate_as(virtual_space, ptr.addr, ptr.addr + ptr.size - 1))
+  if (!deallocate_as(virtual_space, ptr.addr, ptr.addr + ptr.size))
     return FALSE;
   return TRUE;
 }
