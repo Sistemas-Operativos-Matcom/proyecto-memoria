@@ -11,7 +11,6 @@ static FILE *debug_pag;
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv)
 {
-  debug_pag = fopen("./Debug/Debug.txt", "w");
   free_list = Init_LF(m_size());
   tablelist = InitTable();
 }

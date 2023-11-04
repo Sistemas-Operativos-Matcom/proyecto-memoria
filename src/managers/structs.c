@@ -372,3 +372,69 @@ int Exist_table(process_t process, tablepagelist *list)
     }
     return 0;
 }
+
+// Métodos de la lista de registros
+
+register_list Init_Register_List()
+{
+    seg_register *start = malloc(64 * sizeof(seg_register));
+    register_list new = {start, 0, 64};
+    return new;
+}
+
+void Check_size_register(register_list *list)
+{
+    if (list->length + 1 >= list->size)
+        list = realloc(list->start, list->size * 2);
+}
+
+void Add_Register(process_t process, segment code, segment heap, segment stack, register_list *list)
+{
+    Check_size_register(list);
+    mask newmask = Init_Mask();
+    seg_register new = {process, code, heap, stack, stack.base + stack.bound - 1, heap.base, newmask};
+    list->start[list->length] = new;
+    list->length++;
+}
+
+seg_register *Search_Register(process_t process, register_list *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (list->start[i].process.pid == process.pid)
+        {
+            return &list->start[i];
+        }
+    }
+    return NULL;
+}
+
+int Exist_Register(process_t process, register_list *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (list->start[i].process.pid == process.pid)
+            return 1;
+    }
+    return 0;
+}
+
+void Delete_Register(size_t position, register_list *list) // Elimina el elemento en la posición dada
+{
+    for (size_t i = position; i < list->length - 1; i++)
+    {
+        list->start[i] = list->start[i + 1];
+    }
+    list->length--;
+}
+
+void Remove_Register(process_t process, register_list *list)
+{
+    for (size_t i = 0; i < list->length; i++)
+    {
+        if (list->start[i].process.pid == process.pid)
+        {
+            Delete_Register(i, list);
+        }
+    }
+}

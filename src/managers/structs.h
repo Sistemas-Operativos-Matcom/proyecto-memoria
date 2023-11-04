@@ -85,6 +85,30 @@ typedef struct TablePageList
 
 } tablepagelist;
 
+typedef struct Segment
+{
+    size_t base;
+    size_t bound;
+} segment;
+
+typedef struct Seg_register
+{
+    process_t process;
+    segment code_segment;
+    segment heap_segment;
+    segment stack_segment;
+    size_t stack_pointer;
+    size_t heap_pointer;
+    mask mask;
+} seg_register;
+
+typedef struct Register_List
+{
+    seg_register *start;
+    size_t length;
+    size_t size;
+} register_list;
+
 // Métodos de la Lista
 
 List Init();
@@ -143,3 +167,15 @@ void RemoveTable(process_t process, tablepagelist *list);
 tablepage *Find_table(process_t process, tablepagelist *list);
 
 int Exist_table(process_t process, tablepagelist *list);
+
+// Métodos de la lista de registros de segmentos
+
+register_list Init_Register_List();
+
+int Exist_Register(process_t process, register_list *list);
+
+void Add_Register(process_t process, segment code, segment heap, segment stack, register_list *list);
+
+seg_register *Search_Register(process_t process, register_list *list);
+
+void Remove_Register(process_t process, register_list *list);

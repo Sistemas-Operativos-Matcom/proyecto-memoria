@@ -78,8 +78,10 @@ int m_bnb_load(addr_t addr, byte *out)
     bandb *proc = Find(actual_proc, &bnb);
     size_t address = Search_addr(addr, &proc->mask_addr);
     if (address == 0)
-        return 1;
-    *out = m_read(address);
+        *out = m_read(addr);
+    else
+        *out = m_read(address);
+
     return 0;
 }
 
