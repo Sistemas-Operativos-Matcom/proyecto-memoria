@@ -29,7 +29,7 @@ static void Connect(Node *node, Node *next, Node *prev, List *list)
     }
 }
 
-//----------------------------------------------------LISTAS-----------------------------------------------------
+//-----------------------------------------------------LISTAS---------------------------------------------------
 
 // Inicializar una lista
 void List_Init(List *list, size_t total_memory)
@@ -135,6 +135,7 @@ int Get_Mem(List *list, size_t size, size_t *addr)
     return status;
 }
 
+// Liberar el primer fragmento de memoria con espacio disponible
 int Free_Mem(List *list, size_t size, size_t addr)
 {
     // La lista es muy pequeña en comparación con el tamaño solicitado
@@ -223,4 +224,41 @@ int Free_Mem(List *list, size_t size, size_t addr)
         list->head = list->tail = NULL;
     }
     return status;
+}
+
+//-----------------------------------------------------PAGINACIÓN-----------------------------------------------
+
+// Inicializar estructura Pagination
+void Pag_Init(Pagination *proc, int pid, size_t size)
+{
+    proc->process_id = pid;
+    proc->virtual_page_number = (size_t *)malloc(size * sizeof(size_t));
+    proc->is_page_valid = (bool *)malloc(size * sizeof(bool));
+    proc->total_memory_size = size;
+    proc->is_process_working = true;
+    proc->stack_pointer = LAST_ADDR;
+    for (size_t i = 0; i < size; i++)
+    {
+        proc->is_page_valid[i] = false;
+    }
+}
+
+// Encontrar el primer espacio con n páginas adyacentes vacías
+size_t Find_Empty_Pages(const Pagination *proc, size_t n)
+{
+    size_t count = 0;
+    size_t last_pos = 0;
+    for (size_t i = 0; i < proc->total_memory_size; i++)
+    {
+        if (count == n)
+            return last_pos;
+        if (!proc->is_page_valid[i])
+            count++;
+        else
+        {
+            count = 0;
+            last_pos = i + 1;
+        }
+    }
+    return ~0;
 }
