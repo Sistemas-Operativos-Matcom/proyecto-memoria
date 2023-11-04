@@ -38,7 +38,7 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 
   //Compruebo que la nueva posicion del instruction pointer no sobrepase la del stack pointer
   if (memories[dir].ip + size >= memories[dir].sp) {
-    printf("Accediste al espacio del stack %i + %i >= %i\n", memories[dir].ip, size, memories[dir].sp);
+    printf("Accediste al espacio del stack");
     return 1;
   } 
 
@@ -55,7 +55,8 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr) {
   int count = 0;
-  for (size_t j = ptr.addr; memories[dir].owner_ptr_heap[j] == ptr.addr; j++)
+  int compare = ptr.addr;
+  for (size_t j = ptr.addr; memories[dir].owner_ptr_heap[j] == compare; j++)
   {
     memories[dir].owner_ptr_heap[j] = -1;
     count++;
@@ -65,7 +66,7 @@ int m_bnb_free(ptr_t ptr) {
   ptr.size = 0;
   ptr.addr = -1;
   return 0;
-}
+} 
 
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out) {

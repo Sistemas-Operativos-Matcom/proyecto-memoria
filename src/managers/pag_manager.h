@@ -32,4 +32,17 @@ void m_pag_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process);
 
+// Pagina y toda su informacion
+// pte: direccion para convertir a binario
+// valid: si contiene informacion (no se si lo use)
+// bits de proteccion: si puede escribir, leer, etc (no se si lo use)
+// pfn: numero de pagina fisica
+typedef struct page_info {
+  int pte;
+  int pfn;
+  int owner;
+  int data;
+  int datainit;
+  int *owner_ptr_pg;
+} page_info_t;
 #endif
