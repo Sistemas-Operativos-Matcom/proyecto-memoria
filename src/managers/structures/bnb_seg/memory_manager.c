@@ -1,6 +1,9 @@
+#include <stdio.h>
+
 #include "memory_manager.h"
 
-process_allocation find_allocation(memory_manager manager, int pid)
+// from bnb/seg memory manager
+process_allocation find_allocation_mm(memory_manager manager, int pid)
 {
     for (size_t i = 0; i < manager->memory_size; i++)
     {
@@ -15,7 +18,7 @@ void add_process_allocation(memory_manager manager, int pid, addr_t from, addr_t
 {
     // Exception to convention in this case
     space_block block = new_space_block(from, to);
-    process_allocation allocation = find_allocation(manager, pid);
+    process_allocation allocation = find_allocation_mm(manager, pid);
 
     if (allocation == NULL)
     {
@@ -79,7 +82,7 @@ memory_manager new_memory_manager(size_t memory_size)
 
 pcb find_process(memory_manager manager, int pid)
 {
-    for (int i = 0; i < manager->memory_size; i++)
+    for (size_t i = 0; i < manager->memory_size; i++)
     {
         pcb _pcb = manager->pcbs[i];
         if (_pcb != NULL && _pcb->pid == pid)
@@ -91,7 +94,7 @@ pcb find_process(memory_manager manager, int pid)
 
 bool add_process(memory_manager manager, pcb _pcb)
 {
-    for (int i = 0; i < manager->memory_size; i++)
+    for (size_t i = 0; i < manager->memory_size; i++)
     {
         if (manager->pcbs[i] == NULL)
         {
@@ -105,7 +108,7 @@ bool add_process(memory_manager manager, pcb _pcb)
 
 bool remove_process(memory_manager manager, int pid)
 {
-    for (int i = 0; i < manager->memory_size; i++)
+    for (size_t i = 0; i < manager->memory_size; i++)
     {
         pcb _pcb = manager->pcbs[i];
         if (_pcb != NULL && _pcb->pid == pid)
@@ -124,14 +127,11 @@ pcb create_process_bnb(memory_manager manager, int pid, size_t code_size)
     size_t process_size = code_size + STANDARD_SIZE;
     addr_t *bounds = get_space_free_list(manager->space_list, process_size, first_fit);
 
-    int i = bounds[0];
-    int h = bounds[1];
-
     add_process_allocation(manager, pid, bounds[0], bounds[1] - 1);
 
     addr_t heap_from = bounds[0] + code_size;
-    addr_t heap_to = heap_from - 1 + STANDARD_SIZE;
-    addr_t stack_from = heap_from + STANDARD_SIZE;
+    addr_t heap_to = heap_from - 1 + STANDARD_SIZE / 2;
+    addr_t stack_from = heap_from + STANDARD_SIZE / 2;
     addr_t stack_to = bounds[1] - 1;
 
     return new_pcb(pid, code_size, heap_from, heap_to, stack_from, stack_to);
@@ -151,7 +151,7 @@ pcb create_process_seg(memory_manager manager, int pid, size_t code_size)
 }
 
 // from memory bnb/seg memory manager
-void change_process_mm(memory_manager manager, process_t process, bool on_bnb)
+bool change_process_mm(memory_manager manager, process_t process, bool on_bnb)
 {
     pcb _pcb = find_process(manager, process.pid);
 
@@ -163,9 +163,13 @@ void change_process_mm(memory_manager manager, process_t process, bool on_bnb)
             _pcb = create_process_seg(manager, process.pid, process.program->size);
 
         add_process(manager, _pcb);
+
+        manager->current = _pcb;
+        return TRUE;
     }
 
     manager->current = _pcb;
+    return FALSE;
 }
 
 // from memory bnb/seg memory manager

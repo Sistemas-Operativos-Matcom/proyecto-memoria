@@ -99,9 +99,6 @@ bool allocate_as(address_space space, size_t size, addr_t *pointer)
 {
     addr_t *bounds = get_space_free_list(space->heap_list, size, first_fit);
 
-    int i = bounds[0];
-    int j = bounds[1];
-
     if (bounds == NULL)
         return FALSE;
 
@@ -117,9 +114,6 @@ bool allocate_as(address_space space, size_t size, addr_t *pointer)
 
 bool deallocate_as(address_space space, addr_t start, addr_t end)
 {
-    // start -= (space->code_end + 1);
-    // end -= (space->code_end + 1);
-
     if (!is_valid_allocation(space, start, end))
         return FALSE;
     if (!remove_allocation(space, start, end))

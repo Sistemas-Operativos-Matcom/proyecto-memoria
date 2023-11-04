@@ -16,7 +16,8 @@ struct memory_manager
 };
 
 memory_manager new_memory_manager(size_t memory_size);
-void change_process_mm(memory_manager manager, process_t process, bool on_bnb);
+process_allocation find_allocation_mm(memory_manager manager, int pid);
+bool change_process_mm(memory_manager manager, process_t process, bool on_bnb);
 void remove_process_mm(memory_manager manager, process_t process);
 
 #endif

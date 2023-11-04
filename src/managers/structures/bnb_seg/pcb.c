@@ -30,10 +30,10 @@ bool translate_virtual_to_physical_heap(pcb process, addr_t virtual_address, add
 // from bnb/seg pcb
 bool translate_virtual_to_physical_stack(pcb process, addr_t virtual_address, addr_t *physical_address)
 {
-    addr_t gap = (process->virtual_space->size - 1) - virtual_address;
+    long long gap = (long long)(process->virtual_space->size - 1) - (long long)virtual_address;
     size_t stack_size = process->virtual_space->stack_to - process->virtual_space->stack_from;
 
-    if (gap < 0 || gap >= stack_size || gap > process->virtual_space->stack_count)
+    if (gap < 0 || (size_t)gap >= stack_size || gap > process->virtual_space->stack_count)
         return FALSE;
 
     *physical_address = process->physical_stack_to - gap;

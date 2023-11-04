@@ -181,10 +181,10 @@ bool remove_index_free_list(free_list list, addr_t index)
 
 void sort_space_blocks(space_block *blocks, size_t length)
 {
-    for (int i = 0; i < length - 1; i++)
+    for (size_t i = 0; i < length - 1; i++)
     {
         space_block smallest = blocks[i];
-        for (int j = i + 1; j < length; j++)
+        for (size_t j = i + 1; j < length; j++)
         {
             space_block temp;
             if (blocks[j]->start < smallest->start)
