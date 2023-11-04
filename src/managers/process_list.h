@@ -40,11 +40,10 @@ void p_increaseSize(process_List_t *l);
 int p_insert(process_List_t *l, int i, process_pag_t *c);
 
 // Appends the element c at the end of the list
-void p_push(process_List_t *l, size_t c);
+void p_push(process_List_t *l, process_pag_t *c);
 
 // Removes and returns the last element from the list
 process_pag_t *p_pop(process_List_t *l);
-
 
 // Deletes the element at index i from the list
 int p_deleteAt(process_List_t *l, int i);

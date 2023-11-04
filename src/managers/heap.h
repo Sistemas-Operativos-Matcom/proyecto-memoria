@@ -7,9 +7,9 @@
 
 typedef struct heap
 {
-    sizeList_t *heap;
+    sizeList_t *list;
     size_t start_virtual_pointer;
 } heap_t;
 
-heap_t *ini_heap();
+heap_t *init_heap(process_t process);
 #endif

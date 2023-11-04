@@ -11,7 +11,7 @@ typedef struct stack
     size_t sp;
 } stack_t;
 
-stack_t *init_stack(size_t size, size_t stack_pointer);
+stack_t *init_stack(size_t size, size_t program_size);
 
 void Push(size_t value, sizeList_t *stack);
 

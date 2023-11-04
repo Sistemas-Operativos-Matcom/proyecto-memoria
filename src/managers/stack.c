@@ -3,11 +3,11 @@
 #include "stack.h"
 #include "list.h"
 
-stack_t *init_stack(size_t size, size_t stack_pointer)
+stack_t *init_stack(size_t size, size_t program_size)
 {
     stack_t *new_stack = (stack_t *)malloc(sizeof(stack_t));
     new_stack->size_reserve = size;
-    new_stack->sp = stack_pointer;
+    new_stack->sp = size + program_size;
 }
 
 void Push(size_t value, sizeList_t *stack)

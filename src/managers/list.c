@@ -107,9 +107,9 @@ void push(sizeList_t *l, size_t c)
     l->len++;
 }
 
-size_t *pop(sizeList_t *l)
+size_t pop(sizeList_t *l)
 {
-    size_t *result = get(l, l->len - 1);
+    size_t result = get(l, l->len - 1);
     l->len--;
     if (l->len < l->size / 2)
     {

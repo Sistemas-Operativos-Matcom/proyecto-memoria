@@ -122,7 +122,7 @@ int p_deleteAt(process_List_t *l, int i)
         return -1;
     }
 
-    // Desplazar los elementos a la izquierda para sobrescribir el elemento en la posición i
+        // Desplazar los elementos a la izquierda para sobrescribir el elemento en la posición i
     for (int j = i; j < l->len - 1; j++)
     {
         l->data[j] = l->data[j + 1];
