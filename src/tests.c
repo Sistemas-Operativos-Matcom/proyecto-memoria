@@ -201,6 +201,97 @@ void test_case_003() {
   end_sim();
 }
 
+
+///
+///   CUSTOM CASES
+///
+void test_case_p_stress_mem() {
+  setup_test_case(KB_SIZE(8), "case_p_stress");
+  process_t processes[] = {
+      PROCESS_FROM(0),
+  };
+
+  ctx_switch(processes[0]);    
+  ptr_t p0_x = mem_malloc(50);
+  mem_push(100);
+  ptr_t p1_x = mem_malloc(500);
+
+  
+  end_process(processes[0]);
+  end_sim();
+}
+
+void test_case_p_free_mem() {
+  setup_test_case(KB_SIZE(8), "case_p_free");
+  process_t processes[] = {
+      PROCESS_FROM(0),
+  };
+
+  ctx_switch(processes[0]);    
+  ptr_t p0_x = mem_malloc(50);
+  mem_push(100);
+  ptr_t p1_x = mem_malloc(500);
+  mem_free(p1_x);
+  ptr_t p2_x = mem_malloc(500);
+  
+  end_process(processes[0]);
+  end_sim();
+}
+
+void test_case_p_complex_procs() {
+  setup_test_case(KB_SIZE(8), "case_p_complex_procs");
+  process_t processes[] = {
+      PROCESS_FROM(0),
+      PROCESS_FROM(1),
+  };
+
+  ctx_switch(processes[0]);    
+  ptr_t p0_x = mem_malloc(50);
+  mem_push(100);
+  ptr_t p1_x = mem_malloc(500);
+  mem_free(p1_x);
+  ptr_t p2_x = mem_malloc(500);
+  
+  end_process(processes[0]);
+
+  ctx_switch(processes[1]);
+  ptr_t p01_x = mem_malloc(50);
+  mem_push(100);
+  ptr_t p11_x = mem_malloc(500);
+  mem_free(p1_x);
+  ptr_t p21_x = mem_malloc(500);
+
+  end_process(processes[1]);
+  end_sim();
+}
+
+void test_case_p_freelist() {
+  setup_test_case(KB_SIZE(8), "case_p_freelist");
+  process_t processes[] = {
+      PROCESS_FROM(0),
+  };
+
+  // Round 1
+  ctx_switch(processes[0]);
+  ptr_t p01_x = mem_malloc(50);
+  ptr_t p02_x = mem_malloc(30);
+  ptr_t p03_x = mem_malloc(60);
+  ptr_t p04_x = mem_malloc(30);
+  m_free(p02_x);
+  m_free(p04_x);
+  m_free(p03_x);
+  m_free(p01_x);
+
+  // Round 2
+  ptr_t p05_x = mem_malloc(1000);
+  ptr_t p06_x = mem_malloc(10);
+  m_free(p05_x);
+  m_free(p06_x);
+
+  end_process(processes[0]);
+  end_sim();
+}
+
 void run_tests(int argc, char **argv) {
   init_programs();
   run_argc = argc;
@@ -208,4 +299,8 @@ void run_tests(int argc, char **argv) {
   test_case_001();
   test_case_002();
   test_case_003();
+  test_case_p_stress_mem();
+  test_case_p_free_mem();
+  test_case_p_complex_procs();
+  test_case_p_freelist(); // Este es para el pagination solamente (que los otros mueran es normal)
 }
