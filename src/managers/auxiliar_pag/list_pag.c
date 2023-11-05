@@ -1,21 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "list_pag.h"
-IntList *Init_l_pag()
+pList *Init_l_pag()
 {
-    IntList *l = (IntList *)malloc(sizeof(IntList));
+    pList *l = (pList *)malloc(sizeof(pList));
     l->len = 0;
     l->size = 10; // cantidad mayor que 0
     l->data = (process_pag *)malloc(l->size * sizeof(process_pag));
     return l;
 }
-int Free_l_pag(IntList *l)
+int Free_l_pag(pList *l)
 {
     free(l->data);
     free(l);
     return 1;
 }
-int Push_l_pag(IntList *l, process_pag v)
+int Push_l_pag(pList *l, process_pag v)
 {
     // inserto al final de la lista
     if (l->size == l->len + 1)
@@ -27,7 +27,7 @@ int Push_l_pag(IntList *l, process_pag v)
     l->len = l->len + 1;
     return 1;
 }
-int RemovePos_l_pag(IntList *l, size_t p)
+int RemovePos_l_pag(pList *l, size_t p)
 {
     // elimino el valor en la posicion p y corro una pos a la izquierda el resto de los elementos
     if (l->len <= p)
@@ -39,7 +39,7 @@ int RemovePos_l_pag(IntList *l, size_t p)
     l->len = l->len - 1;
     return 1;
 }
-/* void Print_pag(IntList *l)
+/* void Print_pag(pList *l)
 {
     printf("\n [");
     for (int i = 0; i < l->len - 1; i++)
@@ -48,7 +48,7 @@ int RemovePos_l_pag(IntList *l, size_t p)
     }
     printf("%d]\n", l->data[l->len - 1]);
 } */
-int Contains_l_pag(IntList *l, int pid)
+int Contains_l_pag(pList *l, int pid)
 {
     for (size_t i = 0; i < l->len; i++)
     {

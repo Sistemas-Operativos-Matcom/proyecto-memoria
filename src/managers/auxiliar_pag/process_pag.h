@@ -4,13 +4,6 @@
 
 typedef struct Process
 {
-    /*
-     size_t *pag_code;
-     size_t *pag_heap;
-     size_t pag_heap_pos;
-     size_t *pag_stack;
-     size_t pag_stack_pos;
-     */
     int pid;
     size_t *pag_process;
     size_t pag_process_c;

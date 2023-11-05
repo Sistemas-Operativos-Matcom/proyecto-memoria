@@ -20,6 +20,9 @@ void Free_p_pag(process_pag *p)
      free(p->pag_code);
      free(p->pag_heap);
      free(p->pag_stack); */
+    // for (size_t i = 0; i < p->pag_process_c; i++)
+    // free(p->pag_process_free[i]);
+    free(p->pag_process_free);
     free(p->pag_process);
     free(p);
 }

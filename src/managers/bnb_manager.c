@@ -7,10 +7,10 @@
 // reservar memoria para el código del programa.
 static addr_t puntero;
 static process_bb *process_act;
-static IntList *l;
+static pList *l;
 static size_t *virtual_mem;
 static size_t virtual_mem_c;
-static size_t bb_value = 256;
+static size_t bb_value = 512;
 
 /*
   Se llama cada vez que se inicia un caso de prueba. Recibe como parámetros la
@@ -59,7 +59,8 @@ int m_bnb_malloc(size_t size, ptr_t *out)
       }
       if (j == size)
       {
-        out->addr = process_act->base + i;
+        // devuelvo como addr a la dirección de mi memoria virtual.
+        out->addr = i;
         out->size = size;
         for (size_t j = 0; j < size; j++)
           process_act->memory[i + j] = 1;
@@ -68,15 +69,6 @@ int m_bnb_malloc(size_t size, ptr_t *out)
       }
       else
         i += j;
-
-      /* out->addr = process_act->base + i;
-      out->size = size;
-      for (size_t j = 0; j < size; j++)
-      {
-        process_act->memory[i + j] = 1;
-      }
-      return 0;
-      break; */
     }
   }
   return 1;
@@ -92,16 +84,15 @@ int m_bnb_free(ptr_t ptr)
     virtual del programa al que le corresponde esa dirección
     El proceso anterior desde ptr.addr hasta ptr.addr + ptr.size
   */
-  if (ptr.addr < process_act->base || ptr.addr > process_act->base + bb_value)
+  if (ptr.addr > bb_value)
   {
-    fprintf(stderr, "La dirección que desea liberar no corresponde al proceso seleccionado actualmente.");
+    fprintf(stderr, "Dirección incorrecta.");
     return 1;
   }
-  size_t pos = ptr.addr - process_act->base;
   for (size_t i = 0; i < ptr.size; i++)
   {
-    process_act->memory[pos + i] = 0;
-    m_write(ptr.addr + i, 0);
+    process_act->memory[ptr.addr + i] = 0;
+    m_write(ptr.addr + process_act->base, 0);
   }
 
   return 0;
@@ -126,9 +117,9 @@ int m_bnb_push(byte val, ptr_t *out)
     {
       process_act->memory[i] = 1;
       res = Push_s(process_act->s, i);
-      out->addr = process_act->base + i;
+      out->addr = i;
       out->size = 1;
-      m_write(out->addr, val);
+      m_write(out->addr + process_act->base, val);
       break;
     }
   }
@@ -160,10 +151,8 @@ int m_bnb_pop(byte *out)
 
 int m_bnb_load(addr_t addr, byte *out)
 {
-  /*
-    ?Directamente leo desde la memoria física ?
-  */
-  *out = m_read(addr);
+  // convierto la dirección virtual recibida en física y la leo de la memoria física
+  *out = m_read(addr + process_act->base);
   return 0;
 }
 
@@ -173,10 +162,8 @@ int m_bnb_load(addr_t addr, byte *out)
 */
 int m_bnb_store(addr_t addr, byte val)
 {
-  /*
-    ?Directamente escribo en la memoria física ?
-  */
-  m_write(addr, val);
+  // convierto la memoria virtual recibida en física y la leo desde la memoria física
+  m_write(addr + process_act->base, val);
   return 0;
 }
 
@@ -192,6 +179,7 @@ void m_bnb_on_ctx_switch(process_t process)
   if (pos != -1)
   {
     *process_act = l->data[pos];
+    puntero = process.program->size;
     set_curr_owner(process.pid);
   }
   else
@@ -206,29 +194,26 @@ void m_bnb_on_ctx_switch(process_t process)
         m_set_owner(process_act->base, process_act->base + bb_value);
         if (process.program->size > bb_value)
         {
-          fprintf(stderr, "El size del codigo del programa es mayor que la memoria.");
+          fprintf(stderr, "El size del codigo del programa es mayor que el valor del bound.");
           exit(1);
         }
         for (size_t i = 0; i < process.program->size; i++)
-        {
           process_act->memory[i] = 1;
-        }
+        // el valor del puntero representa a partir de donde empieza el heap
         puntero = process.program->size;
         break;
       }
     }
-
+    // guardo el proceso en mi lista de procesos
     Push_l(l, *process_act);
   }
 }
-/*
-  Se ejecuta cada vez que termina la ejecución del proceso `process`.
-*/
+
+//  Se ejecuta cada vez que termina la ejecución del proceso `process`.
+
 void m_bnb_on_end_process(process_t process)
 {
-  /*
-  Libera un proceso así como toda su memoria correspondiente;
-  */
+  // Libera un proceso así como toda su memoria correspondiente;
   if (process_act->pid == process.pid)
     Free_p(process_act);
 

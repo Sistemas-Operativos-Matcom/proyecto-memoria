@@ -11,9 +11,6 @@ typedef struct ptr
 {
   addr_t addr; // No eliminar este campo
   size_t size;
-  size_t page;
-  size_t pos_page;
-  // size_t pages_iheap_c;
 } ptr_t;
 
 typedef struct program

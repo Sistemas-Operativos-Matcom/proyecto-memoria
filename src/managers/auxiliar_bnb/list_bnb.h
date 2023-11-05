@@ -7,12 +7,12 @@ typedef struct List
     size_t len;
     size_t size;
     process_bb *data;
-} IntList;
+} pList;
 
-IntList *Init_l();
-int Push_l(IntList *l, process_bb v);
-int RemovePos_l(IntList *l, size_t p);
-int Contains_l(IntList *l, int pid);
-int Free_l(IntList *l);
+pList *Init_l();
+int Push_l(pList *l, process_bb v);
+int RemovePos_l(pList *l, size_t p);
+int Contains_l(pList *l, int pid);
+int Free_l(pList *l);
 
 #endif

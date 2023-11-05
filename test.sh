@@ -31,5 +31,5 @@ test_manager () {
 }
 
 test_manager bnb
-# test_manager seg
+test_manager seg
 test_manager pag

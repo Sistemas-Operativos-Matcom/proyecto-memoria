@@ -1,6 +1,10 @@
 {
     "files.associations": {
         "stack_pag.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "list_pag.h": "c",
+        "utils.h": "c",
+        "manager.h": "c",
+        "bnb_manager.h": "c"
     }
 }
