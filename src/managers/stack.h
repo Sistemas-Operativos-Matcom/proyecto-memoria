@@ -11,11 +11,9 @@ typedef struct Stack
 {
     size_t from_addr;
     size_t to_addr;
-    Heap_t heap;
-    int len;
     int (*push)(byte *val, ptr_t out, struct Stack *stack);
     int (*pop)(byte *out, struct Stack *stack);
 } Stack_t;
 
-Stack_t Stack_init(size_t from, Heap_t heap);
+Stack_t Stack_init(size_t from);
 #endif

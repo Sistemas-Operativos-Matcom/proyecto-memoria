@@ -27,8 +27,23 @@ void m_bnb_init(int argc, char **argv) {
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  // Load process' stack and heap
+  Stack_t stack = process_stack[current_index];
+  Heap_t *heap = &process_heap[current_index];
+
+  fprintf(stderr, "current_heap.to_addr: %ld\n", heap->to_addr);
+  fprintf(stderr, "current_heap.from_addr: %ld\n", heap->from_addr);
+  
+
+  // If there is space to reserve, allocate space and return pointer
+  if(heap->reserve(size, stack.to_addr, heap) == 0)
+  {
+    out->addr = heap->from_addr - size;
+    out->size = size;
+    heap->from_addr = out->addr;
+    return 0;
+  }
+  return 1;
 }
 
 // Libera un espacio de memoria dado un puntero.
@@ -57,8 +72,21 @@ int m_bnb_load(addr_t addr, byte *out) {
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  Heap_t current_heap = process_heap[current_index]; 
+  addr_t virtual_addr = addr - process_bound[current_index-1]+1;
+  
+
+  //Can't add out of heap
+  
+  if(addr < current_heap.to_addr || addr > current_heap.from_addr) return 1;
+
+  // Busy addr
+  if(current_heap.used_slots[virtual_addr] == 1) return 1;
+
+  // Write val in memory
+  m_write(addr, val);
+  current_heap.used_slots[virtual_addr] = 1;
+  return 0;
 }
 
 void set_next_process_memory(process_t process)
@@ -73,9 +101,14 @@ void set_next_process_memory(process_t process)
   int bound = base + default_size;
   process_bound[process_len] = bound;
   m_set_owner(base, bound);
+  
   int stack_base = base + process.program->size;
-  process_heap[process_len] = Heap_init(bound);
-  process_stack[process_len] = Stack_init(stack_base, process_heap[process_len]);
+  
+  Stack_t stack = Stack_init(stack_base);
+  process_stack[process_len] = stack;
+
+  Heap_t heap = Heap_init(bound, default_size-process.program->size-1);
+  process_heap[process_len] = heap;
 
   //Update pointer to next process' position and index for current process
   current_index = process_len;
@@ -88,7 +121,6 @@ void m_bnb_on_ctx_switch(process_t process) {
   {
     if(process.pid == processes[i].pid)
     {
-      fprintf(stderr, "changed to: %d", process.pid);
       current_index = i;
       current_process = process;
       return;
