@@ -63,23 +63,34 @@ int m_bnb_pop(byte *out) {
 
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  Heap_t heap = process_heap[current_index];
+
+  // Checking addr is valid
+  if(addr > heap.to_addr || addr < heap.from_addr) return 1;
+
+  // Checking addr is not empty
+  if(heap.used_slots[(int)addr] != 1) return 1;
+
+  byte b = m_read(addr);
+  out = &b;
+  fprintf(stderr ,"value at addr: %d\n", *out);
+
+  return 0;
 }
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
-  Heap_t *current_heap = &process_heap[current_index];
+  Heap_t *heap = &process_heap[current_index];
 
   //Can't add out of heap
-  if(addr > current_heap->to_addr || addr < current_heap->from_addr) return 1;
+  if(addr > heap->to_addr || addr < heap->from_addr) return 1;
   
   // Busy or not allocated address
-  if(current_heap->used_slots[addr] == 1 || current_heap->used_slots[addr] == 0) return 1;
+  if(heap->used_slots[addr] == 1 || heap->used_slots[addr] == 0) return 1;
 
   // Write val in memory
   m_write(addr, val);
-  current_heap->used_slots[addr] = 1;
+  heap->used_slots[addr] = 1;
   return 0;
 }
 
