@@ -5,6 +5,8 @@
 
 #include "memory.h"
 
+#include "./managers/list.h"
+
 // Esta estructura representa un puntero. No puedes cambiar el nombre ni
 // eliminar la estructura. Puedes agregar campos nuevos si es necesario.
 typedef struct ptr {
@@ -18,8 +20,16 @@ typedef struct program {
 } program_t;
 
 typedef struct process {
+  
   int pid;
   program_t *program;
+  array_list *start_free;
+  array_list *size_free;
+  array_list *blocksused;
+  int *sp;
+  int *stack_size;
+  int *stack_base;
+
 } process_t;
 
 program_t new_program(char *name, size_t size);
