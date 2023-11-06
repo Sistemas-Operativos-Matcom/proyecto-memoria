@@ -41,8 +41,10 @@ typedef struct page_info {
   int pte;
   int pfn;
   int owner;
-  int data;
-  int datainit;
+  int order_owner;
+  addr_t data;
+  addr_t datainit;
   int *owner_ptr_pg;
+
 } page_info_t;
 #endif

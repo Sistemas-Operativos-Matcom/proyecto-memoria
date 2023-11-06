@@ -5,6 +5,7 @@
         "random": "c",
         "limits": "c",
         "test,txt": "c",
-        "seg_manager.h": "c"
+        "seg_manager.h": "c",
+        "algorithm": "c"
     }
 }
