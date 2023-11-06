@@ -9,9 +9,9 @@
 
 typedef struct Stack
 {
-    size_t from_addr;
-    size_t to_addr;
-    int (*push)(byte *val, ptr_t out, struct Stack *stack);
+    size_t base;
+    size_t top;
+    int (*push)(byte *val, ptr_t *out, struct Stack *stack, addr_t limit);
     int (*pop)(byte *out, struct Stack *stack);
 } Stack_t;
 

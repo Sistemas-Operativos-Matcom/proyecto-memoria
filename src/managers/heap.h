@@ -7,9 +7,9 @@
 
 typedef struct Heap{
     int  *used_slots;
-    size_t from_addr;
-    size_t to_addr;
-    int (*reserve)(size_t size, size_t stack_limit, struct Heap *heap);
+    addr_t from_addr;
+    addr_t to_addr;
+    int (*reserve)(size_t size, addr_t stack_limit, struct Heap *heap);
 } Heap_t;
 
 Heap_t Heap_init(size_t from, int max_len);
