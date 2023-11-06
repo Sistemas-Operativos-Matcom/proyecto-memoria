@@ -70,16 +70,16 @@ int m_bnb_load(addr_t addr, byte *out) {
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
   Heap_t *current_heap = &process_heap[current_index];
-  addr_t virtual_addr = addr - process_bound[current_index-1]+1;
 
   //Can't add out of heap
   if(addr > current_heap->to_addr || addr < current_heap->from_addr) return 1;
-  // Busy addr
-  if(current_heap->used_slots[virtual_addr] == 1 || current_heap->used_slots[virtual_addr] == 0) return 1;
+  
+  // Busy or not allocated address
+  if(current_heap->used_slots[addr] == 1 || current_heap->used_slots[addr] == 0) return 1;
 
   // Write val in memory
   m_write(addr, val);
-  current_heap->used_slots[virtual_addr] = 1;
+  current_heap->used_slots[addr] = 1;
   return 0;
 }
 
@@ -103,7 +103,6 @@ void set_next_process_memory(process_t process)
 
   Heap_t heap = Heap_init((addr_t)bound, default_size-process.program->size-1);
   process_heap[process_len] = heap;
-  
   
   // Setting owner in process' memory
   m_set_owner(base, bound);
