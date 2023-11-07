@@ -104,7 +104,7 @@ int m_bnb_pop(byte *out)
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out)
 {
-  if (bnb_free_list[bnb_pa(addr)] && addr < bnb_bound)
+  if (addr < bnb_bound && bnb_free_list[bnb_pa(addr)])
   {
     *out = m_read(bnb_pa(addr));
     return 0;
@@ -115,7 +115,7 @@ int m_bnb_load(addr_t addr, byte *out)
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val)
 {
-  if (bnb_free_list[bnb_pa(addr)] && addr < bnb_bound)
+  if (addr < bnb_bound && bnb_free_list[bnb_pa(addr)])
   {
     m_write(bnb_pa(addr), val);
     return 0;

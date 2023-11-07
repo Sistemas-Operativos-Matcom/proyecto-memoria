@@ -1,4 +1,5 @@
 #include "seg_manager.h"
+#include "../memory.h"
 
 #include "stdio.h"
 
