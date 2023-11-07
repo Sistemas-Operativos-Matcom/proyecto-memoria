@@ -36,10 +36,12 @@ void m_init(int argc, char **argv) {
 int m_malloc(size_t size, ptr_t *out) {
   if (g_manager == BNB_MANAGER) {
     return m_bnb_malloc(size, out);
-  } else if (g_manager == SEG_MANAGER) {
-    m_seg_malloc(size, out);
-  } else if (g_manager == PAG_MANAGER) {
-    m_pag_malloc(size, out);
+  }
+  if (g_manager == SEG_MANAGER) {
+    return m_seg_malloc(size, out);
+  }
+  if (g_manager == PAG_MANAGER) {
+    return m_pag_malloc(size, out);
   }
   return 1;
 }
@@ -47,10 +49,12 @@ int m_malloc(size_t size, ptr_t *out) {
 int m_free(ptr_t ptr) {
   if (g_manager == BNB_MANAGER) {
     return m_bnb_free(ptr);
-  } else if (g_manager == SEG_MANAGER) {
-    m_seg_free(ptr);
-  } else if (g_manager == PAG_MANAGER) {
-    m_pag_free(ptr);
+  }
+  if (g_manager == SEG_MANAGER) {
+    return m_seg_free(ptr);
+  }
+  if (g_manager == PAG_MANAGER) {
+    return m_pag_free(ptr);
   }
   return 1;
 }
@@ -58,10 +62,12 @@ int m_free(ptr_t ptr) {
 int m_push(byte val, ptr_t *out) {
   if (g_manager == BNB_MANAGER) {
     return m_bnb_push(val, out);
-  } else if (g_manager == SEG_MANAGER) {
-    m_seg_push(val, out);
-  } else if (g_manager == PAG_MANAGER) {
-    m_pag_push(val, out);
+  }
+  if (g_manager == SEG_MANAGER) {
+    return m_seg_push(val, out);
+  }
+  if (g_manager == PAG_MANAGER) {
+    return m_pag_push(val, out);
   }
   return 1;
 }
@@ -69,10 +75,12 @@ int m_push(byte val, ptr_t *out) {
 int m_pop(byte *out) {
   if (g_manager == BNB_MANAGER) {
     return m_bnb_pop(out);
-  } else if (g_manager == SEG_MANAGER) {
-    m_seg_pop(out);
-  } else if (g_manager == PAG_MANAGER) {
-    m_pag_pop(out);
+  }
+  if (g_manager == SEG_MANAGER) {
+    return m_seg_pop(out);
+  }
+  if (g_manager == PAG_MANAGER) {
+    return m_pag_pop(out);
   }
   return 1;
 }
@@ -80,10 +88,12 @@ int m_pop(byte *out) {
 int m_load(addr_t addr, byte *out) {
   if (g_manager == BNB_MANAGER) {
     return m_bnb_load(addr, out);
-  } else if (g_manager == SEG_MANAGER) {
-    m_seg_load(addr, out);
-  } else if (g_manager == PAG_MANAGER) {
-    m_pag_load(addr, out);
+  }
+  if (g_manager == SEG_MANAGER) {
+    return m_seg_load(addr, out);
+  }
+  if (g_manager == PAG_MANAGER) {
+    return m_pag_load(addr, out);
   }
   return 1;
 }
@@ -91,10 +101,12 @@ int m_load(addr_t addr, byte *out) {
 int m_store(addr_t addr, byte val) {
   if (g_manager == BNB_MANAGER) {
     return m_bnb_store(addr, val);
-  } else if (g_manager == SEG_MANAGER) {
-    m_seg_store(addr, val);
-  } else if (g_manager == PAG_MANAGER) {
-    m_pag_store(addr, val);
+  }
+  if (g_manager == SEG_MANAGER) {
+    return m_seg_store(addr, val);
+  }
+  if (g_manager == PAG_MANAGER) {
+    return m_pag_store(addr, val);
   }
   return 1;
 }
