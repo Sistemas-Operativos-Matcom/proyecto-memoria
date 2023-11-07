@@ -28,7 +28,6 @@ int is_running(process_t proc)
 {
   for (int i = 0; i < running_process->size; i++)
   {
-    // printf("%d vs %d\n", running_procs->array[i], process.pid);
     if (running_process->array[i] == proc.pid)
       return 1;
   }
@@ -98,8 +97,7 @@ int ocupate_space(array_list *listSTART, array_list *listSIZE, int size, ptr_t *
 
 // AGREGA UNA PAGINA
 void add_page()
-{
-  // printf("added page");
+{ 
   ptr_t outt;
   ocupate_space(memory_free_start, memory_free_size, 1, &outt);
   add_freespace(current_process.start_free, current_process.size_free, current_process.blocksused->size * page_size, page_size);
@@ -130,7 +128,6 @@ int to_memory_address(int addr)
 // inicio del espacio reservado.
 int m_pag_malloc(size_t size, ptr_t *out)
 {
-  // printf("pidio alocar");
   return allocate_space_metralla((int)size, out);
 }
 
@@ -146,19 +143,19 @@ void free_unused_pages()
                   current_process.size_free->array[j] >=
               (i + 1) * page_size)
       {
-        m_set_owner((size_t)(i * page_size), (size_t)(((i + 1) * page_size) - 1));
+        m_set_owner((size_t)(current_process.blocksused->array[i] * page_size), (size_t)(((current_process.blocksused->array[i] + 1) * page_size) - 1));
         insert(current_process.start_free, (i + 1) * page_size, j + 1);
         insert(current_process.size_free, current_process.start_free->array[j] + current_process.size_free->array[j] - (i + 1) * page_size, j + 1);
         current_process.size_free->array[j] = i * page_size - current_process.start_free->array[j];
         add_freespace(memory_free_start, memory_free_size, current_process.blocksused->array[i], 1);
-        update_free(memory_free_start, memory_free_size);
         current_process.blocksused->array[i] = -1;
         break;
       }
     }
   }
+  update_free(memory_free_start, memory_free_size);
   set_curr_owner(current_process.pid);
-  update_free(current_process.start_free, current_process.size_free);
+
 }
 
 // Libera un espacio de memoria dado un puntero.
@@ -166,6 +163,7 @@ int m_pag_free(ptr_t ptr)
 {
   add_freespace(current_process.start_free, current_process.size_free, (int)ptr.addr, (int)ptr.size);
   free_unused_pages();
+  update_free(current_process.start_free, current_process.size_free);
   return 0;
 }
 
@@ -255,7 +253,7 @@ void m_pag_on_end_process(process_t process)
   {
     if (process.blocksused->array[i] != -1)
     {
-      add_freespace(memory_free_start, memory_free_size, page_size * process.blocksused->array[i], page_size);
+      add_freespace(memory_free_start, memory_free_size, process.blocksused->array[i], 1);
       m_set_owner((size_t)(page_size * process.blocksused->array[i]), (size_t)(page_size * process.blocksused->array[i] + (page_size - 1)));
     }
   }

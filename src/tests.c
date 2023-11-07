@@ -334,8 +334,12 @@ void test_case_p_zahdehyv()
   mem_free(p7_x);
  ctx_switch(processes[0]);
   ptr_t pst_x = mem_malloc(500);
-  end_process(processes[0]);
+ptr_t pst_dx = mem_malloc(500);
+ptr_t psddt_x = mem_malloc(500);
+ptr_t psddtd_x = mem_malloc(500);
+ptr_t psddtddd_x = mem_malloc(500);
 
+  end_process(processes[0]);
   end_process(processes[1]);
 
   end_sim();
@@ -352,11 +356,10 @@ void run_tests(int argc, char **argv)
   test_case_001();
   test_case_002();
   test_case_003();
+  //ESTOS CASOS HACEN MALLOC A UN SIZE MAYOR Q EL TAMANO DE BLOQUE+CODE, POR ESO PARTEN BNB
   //test_case_p_stress_mem();
   //test_case_p_free_mem();
   //test_case_p_complex_procs();
   //test_case_p_freelist(); // Este es para el pagination solamente (que los otros mueran es normal)
   //test_case_p_zahdehyv();
 }
-
-//@Copyrights: tu abuela
