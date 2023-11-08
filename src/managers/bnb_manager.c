@@ -6,11 +6,15 @@
 #define BOUNDS_SIZE KB_SIZE(1)
 #define MAX_PROCS_STORED m_size() / BOUNDS_SIZE
 
+// Storing the bnb segments
 static bnb_segment_t *segments;
 static int segment_count;
+
+// Current pid and current segment caching
 static int curr_pid;
 static int curr_segment_index;
 
+// Checks if a process is allocated on a segment
 static int is_process_allocated(int pid) {
     for (int i = 0; i < segment_count; i++) {
         if (segments[i].proc.pid == pid) return 1;
@@ -31,16 +35,21 @@ void m_bnb_init(int argc, char **argv) {
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out) {
     bnb_segment_t *segment = &segments[curr_segment_index];
+    // Upper bound for stack
     addr_t stack_end = segment->base + BOUNDS_SIZE - segment->stack_size + sizeof(byte);
 
+    // Heap-based virtual address
     addr_t h_addr = allocate_segment(segment->heap_free_list, size);
+    // Heap start virtual address
     addr_t v_addr = segment->base + segment->proc.program->size;
 
+    // Checks the allocated memory does not overflows the base + bounds
     if (v_addr + h_addr + size > segment->base + BOUNDS_SIZE) {
         unallocate_segment(segment->heap_free_list, h_addr);
         return MEM_FAIL;
     }
 
+    // Checks the allocated memory does not collide with allocated stack
     if (h_addr + size >= stack_end) {
         unallocate_segment(segment->heap_free_list, h_addr);
         return MEM_FAIL;
@@ -58,8 +67,10 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 int m_bnb_free(ptr_t ptr) {
     bnb_segment_t *segment = &segments[curr_segment_index];
 
+    // Unallocate the heap segment starting from the given address 
     unallocate_segment(segment->heap_free_list, ptr.addr);
 
+    // Clear the heap store for any value stored inside the segment bounds
     for (int i = 0; i < segment->heap_count; i++) {
         if (segment->heap[i].address >= ptr.addr && segment->heap[i].address < ptr.addr + ptr.size) {
         segment->heap_count--;
@@ -74,6 +85,7 @@ int m_bnb_free(ptr_t ptr) {
         }
     }
 
+    // Sets the heap size to the maximum upper bound from the free list
     segment->heap_size = free_list_end(segment->heap_free_list);
 
     return MEM_SUCCESS;
@@ -83,13 +95,17 @@ int m_bnb_free(ptr_t ptr) {
 int m_bnb_push(byte val, ptr_t *out) {
     bnb_segment_t *segment = &segments[curr_segment_index];
 
+    // End of the stack address
     addr_t stack_end = segment->base + BOUNDS_SIZE - segment->stack_size + sizeof(byte);
+    // End of the heap address
     addr_t heap_end = segment->base + segment->proc.program->size + segment->heap_size;
 
+    // Check stack and heap do not collide
     if (heap_end > stack_end) return MEM_FAIL;
 
-    store_t store = (store_t) {.address = stack_end, .value = val};
+    store_t store = {.address = stack_end, .value = val};
 
+    // Initialize stack if null or reallocate space for new values
     if (segment->stack == NULL) {
         segment->stack = malloc(sizeof(store_t));
     } else {
@@ -114,6 +130,7 @@ int m_bnb_pop(byte *out) {
 
     *out = store->value;
 
+    // Check for avoiding false positive 0 length NULL pointer on realloc
     if (segment->stack_size - 1 > 0) {
         void *status = realloc(segment->stack, (segment->stack_size - 1) * sizeof(store_t));
 
@@ -129,6 +146,7 @@ int m_bnb_pop(byte *out) {
 int m_bnb_load(addr_t addr, byte *out) {
     bnb_segment_t *segment = &segments[curr_segment_index];
 
+    // Get the stored value at the given address
     for (int i = 0; i < segment->heap_count; i++) {
         store_t *store = &segment->heap[i];
 
@@ -146,11 +164,14 @@ int m_bnb_load(addr_t addr, byte *out) {
 int m_bnb_store(addr_t addr, byte val) {
     bnb_segment_t *segment = &segments[curr_segment_index];
 
+    // Check address inside segment bounds
     if (addr > segment->base + BOUNDS_SIZE) return MEM_FAIL;
+    // Check address inside heap bounds
     if (addr > segment->base + segment->proc.program->size + segment->heap_size) return MEM_FAIL;
 
     store_t store = {.address = addr, .value = val};
 
+    // Initialize heap if NULL or reallocate space otherwise
     if (segment->heap == NULL) {
         segment->heap = malloc(sizeof(store_t));
     } else {
@@ -167,6 +188,7 @@ int m_bnb_store(addr_t addr, byte val) {
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process) {
+    // If the process is not running, allocate a bnb segment for it
     if (!is_process_allocated(process.pid)) {
         bnb_segment_t new_segment = {
             .proc = process,
@@ -181,6 +203,7 @@ void m_bnb_on_ctx_switch(process_t process) {
         segment_count++;
     }
 
+    // Update global variables of cached index and current pid
     int index = -1;
 
     for (int i = 0; i < segment_count; i++) {
@@ -196,6 +219,7 @@ void m_bnb_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
+    // Remove the segment containing the process and remove any white space between 2 segments after that
     for (int i = 0; i < segment_count; i++) {
         if (segments[i].proc.pid == process.pid) {
             bnb_segment_t empty_segment = {};
