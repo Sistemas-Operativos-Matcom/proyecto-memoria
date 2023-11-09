@@ -19,8 +19,6 @@ int owner_ptr_pg[100000];
 void m_pag_init(int argc, char **argv) {
   for (size_t i = 0; i < 32; i++)
   {
-    page_table[i].pfn = -1;
-    page_table[i].pte = -1;
     page_table[i].owner = -1;
     page_table[i].order_owner = 0;
     page_table[i].data = i*256;

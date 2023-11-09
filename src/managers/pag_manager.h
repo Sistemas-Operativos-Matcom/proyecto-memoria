@@ -38,8 +38,6 @@ void m_pag_on_end_process(process_t process);
 // bits de proteccion: si puede escribir, leer, etc (no se si lo use)
 // pfn: numero de pagina fisica
 typedef struct page_info {
-  int pte;
-  int pfn;
   int owner;
   int order_owner;
   addr_t data;
