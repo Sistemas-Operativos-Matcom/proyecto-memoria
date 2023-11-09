@@ -49,49 +49,27 @@ int m_bnb_free(ptr_t ptr) {
 
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out) {
-  Stack_t stack = process_stack[current_index];
+  Stack_t *stack = &process_stack[current_index];
   Heap_t heap = process_heap[current_index];
-
-  return stack.push(&val, out, &stack, heap.from_addr);
+  return stack->push(&val, out, stack, heap.from_addr);
 }
 
 // Quita un elemento del stack
 int m_bnb_pop(byte *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  Stack_t stack = process_stack[current_index];
+  return stack.pop(out, &stack);
 }
 
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
-  Heap_t heap = process_heap[current_index];
-
-  // Checking addr is valid
-  if(addr > heap.to_addr || addr < heap.from_addr) return 1;
-
-  // Checking addr is not empty
-  if(heap.used_slots[(int)addr] != 1) return 1;
-
-  byte b = m_read(addr);
-  out = &b;
-  fprintf(stderr ,"value at addr: %d\n", *out);
-
-  return 0;
+  Heap_t *heap = &process_heap[current_index];
+  return heap->load(addr, out, heap);
 }
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
   Heap_t *heap = &process_heap[current_index];
-
-  //Can't add out of heap
-  if(addr > heap->to_addr || addr < heap->from_addr) return 1;
-  
-  // Busy or not allocated address
-  if(heap->used_slots[addr] == 1 || heap->used_slots[addr] == 0) return 1;
-
-  // Write val in memory
-  m_write(addr, val);
-  heap->used_slots[addr] = 1;
-  return 0;
+  return heap->store(addr, val, heap);
 }
 
 void set_next_process_memory(process_t process)

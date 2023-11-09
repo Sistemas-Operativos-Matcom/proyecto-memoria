@@ -5,9 +5,9 @@
 
 int push(byte *val, ptr_t *out, Stack_t *stack, addr_t limit)
 {
-    addr_t new_top = stack->top;
+    addr_t new_top = stack->top+(addr_t)1;
     // Checking push can be made
-    if(new_top+(addr_t)1 == limit) return 1;
+    if(new_top == limit) return 1;
 
     // Writing val in stack
     m_write(new_top, *val);
@@ -19,13 +19,12 @@ int push(byte *val, ptr_t *out, Stack_t *stack, addr_t limit)
 
 int pop(byte *out, Stack_t *stack)
 {   
-    addr_t new_top = (stack->top)-(addr_t)1;
     // Checking pop can be made
-    if(new_top == stack->base-(addr_t)1) return 1;
-
-    // Writing val in stack
-    out = m_read(new_top);
-    stack->top = new_top;
+    if(stack->top == stack->base) return 1;
+    
+    // Reading val from stack
+    *out = m_read(stack->top);
+    stack->top = stack->top - (addr_t)1;
     return 0;
 }
 
