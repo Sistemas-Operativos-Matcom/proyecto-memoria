@@ -9,7 +9,8 @@ typedef struct heap
 {
     sizeList_t *list;
     size_t start_virtual_pointer;
+    size_t end_virtual_pointer;
 } heap_t;
 
-heap_t *init_heap(process_t process);
+heap_t *init_heap();
 #endif

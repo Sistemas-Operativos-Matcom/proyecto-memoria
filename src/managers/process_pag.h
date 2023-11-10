@@ -10,7 +10,7 @@
 typedef struct process_pag
 {
     process_t process;
-    sizeList_t *page_frames_indexed_by_virtual_pages;
+    sizeList_t *pages_table;
     virtual_mem_t *v_memory;
 } process_pag_t;
 

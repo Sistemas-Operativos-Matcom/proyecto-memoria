@@ -55,3 +55,4 @@ mem_logs/
 sim_logs/
 build/
 .vscode/tasks.json
+.vscode/launch.json
