@@ -7,17 +7,20 @@
 
 // Esta estructura representa un puntero. No puedes cambiar el nombre ni
 // eliminar la estructura. Puedes agregar campos nuevos si es necesario.
-typedef struct ptr {
-  addr_t addr;  // No eliminar este campo
+typedef struct ptr
+{
+  addr_t addr; // No eliminar este campo
   size_t size;
 } ptr_t;
 
-typedef struct program {
+typedef struct program
+{
   char *name;
   size_t size;
 } program_t;
 
-typedef struct process {
+typedef struct process
+{
   int pid;
   program_t *program;
 } process_t;

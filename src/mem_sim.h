@@ -26,4 +26,4 @@ void end_sim();
 #define pstore(ptr, val) store(at(ptr), val)
 #define pload(ptr) load(at(ptr))
 
-#endif  // !MEMORY_H
+#endif // !MEMORY_H

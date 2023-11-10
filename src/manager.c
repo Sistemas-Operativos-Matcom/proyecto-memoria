@@ -17,17 +17,25 @@
 
 static int g_manager;
 
-void m_init(int argc, char **argv) {
-  if (strcmp(argv[1], "bnb") == 0) {
+void m_init(int argc, char **argv)
+{
+  if (strcmp(argv[1], "bnb") == 0)
+  {
     g_manager = BNB_MANAGER;
     m_bnb_init(argc, argv);
-  } else if (strcmp(argv[1], "seg") == 0) {
+  }
+  else if (strcmp(argv[1], "seg") == 0)
+  {
     g_manager = SEG_MANAGER;
     m_seg_init(argc, argv);
-  } else if (strcmp(argv[1], "pag") == 0) {
+  }
+  else if (strcmp(argv[1], "pag") == 0)
+  {
     g_manager = PAG_MANAGER;
     m_pag_init(argc, argv);
-  } else {
+  }
+  else
+  {
     fprintf(stderr, "Invalid manager %s\n", argv[1]);
     exit(1);
   }
@@ -111,22 +119,34 @@ int m_store(addr_t addr, byte val) {
   return 1;
 }
 
-void m_on_ctx_switch(process_t process) {
-  if (g_manager == BNB_MANAGER) {
+void m_on_ctx_switch(process_t process)
+{
+  if (g_manager == BNB_MANAGER)
+  {
     m_bnb_on_ctx_switch(process);
-  } else if (g_manager == SEG_MANAGER) {
+  }
+  else if (g_manager == SEG_MANAGER)
+  {
     m_seg_on_ctx_switch(process);
-  } else if (g_manager == PAG_MANAGER) {
+  }
+  else if (g_manager == PAG_MANAGER)
+  {
     m_pag_on_ctx_switch(process);
   }
 }
 
-void m_on_end_process(process_t process) {
-  if (g_manager == BNB_MANAGER) {
+void m_on_end_process(process_t process)
+{
+  if (g_manager == BNB_MANAGER)
+  {
     m_bnb_on_end_process(process);
-  } else if (g_manager == SEG_MANAGER) {
+  }
+  else if (g_manager == SEG_MANAGER)
+  {
     m_seg_on_end_process(process);
-  } else if (g_manager == PAG_MANAGER) {
+  }
+  else if (g_manager == PAG_MANAGER)
+  {
     m_pag_on_end_process(process);
   }
 }
