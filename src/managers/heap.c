@@ -63,9 +63,6 @@ int load(addr_t addr, byte *out, Heap_t *heap)
     *out = m_read(addr);
     heap->used_slots[addr] = 0;
     return 0;
-
-    fprintf(stderr ,"loading from: %d\n", addr);
-    return 0;
 }
 
 Heap_t Heap_init(addr_t from, int max_len){

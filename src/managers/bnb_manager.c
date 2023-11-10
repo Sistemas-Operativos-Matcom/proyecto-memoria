@@ -56,8 +56,8 @@ int m_bnb_push(byte val, ptr_t *out) {
 
 // Quita un elemento del stack
 int m_bnb_pop(byte *out) {
-  Stack_t stack = process_stack[current_index];
-  return stack.pop(out, &stack);
+  Stack_t *stack = &process_stack[current_index];
+  return stack->pop(out, stack);
 }
 
 // Carga el valor en una dirección determinada
@@ -117,6 +117,21 @@ void m_bnb_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  
+  if(current_process.pid == process.pid) current_process.pid = -1;
+  int index = -1;
+  for(int i = 0; i < process_len; i++)
+  {
+    if(processes[i].pid == process.pid)
+    {
+      processes[i].pid = -1;
+      index = i;
+      break;
+    }
+  }
+
+  int base = process_bound[index-1]+1;
+  int bounds = process_bound[index];
+  m_unset_owner((addr_t)base, (addr_t)bounds);
+  exit(0);
 }

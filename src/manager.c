@@ -113,7 +113,7 @@ int m_store(addr_t addr, byte val) {
 
 void m_on_ctx_switch(process_t process) {
   if (g_manager == BNB_MANAGER) {
-    return m_bnb_on_ctx_switch(process);
+    m_bnb_on_ctx_switch(process);
   } else if (g_manager == SEG_MANAGER) {
     m_seg_on_ctx_switch(process);
   } else if (g_manager == PAG_MANAGER) {
@@ -123,7 +123,7 @@ void m_on_ctx_switch(process_t process) {
 
 void m_on_end_process(process_t process) {
   if (g_manager == BNB_MANAGER) {
-    return m_bnb_on_end_process(process);
+    m_bnb_on_end_process(process);
   } else if (g_manager == SEG_MANAGER) {
     m_seg_on_end_process(process);
   } else if (g_manager == PAG_MANAGER) {
