@@ -172,7 +172,7 @@ void test_case_003() {
   mem_load_assert(at(p0_x) + 1, 20);
   mem_load_assert(at(p0_x) + 2, 30);
   mem_pop_assert(90);
-  mem_pop_assert(70);
+  mem_pop_assert(70); 
 
   ctx_switch(processes[1]);
   mem_load_assert(at(p1_x), 40);

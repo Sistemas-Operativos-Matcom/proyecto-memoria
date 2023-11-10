@@ -44,7 +44,7 @@ void mem_init(size_t size, const char *log_file_path) {
 
   g_log_file = fopen(log_file_path, "w+");
   assert(g_log_file);
-  fprintf(g_log_file, "%lu\n", size);
+  fprintf(g_log_file, "%llu\n", (long long unsigned int)size);
 }
 
 size_t m_size() { return g_mem_size; }
@@ -67,7 +67,7 @@ void m_write(addr_t addr, byte val) {
     error_exit();
   }
   g_mem[addr] = val;
-  fprintf(g_log_file, "w %lu\n", addr);
+  fprintf(g_log_file, "w %llu\n", (long long unsigned int)addr);
 }
 
 byte m_read(addr_t addr) {
@@ -86,7 +86,7 @@ byte m_read(addr_t addr) {
         g_curr_owner, addr, g_ownership[addr]);
     error_exit();
   }
-  fprintf(g_log_file, "r %lu\n", addr);
+  fprintf(g_log_file, "r %llu\n",(long long unsigned int) addr);
   return g_mem[addr];
 }
 
@@ -121,8 +121,8 @@ void m_unset_owner(size_t from_addr, size_t to_addr) {
     g_ownership[i] = NO_ONWER;
     g_free_mem++;
   }
-  fprintf(g_log_file, "o %d %lu %lu %lu\n", NO_ONWER, from_addr, to_addr,
-          g_free_mem);
+  fprintf(g_log_file, "o %d %llu %llu %llu\n", NO_ONWER, (long long unsigned int)from_addr,(long long unsigned int) to_addr,
+          (long long unsigned int)g_free_mem);
 }
 
 void m_set_owner(size_t from_addr, size_t to_addr) {
@@ -133,8 +133,8 @@ void m_set_owner(size_t from_addr, size_t to_addr) {
     }
     g_ownership[i] = g_curr_owner;
   }
-  fprintf(g_log_file, "o %d %lu %lu %lu\n", g_curr_owner, from_addr, to_addr,
-          g_free_mem);
+  fprintf(g_log_file, "o %d %llu %llu %llu\n", g_curr_owner,(long long unsigned int) from_addr, (long long unsigned int)to_addr,
+          (long long unsigned int)g_free_mem);
   printf("[INFO] Setting ownership %d from addr 0x%zx to addr 0x%zx\n",
          g_curr_owner, from_addr, to_addr);
 }
