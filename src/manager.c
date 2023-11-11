@@ -90,11 +90,11 @@ int m_load(addr_t addr, byte *out) {
 
 int m_store(addr_t addr, byte val) {
   if (g_manager == BNB_MANAGER) {
-    m_bnb_store(addr, val);
+    return m_bnb_store(addr, val);
   } else if (g_manager == SEG_MANAGER) {
-    m_seg_store(addr, val);
+    return m_seg_store(addr, val);
   } else if (g_manager == PAG_MANAGER) {
-    m_pag_store(addr, val);
+    return m_pag_store(addr, val);
   }
   return 1;
 }
