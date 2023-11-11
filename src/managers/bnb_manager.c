@@ -55,7 +55,7 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 
 
   out->size = size;
-  out->addr = bloque->value - spaces[currentContext].addr;
+  out->addr = bloque->value - spaces[currentContext].addr;//direccion virtual
 
   
   // Eliminar bloque de memoria disponible
@@ -69,7 +69,7 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr) {
 
-  insert(&spaces[currentContext].freeList, ptr.addr, ptr.size);
+  insert(&spaces[currentContext].freeList, ptr.addr, 1);
 
   return 0;
 }
