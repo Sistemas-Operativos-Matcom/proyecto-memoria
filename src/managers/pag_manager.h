@@ -32,4 +32,18 @@ void m_pag_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process);
 
+
+typedef struct info_proceso {
+    byte asignado;
+
+    int usuario;
+    size_t *page_table;
+
+    size_t heap;
+    size_t stack;
+} info_proceso_t;
+
+
+
+
 #endif
