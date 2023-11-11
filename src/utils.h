@@ -22,6 +22,16 @@ typedef struct process {
   program_t *program;
 } process_t;
 
+typedef struct memory_global {
+    int active;
+    int use;
+    addr_t start;
+    addr_t end;
+    addr_t stack;
+    addr_t heap;
+    size_t size;
+}memory_global_t;
+;
 program_t new_program(char *name, size_t size);
 process_t new_process(int pid, program_t *program);
 
