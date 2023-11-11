@@ -81,7 +81,7 @@ int m_bnb_push(byte val, ptr_t *out) {
     return 1;
 
   m_write( spaces[currentContext].addr + spaces[currentContext].topStack, val);
-  out = m_read(spaces[currentContext].addr + spaces[currentContext].topStack);
+  out->addr = m_read(spaces[currentContext].addr + spaces[currentContext].topStack);
 
   spaces[currentContext].topStack--;
   return 0;

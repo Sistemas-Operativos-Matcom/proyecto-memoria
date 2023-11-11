@@ -1,6 +1,7 @@
 #include "pag_manager.h"
 
 #include "stdio.h"
+#include <string.h>
 
 ptr_t *spacesP;
 ptr_t *pages;
@@ -17,7 +18,7 @@ void m_pag_init(int argc, char **argv) {
   spacesP = (ptr_t *)malloc(maxProc * sizeof(ptr_t));
   pages = (ptr_t *)malloc(m_size()/sizePage * sizeof(ptr_t));
   
-  for (size_t i = 0; i < maxProc; i++)
+  for (int i = 0; i < maxProc; i++)
   {
     spacesP[i].ocupado = 0;
   }
@@ -29,7 +30,7 @@ void m_pag_init(int argc, char **argv) {
     pages[i].size = 0;
   }
 
-  for (size_t i = 0; i < maxProc; i++)
+  for (int i = 0; i < maxProc; i++)
   {
     spacesP[i].process.pid = -1;
 
@@ -78,7 +79,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
   {
     m_set_owner(pages[free].addr, pages[free].addr + sizePage*countPages);
 
-    for (size_t i = 0; i < countPages; i++)
+    for (int i = 0; i < countPages; i++)
     {
       pages[free + i].ocupado = 1;
       pages[free +i].size = sizePage;
@@ -90,13 +91,15 @@ int m_pag_malloc(size_t size, ptr_t *out) {
   }
   else
     return 1;
-    
+  
+  return 0;
 }
 
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr) {
   struct Node* bloque = search(&spacesP[currentP].freeList, ptr.addr);
   delete(&spacesP[currentP].freeList, bloque);
+  return 0;
 }
 
 // Agrega un elemento al stack
@@ -106,7 +109,7 @@ int m_pag_push(byte val, ptr_t *out) {
   //Revisa los page frame
   for (size_t i = 0; i < m_size()/sizePage; i++)
   {
-    if(pages[i].ocupado == 0 && pages[i].size < sizePage)
+    if(pages[i].ocupado == 0 && (int)pages[i].size < sizePage)
     {
       pages[i].ocupado = 1;
       pages[i].size++;
@@ -125,7 +128,7 @@ int m_pag_push(byte val, ptr_t *out) {
   
   m_write( pages[free].addr + pages[free].size, val);
   // printf("----%x\n", (pages[free].addr + pages[free].size)/ sizePage);
-  out = m_read(pages[free].addr + pages[free].size);
+  out->addr = m_read(pages[free].addr + pages[free].size);
 
   return 0;
 }
@@ -148,6 +151,8 @@ int m_pag_pop(byte *out) {
   // fprintf(hola, "----%d\n", 55);
   // fclose(hola);
   deleteLast(&spacesP[currentP].Stack); 
+
+  return 0;
 }
 
 // Carga el valor en una dirección determinada
@@ -168,7 +173,7 @@ void m_pag_on_ctx_switch(process_t process) {
   int foundIt = 0;
   int space = -1;
 
-  for (size_t i = 0; i < maxProc; i++)
+  for (int i = 0; i < maxProc; i++)
   {
     if (spacesP[i].process.pid == process.pid)
     {
@@ -210,8 +215,7 @@ void m_pag_on_ctx_switch(process_t process) {
         m_set_owner(pages[free].addr, pages[free].addr + sizePage);
         insert(&spacesP[currentP].freeList, free, 0);
       }
-      else
-        return 1;
+
     }
   }
 
@@ -220,7 +224,7 @@ void m_pag_on_ctx_switch(process_t process) {
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process) {
 
-  for (size_t i = 0; i < maxProc; i++)
+  for (int i = 0; i < maxProc; i++)
   {
     if(spacesP[i].ocupado && spacesP[i].process.pid == process.pid){
       spacesP[i].ocupado = 0;
