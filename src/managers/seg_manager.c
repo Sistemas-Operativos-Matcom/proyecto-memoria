@@ -1,11 +1,12 @@
 #include "seg_manager.h"
-
+#include "BitMap.h"
+#include "BitMap_Proces.h"
 #include "stdio.h"
+
+
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_seg_init(int argc, char **argv) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
