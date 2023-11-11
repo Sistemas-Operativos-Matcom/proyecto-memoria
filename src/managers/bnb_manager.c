@@ -55,7 +55,7 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 
 
   out->size = size;
-  out->addr = bloque->value;
+  out->addr = bloque->value - spaces[currentContext].addr;
 
   
   // Eliminar bloque de memoria disponible
@@ -90,19 +90,19 @@ int m_bnb_push(byte val, ptr_t *out) {
 // Quita un elemento del stack
 int m_bnb_pop(byte *out) {
   spaces[currentContext].topStack++;
-  *out = m_read(spaces[currentContext].addr + spaces[currentContext].topStack);//
+  *out = m_read(spaces[currentContext].addr + spaces[currentContext].topStack);
   return 0;
 }
 
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
-  *out = m_read(addr);
+  *out = m_read(spaces[currentContext].addr + spaces[currentContext].process.program->size + addr);
   return 0;
 }
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
-  m_write(addr, val);
+  m_write(spaces[currentContext].addr + spaces[currentContext].process.program->size + addr, val);
   return 0;
 }
 
