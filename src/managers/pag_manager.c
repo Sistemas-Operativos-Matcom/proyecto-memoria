@@ -81,11 +81,12 @@ int m_pag_malloc(size_t size, ptr_t *out) {
     for (size_t i = 0; i < countPages; i++)
     {
       pages[free + i].ocupado = 1;
+      pages[free +i].size = sizePage;
       insert(&spacesP[currentP].freeList, free+i, 0);
     }
 
     out->size = size;
-    out->addr = pages[free].addr;
+    out->addr = pages[free].addr;//direccion fisica
   }
   else
     return 1;
@@ -94,8 +95,8 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  struct Node* bloque = search(&spacesP[currentP].freeList, ptr.addr);
+  delete(&spacesP[currentP].freeList, bloque);
 }
 
 // Agrega un elemento al stack
@@ -105,9 +106,10 @@ int m_pag_push(byte val, ptr_t *out) {
   //Revisa los page frame
   for (size_t i = 0; i < m_size()/sizePage; i++)
   {
-    if(pages[i].ocupado == 0)
+    if(pages[i].ocupado == 0 && pages[i].size < sizePage)
     {
       pages[i].ocupado = 1;
+      pages[i].size++;
       free = i;
       break;
     }
@@ -115,23 +117,32 @@ int m_pag_push(byte val, ptr_t *out) {
 
   if(free != -1)
   {
-    m_set_owner(pages[free].addr, pages[free].addr + 1);
-    insert(&spacesP[currentP].Stack, free, 1);
+    m_set_owner(pages[free].addr + pages[free].size, pages[free].addr + pages[free].size + 1);
+    insert(&spacesP[currentP].Stack, pages[free].addr + pages[free].size, 1);
   }
   else
     return 1;
   
-  m_write( pages[free].addr, val);
-  out = m_read(pages[free].addr);
+  m_write( pages[free].addr + pages[free].size, val);
+  // printf("----%x\n", (pages[free].addr + pages[free].size)/ sizePage);
+  out = m_read(pages[free].addr + pages[free].size);
 
   return 0;
 }
 
 // Quita un elemento del stack
 int m_pag_pop(byte *out) {
-    
-  *out = m_read(pages[searchL(&spacesP[currentP].Stack)->value].addr);
-  pages[searchL(&spacesP[currentP].Stack)->value].ocupado = 0;
+  // printf("----%x\n", searchL(&spacesP[currentP].Stack)->value / sizePage);
+
+  //Para saber de donde popear lee el ultimo elemento de mi stack, toma su direccion,
+  // ahora necesita saber a q pagina pertenece esa direccion, por eso aprovecha q la division es
+  // parte entera. Una vez tiene la pagina coge la referencia de esa pagina y le suma el cachito de pagina
+  // que puede avanzar
+  *out = m_read(pages[searchL(&spacesP[currentP].Stack)->value / sizePage].addr + searchL(&spacesP[currentP].Stack)->value % sizePage);
+  pages[searchL(&spacesP[currentP].Stack)->value / sizePage].size--;
+
+  if(pages[searchL(&spacesP[currentP].Stack)->value / sizePage].size == 0)
+    pages[searchL(&spacesP[currentP].Stack)->value / sizePage].ocupado = 0;
   // FILE* hola;
   // hola = fopen("hola.txt", "a");
   // fprintf(hola, "----%d\n", 55);
@@ -188,6 +199,7 @@ void m_pag_on_ctx_switch(process_t process) {
         if(pages[i].ocupado == 0)
         {
           pages[i].ocupado = 1;
+          pages[i].size = sizePage;
           free = i;
           break;
         }
