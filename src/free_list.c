@@ -23,7 +23,7 @@ void insert(FreeList* freeList, int value, int size) {
 void print(FreeList* freeList) {
     struct Node* temp = freeList->head;
     while (temp != NULL) {
-        // printf("Bloque de memoria disponible de tamaño %d\n", temp->size);
+        fprintf(stderr,"Bloque de memoria disponible de tamaño %d\n", temp->size);
         temp = temp->next;
     }
 }

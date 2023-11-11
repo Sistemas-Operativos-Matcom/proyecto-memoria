@@ -10,21 +10,14 @@ int currentContext;
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
 
-  // // memset(&freeList, 0, sizeof(FreeList));
   bounds = 1024;
   currentContext = 0;
 
-  // *spaces = ptr_t *spaces;
   spaces = (ptr_t *)malloc(m_size()/bounds * sizeof(ptr_t));
   
   for (size_t i = 0; i < m_size()/bounds; i++)
   {
     spaces[i].ocupado = 0;
-  }
-  
-
-  for (size_t i = 0; i < m_size()/bounds; i++)
-  {
     spaces[i].process.pid = -1;
     spaces[i].addr = bounds*i;
     spaces[i].size = bounds;
