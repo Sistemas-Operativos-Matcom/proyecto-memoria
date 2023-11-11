@@ -3,16 +3,6 @@
 
 #include "free_list.h"
 
-// struct Node {
-//     int value;
-//     int size;
-//     struct Node* next;
-// };
-
-// typedef struct {
-//     struct Node* head;
-// } FreeList;
-
 void insert(FreeList* freeList, int value, int size) {
     struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
     newNode->value = value;
@@ -42,29 +32,6 @@ struct Node* search(FreeList* freeList, int size) {
     struct Node* temp = freeList->head;
     while (temp != NULL) {
         if (temp->size >= size) {
-            return temp;
-        }
-        temp = temp->next;
-    }
-    return NULL;
-}
-
-struct Node* grownIf(FreeList* freeList, int size) {
-    struct Node* temp = freeList->head;
-    while (temp != NULL) {
-        if (temp->size < size) {
-            temp->size++;
-            return temp;
-        }
-        temp = temp->next;
-    }
-    return NULL;
-}
-struct Node* grownThis(FreeList* freeList, int value) {
-    struct Node* temp = freeList->head;
-    while (temp != NULL) {
-        if (temp->value == value) {
-            temp->size++;
             return temp;
         }
         temp = temp->next;
