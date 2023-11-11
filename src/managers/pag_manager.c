@@ -285,10 +285,10 @@ int pag_validate_ptr(ptr_t ptr)
 // aqui hay que ver lo de q pudo sobre escribir el stacks
 // se arreegla con un flag
 int pag_validate_addr(addr_t addr)
-{
+{/*
   FILE *f = fopen("a.txt", "r+");
   fprintf(f, "addr: %d\n", addr);
-  fclose(f);
+  fclose(f);*/
   if (addr >= 0 && addr < espacio_de_direcciones &&
       (!is_free(pag_heap_free_list_by_pid[pag_current_process.pid], addr) || addr > pag_stackPointer_by_pid[pag_current_process.pid]))
     return 1;
