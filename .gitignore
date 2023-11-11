@@ -56,3 +56,4 @@ sim_logs/
 build/
 .vscode/tasks.json
 .vscode/launch.json
+.vscode/settings.json

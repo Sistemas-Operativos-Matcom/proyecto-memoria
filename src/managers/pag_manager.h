@@ -4,27 +4,24 @@
 #include "list.h"
 #include "../memory.h"
 #include "../utils.h"
+#include <stddef.h>
+#define PAGE_SIZE 128
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv);
-
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_pag_malloc(size_t size, ptr_t *out);
 
-
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr);
-
 
 // Agrega un elemento al stack
 int m_pag_push(byte val, ptr_t *out);
 
-
 // Quita un elemento del stack
 int m_pag_pop(byte *out);
-
 
 // Carga el valor en una dirección determinada
 int m_pag_load(addr_t addr, byte *out);

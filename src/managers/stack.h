@@ -4,6 +4,7 @@
 #include "list.h"
 #include "../memory.h"
 #include "../utils.h"
+#include <stddef.h>
 
 typedef struct stack
 {

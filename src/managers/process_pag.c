@@ -3,7 +3,8 @@
 #include "list.h"
 #include "process_pag.h"
 #include "pag_manager.h"
-#include "pag_manager.c"
+
+#include <stddef.h>
 
 process_pag_t *init_process_pag(process_t process)
 {

@@ -2,11 +2,7 @@
 #include <stdlib.h>
 #include "list.h"
 
-// Devuelve la cantidad de elementos de la lista
-int length(sizeList_t *list)
-{
-    return list->len;
-}
+#include <stddef.h>
 
 // Inicializa la estructura
 sizeList_t *init()
@@ -24,43 +20,34 @@ void reset(sizeList_t *l)
     l->len = 0; // Reset the length to 0
 
     // Free every element of the data array
-    for (int i = 0; i < l->size; i++)
+    for (size_t i = 0; i < l->size; i++)
     {
-        free(l->data[i]);
+        free((void *)l->data[i]);
     }
 
     free(l->data);                                                  // Free the memory allocated for the data array
-    l->size = 10;                                                   // Reset the size to the default value
+    l->size = (size_t)10;                                           // Reset the size to the default value
     l->data = (size_t *)realloc(l->data, l->size * sizeof(size_t)); // Allocate memory for the data array
 }
 
 // Devuelve el caracter de una posición
-size_t get(sizeList_t *l, int i)
+size_t get(sizeList_t *l, size_t i)
 {
-    if (i >= 0 && i < l->len)
+    if (i < l->len)
         return l->data[i];
     else
-        return -1;
+        exit(1);
 }
 
 // Setea un valor en una posición
-int set(sizeList_t *l, int i, size_t c)
+void set(sizeList_t *l, size_t i, size_t c)
 {
-    if (i >= 0 && i < l->len)
+    if (i < l->len)
     {
         l->data[i] = c;
-        return 0;
     }
     else
-        return -1;
-}
-
-// Verifica que el índice se encuentre dentro del tamaño de la lista
-int validIndex(sizeList_t *l, int i)
-{
-    if (i < 0 || i > l->len) // check i is valid
-        return -1;
-    return 0;
+        exit(1);
 }
 
 // Aumenta el tamaño de la lista si es necesario
@@ -79,31 +66,12 @@ void increaseSize(sizeList_t *l)
     }
 }
 
-// Inserta un elemento en una posición definida
-int insert(sizeList_t *l, int i, size_t c)
-{
-    // index was invalid
-    if (validIndex(l, i) == -1)
-        return -1;
-
-    if (l->len == l->size)
-        increaseSize(l);
-
-    for (int j = l->len; j > i; j--)
-        l->data[j] = l->data[j - 1];
-
-    l->data[i] = c;
-    l->len++;
-
-    return 0;
-}
-
 // Inserta un elemento al final de la lista
 void push(sizeList_t *l, size_t c)
 {
     if (l->len == l->size)
         increaseSize(l);
-    l->data[length(l)] = c;
+    l->data[l->len] = c;
     l->len++;
 }
 
@@ -116,41 +84,19 @@ size_t pop(sizeList_t *l)
         l->size /= 2;
         l->data = (size_t *)realloc(l->data, l->size * sizeof(size_t *));
     }
-}
-// Función para imprimir todos los elementos de la lista
-void printAll(sizeList_t *l)
-{
-    printf("La lista tiene %d elementos:\n", l->len);
-    for (int i = 0; i < l->len; i++)
-    {
-        printf("%c ", l->data[i]);
-    }
-    printf("\n");
-}
-
-// Función para imprimir el elemento de una posición específica de la lista
-void printAt(sizeList_t *l, int i)
-{
-    if (i >= 0 && i < l->len)
-    {
-        printf("El elemento en la posición %d es: %c\n", i, l->data[i]);
-    }
-    else
-    {
-        printf("Posición inválida\n");
-    }
+    return result;
 }
 
 // Función para eliminar el elemento de una posición específica de la lista
-int deleteAt(sizeList_t *l, int i)
+void deleteAt(sizeList_t *l, size_t i)
 {
-    if (i < 0 || i >= l->len)
+    if (i >= l->len)
     { // Verificar si la posición es válida
-        return -1;
+        exit(1);
     }
 
     // Desplazar los elementos a la izquierda para sobrescribir el elemento en la posición i
-    for (int j = i; j < l->len - 1; j++)
+    for (size_t j = i; j < l->len - 1; j++)
     {
         l->data[j] = l->data[j + 1];
     }
@@ -163,6 +109,4 @@ int deleteAt(sizeList_t *l, int i)
         l->size /= 2;
         l->data = (size_t *)realloc(l->data, l->size * sizeof(size_t));
     }
-
-    return 0;
 }
