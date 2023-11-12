@@ -19,6 +19,10 @@ int default_size = 512;
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
   processes = (process_t*)malloc(MAX_PROGRAM_COUNT * sizeof(process_t));
+  for(int i = 0; i < MAX_PROGRAM_COUNT; i++)
+  {
+    processes[i].pid = -1;
+  }
   process_bound = (int*)malloc(MAX_PROGRAM_COUNT * sizeof(int));
   process_stack = (Stack_t*)malloc(MAX_PROGRAM_COUNT * sizeof(Stack_t));
   process_heap = (Heap_t*)malloc(MAX_PROGRAM_COUNT * sizeof(Heap_t));
@@ -103,6 +107,7 @@ void set_next_process_memory(process_t process)
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process) {
+
   for(int i = 0; i < process_len; i++)
   {
     if(process.pid == processes[i].pid)
@@ -117,8 +122,9 @@ void m_bnb_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
-  
   if(current_process.pid == process.pid) current_process.pid = -1;
+
+  // Getting index of {process} in active processes array
   int index = -1;
   for(int i = 0; i < process_len; i++)
   {
@@ -133,5 +139,5 @@ void m_bnb_on_end_process(process_t process) {
   int base = process_bound[index-1]+1;
   int bounds = process_bound[index];
   m_unset_owner((addr_t)base, (addr_t)bounds);
-  exit(0);
+
 }

@@ -2,27 +2,27 @@
 
 int reserve(size_t size, addr_t stack_limit, Heap_t *heap)
 {
-    
     // Searching first free space of size {size}
     for(int i = heap->to_addr; i > (int)stack_limit; i--)
     {
         // Empty slot founded
-        if(heap->used_slots[i] == 0)
+        if(heap->used_slots[i] != 1 && heap->used_slots[i] != 2)
         {
             for(int j = i; j < (int)i+(int)size; j++)
             {
                 // Go back and keep searching
-                if(j > (int)heap->from_addr || (int)heap->used_slots[j] != 0) break;
-
+                if(j > (int)heap->from_addr || (int)heap->used_slots[j] == 1 || (int)heap->used_slots[j] == 2) break;
+                
+                
                 if(j-i == (int)size-1)
                 {
                     // Reserving {size} bytes
                     for(size_t k = 0; k < size; k++)
                     {
-                        // 2 in usedSlots array means reserved
+                        // 2 in used_slots array means reserved
                         heap->used_slots[k+i] = 2;
+                        
                     }
-
                     //Updating heap limit if needed
                     if((int)heap->from_addr > i)
                     {
