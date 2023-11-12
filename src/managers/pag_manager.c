@@ -7,7 +7,7 @@ typedef unsigned char byte;
 typedef size_t addr_t;
 
 #define MAX_MEMORY 1000000  
-#define MAX_PROCESSES 100  
+#define MAX_PROCESSES 1000  
 #define MAX_PAGES 100  
 #define PAGE_SIZE 1000
 #define STACK_SIZE 1000  
@@ -20,6 +20,7 @@ struct page_table{
 
 byte pag_memory[MAX_MEMORY];
 int mem_alloc[MAX_MEMORY];
+int from_pid[MAX_MEMORY];
 addr_t stack_pos[MAX_PROCESSES][STACK_SIZE];
 int stk_point[MAX_PROCESSES];
 int curr_pid=0;
@@ -39,6 +40,7 @@ void decode(size_t address, int *vpn, int *offset) {
 
 void m_pag_init(int argc, char **argv) {
     memset(mem_alloc, 0, MAX_PAGES);
+    memset(from_pid, -1, MAX_MEMORY);
     memset(pag_memory, 0, MAX_PAGES);
     memset(stk_point, 0, MAX_PROCESSES);
     for(int i=0;i<MAX_PROCESSES;i++){
@@ -64,6 +66,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
     
     for(int i=offset;i<offset+size;i++){
       table[curr_pid].mk[vpn][i]=1;
+      from_pid[table[curr_pid].page_frame[vpn]*PAGE_SIZE+i] = curr_pid;
     }
     out->addr=to_adress(vpn,offset);
     out->size=size;
@@ -79,16 +82,21 @@ int mem_pos(addr_t addr){
     decode(addr,&vpn,&offset);
     int pt=table[curr_pid].page_frame[vpn];
     // printf("[Ask] %d %d %d : %d\n",curr_pid,vpn,offset,pt*PAGE_SIZE+offset);
+    if(from_pid[pt*PAGE_SIZE+offset]!=curr_pid )return -1;
     return pt*PAGE_SIZE+offset;
 }
 
 int m_pag_store(addr_t addr, byte val) {
-    pag_memory[mem_pos(addr)] = val;
+    int pos=mem_pos(addr);
+    if(pos<0)return 1;
+    pag_memory[pos] = val;
     return 0;
 }
 
 int m_pag_load(addr_t addr, byte *out) {
-    *out=pag_memory[mem_pos(addr)];
+    int pos=mem_pos(addr);
+    if(pos<0)return 1;
+    *out=pag_memory[pos];
     return 0;
 }
 
@@ -97,7 +105,8 @@ void m_pag_on_ctx_switch(process_t process) {
 }
 
 int m_pag_push(byte val, ptr_t *out) {
-    m_pag_malloc(1,out);
+    int ret=m_pag_malloc(1,out);
+    if(ret)return 1;
     m_pag_store(out->addr,val);
     stack_pos[curr_pid][stk_point[curr_pid]]=out->addr;
     stk_point[curr_pid]++;
@@ -114,6 +123,12 @@ int m_pag_pop(byte *out) {
 void m_pag_on_end_process(process_t process) {
     int pid=process.pid;
     mem_alloc[pid]=pag_memory[pid]=stk_point[pid]=0;
+    for(int i=0;i<MAX_PAGES;i++){
+      if(table[pid].used[i])  
+        for(int j=0;j<PAGE_SIZE;j++){
+            from_pid[table[curr_pid].page_frame[i]*PAGE_SIZE+j]=-1;
+        }
+    }
     memset(stack_pos[pid], 0, STACK_SIZE);
     memset(table[pid].page_frame, 0, MAX_PAGES);
     memset(table[pid].used, 0, MAX_PAGES);
