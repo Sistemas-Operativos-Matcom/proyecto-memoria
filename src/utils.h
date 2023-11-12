@@ -25,4 +25,6 @@ typedef struct process {
 program_t new_program(char *name, size_t size);
 process_t new_process(int pid, program_t *program);
 
+//Convierte el tamaño del proceso a multiplo de 8
+size_t round_proccess_size(size_t size);
 #endif
