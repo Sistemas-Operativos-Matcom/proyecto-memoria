@@ -119,9 +119,11 @@ int m_bnb_store(addr_t addr, byte val)
     m_write(pa_bnb(addr), val);
     return 0;
   }
-  return 1;
+  return 1; 
   
 }
+
+
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process)
