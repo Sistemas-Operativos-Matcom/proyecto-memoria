@@ -9,14 +9,14 @@ Piece_t *Memory;
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
-  Memory = (Piece_t *) malloc(m_size()/1024*sizeof(Piece_t));
+  Memory = (Piece_t *) malloc(m_size()/512*sizeof(Piece_t));
   int base = 0;
-  for (size_t i = 0; i < m_size()/1024; i++)
+  for (size_t i = 0; i < m_size()/512; i++)
   {
     Piece_t p;
     p.base = base;
-    base += 1024;
-    for (size_t j = 0; j < 1024; j++)
+    base += 512;
+    for (size_t j = 0; j < 512; j++)
     {
       p.bytes[j] = 0;
     }
@@ -32,7 +32,7 @@ void m_bnb_init(int argc, char **argv) {
 int m_bnb_malloc(size_t size, ptr_t *out) {
   int is = 0;
   int dir = -1;
-  for (size_t i = 0; i < 1024; i++)
+  for (size_t i = 0; i < 512; i++)
   {
     if (Memory[proceso].bytes[i] == 0)
     {
@@ -77,7 +77,7 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr) {
-  for (size_t i = ptr.addr % 1024; i < ptr.size; i++) 
+  for (size_t i = ptr.addr % 512; i < ptr.size; i++) 
   {
     if (Memory[proceso].bytes[i] != 2)
     {
@@ -91,7 +91,7 @@ int m_bnb_free(ptr_t ptr) {
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out) {
   int full = 0;
-  for (size_t i = 0; i < 1024; i++)
+  for (size_t i = 0; i < 512; i++)
   {
     if (Memory[proceso].bytes[i] == 3)
     {
@@ -109,13 +109,13 @@ int m_bnb_push(byte val, ptr_t *out) {
   }
   if (!full)
   {
-    if (Memory[proceso].bytes[1023] == 0)
+    if (Memory[proceso].bytes[511] == 0)
     {
-      Memory[proceso].bytes[1023] = 3;
-      out->addr = Memory[proceso].base +1023;
+      Memory[proceso].bytes[511] = 3;
+      out->addr = Memory[proceso].base +511;
       out->size = 1;
-      m_set_owner(Memory[proceso].base +1023, Memory[proceso].base +1023+1);
-      m_write(Memory[proceso].base +1023, val); 
+      m_set_owner(Memory[proceso].base +511, Memory[proceso].base +511+1);
+      m_write(Memory[proceso].base +511, val); 
       return 0;
     }
   }
@@ -125,7 +125,7 @@ int m_bnb_push(byte val, ptr_t *out) {
 
 // Quita un elemento del stack
 int m_bnb_pop(byte *out) {
-  for (size_t i = 0; i < 1024; i++)
+  for (size_t i = 0; i < 512; i++)
   {
     // printf("--%d\n", Memory[proceso].bytes[i]);
     if (Memory[proceso].bytes[i] == 3)
@@ -141,7 +141,7 @@ int m_bnb_pop(byte *out) {
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
   // printf("--%d",m_read(addr));
-  if (addr-(addr % 1024) != Memory[proceso].base)
+  if (addr-(addr % 512) != Memory[proceso].base)
   {
     return 1;
   }
@@ -152,11 +152,11 @@ int m_bnb_load(addr_t addr, byte *out) {
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
-  if (addr-(addr%1024) != Memory[proceso].base)
+  if (addr-(addr%512) != Memory[proceso].base)
   {
     return 1;
   }
-  if (Memory[proceso].bytes[addr%1024] == 2)
+  if (Memory[proceso].bytes[addr%512] == 2)
   {
     
     m_write(addr,val);
@@ -171,7 +171,7 @@ void m_bnb_on_ctx_switch(process_t process) {
   int is = 0;
   int st = 0;
   int first = -1;
-  for (size_t i = 0; i < m_size()/1024; i++)
+  for (size_t i = 0; i < m_size()/512; i++)
   {
     if (Memory[i].process == -1 && !st)
     {
@@ -204,12 +204,12 @@ void m_bnb_on_ctx_switch(process_t process) {
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
-  for (size_t i = 0; i < m_size()/1024; i++)
+  for (size_t i = 0; i < m_size()/512; i++)
   {
     if (Memory[i].process == process.pid)
     {
       Memory[i].process == -1;
-      for (size_t j = 0; j < 1024; j++)
+      for (size_t j = 0; j < 512; j++)
       {
         Memory[i].bytes[j] = 0;
       }
