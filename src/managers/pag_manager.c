@@ -39,17 +39,22 @@ void decode(size_t address, int *vpn, int *offset) {
 }
 
 void m_pag_init(int argc, char **argv) {
-    memset(mem_alloc, 0, MAX_PAGES);
-    memset(from_pid, -1, MAX_MEMORY);
-    memset(pag_memory, 0, MAX_PAGES);
-    memset(stk_point, 0, MAX_PROCESSES);
-    for(int i=0;i<MAX_PROCESSES;i++){
-      memset(stack_pos[i], 0, STACK_SIZE);
-      memset(table[i].page_frame, 0, MAX_PAGES);
-      memset(table[i].used, 0, MAX_PAGES);
-      memset(table[i].mk, 0,MAX_PAGES*PAGE_SIZE);
+    memset(mem_alloc, 0, sizeof(mem_alloc[0]) * MAX_MEMORY);
+    for (int i = 0; i < MAX_MEMORY; i++) {
+        from_pid[i] = -1;
+    }
+
+    memset(pag_memory, 0, sizeof(pag_memory[0]) * MAX_MEMORY);
+    memset(stk_point, 0, sizeof(stk_point[0]) * MAX_PROCESSES);
+
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        memset(stack_pos[i], 0, sizeof(stack_pos[i][0]) * STACK_SIZE);
+        memset(table[i].page_frame, 0, sizeof(table[i].page_frame[0]) * MAX_PAGES);
+        memset(table[i].used, 0, sizeof(table[i].used[0]) * MAX_PAGES);
+        memset(table[i].mk, 0, sizeof(table[i].mk[0][0]) * MAX_PAGES * PAGE_SIZE);
     }
 }
+
 
 int m_pag_malloc(size_t size, ptr_t *out) {
     int vpn=-1,offset=0;
@@ -64,7 +69,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
     }
     if(vpn<0)return 1;
     
-    for(int i=offset;i<offset+size;i++){
+    for(int i=offset;i<(int)(offset+size);i++){
       table[curr_pid].mk[vpn][i]=1;
       from_pid[table[curr_pid].page_frame[vpn]*PAGE_SIZE+i] = curr_pid;
     }
@@ -121,19 +126,20 @@ int m_pag_pop(byte *out) {
 }
 
 void m_pag_on_end_process(process_t process) {
-    int pid=process.pid;
+    int pid = process.pid;
     mem_alloc[pid]=pag_memory[pid]=stk_point[pid]=0;
-    for(int i=0;i<MAX_PAGES;i++){
-      if(table[pid].used[i])  
-        for(int j=0;j<PAGE_SIZE;j++){
-            from_pid[table[curr_pid].page_frame[i]*PAGE_SIZE+j]=-1;
-        }
+    for(int i=0;i<MAX_PAGES;i++) {
+        if(table[pid].used[i])
+            for(int j=0;j<PAGE_SIZE;j++){
+                from_pid[table[pid].page_frame[i]*PAGE_SIZE+j]=-1;
+            }        
     }
-    memset(stack_pos[pid], 0, STACK_SIZE);
-    memset(table[pid].page_frame, 0, MAX_PAGES);
-    memset(table[pid].used, 0, MAX_PAGES);
-    memset(table[pid].mk, 0,MAX_PAGES*PAGE_SIZE);
+    memset(stack_pos[pid], 0, sizeof(stack_pos[pid][0]) * STACK_SIZE);
+    memset(table[pid].page_frame, 0, sizeof(table[pid].page_frame[0]) * MAX_PAGES);
+    memset(table[pid].used, 0, sizeof(table[pid].used[0]) * MAX_PAGES);
+    memset(table[pid].mk, 0, sizeof(table[pid].mk[0][0]) * MAX_PAGES * PAGE_SIZE);
 }
+
 
 int m_pag_free(ptr_t ptr) {
     m_pag_store(ptr.addr,0);
