@@ -66,6 +66,7 @@ void test_case_001() {
   end_process(processes[0]);
   end_process(processes[1]);
   end_sim();  // Termina la simulación
+  
 }
 
 // ======================================================================
@@ -123,6 +124,10 @@ void test_case_002() {
   end_process(processes[1]);
   end_process(processes[2]);
   end_sim();
+/*
+  FILE *f = fopen("a.txt", "w+");
+  printf(f, "hello");
+  fclose(f);*/
 }
 
 // ======================================================================
