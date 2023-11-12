@@ -4,12 +4,14 @@
 #include "../utils.h"
 
 #define INITIAL_FREE_LIST_SIZE 10
+#define MAX_SEGMENT_SIZE 64
 
 typedef struct store {
     addr_t address;
     byte value;
 } store_t;
 
+// Basic Free List
 typedef struct mem_segment {
     addr_t start;
     addr_t end;
@@ -22,6 +24,13 @@ typedef struct free_list {
     mem_segment_t *segments;
 } free_list_t;
 
+free_list_t *init_free_list();
+
+size_t free_list_end(free_list_t*);
+size_t get_free_segment_start(free_list_t*, size_t);
+addr_t allocate_segment(free_list_t*, size_t);
+void unallocate_segment(free_list_t*, addr_t);
+
 typedef struct bnb_segment {
     process_t proc;
     addr_t base;
@@ -33,12 +42,25 @@ typedef struct bnb_segment {
     store_t *stack;
 } bnb_segment_t;
 
+// Segmentation free list
+typedef struct seg_segment {
+    process_t proc;
+    addr_t base;
+    size_t offset;
+    int increase;
+    store_t *store;
+    int store_count;
+    free_list_t *free_list;
+} seg_segment_t;
 
-free_list_t *init_free_list();
+typedef struct seg_free_list {
+    int count;
+    int max_count;
+    seg_segment_t *segments;
+} seg_free_list_t;
 
-size_t free_list_end(free_list_t*);
-size_t get_free_segment_start(free_list_t*, size_t);
-addr_t allocate_segment(free_list_t*, size_t);
-void unallocate_segment(free_list_t*, addr_t);
+int seg_get_segment_count(size_t);
+seg_segment_t *seg_allocate_segment(seg_free_list_t*, process_t, int);
+void seg_unallocate_segment(seg_free_list_t*, int pid);
 
 #endif

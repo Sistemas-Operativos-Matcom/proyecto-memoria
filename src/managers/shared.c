@@ -102,3 +102,81 @@ void unallocate_segment(free_list_t *free_list, addr_t start) {
         }
     }
 }
+
+int seg_get_segment_count(size_t memory) {
+    return memory / MAX_SEGMENT_SIZE;
+}
+
+seg_segment_t *seg_allocate_segment(seg_free_list_t *free_list, process_t proc, int increase) {
+    seg_segment_t segment;
+
+    if (free_list->count == 0) {
+        if (increase) {
+            segment = (seg_segment_t) {
+                .base = 0,
+                .proc = proc,
+                .increase = increase,
+                .offset = 0,
+                .free_list = init_free_list(),
+                .store_count = 0
+            };
+        } else {
+            segment = (seg_segment_t) {
+                .base = MAX_SEGMENT_SIZE,
+                .proc = proc,
+                .increase = increase,
+                .offset = 0,
+                .free_list = init_free_list(),
+                .store_count = 0
+            };
+        }
+
+        free_list->segments[0] = segment;
+        free_list->count++;
+
+        return &free_list->segments[0];
+    } else {
+        for (int i = 0; i < free_list->max_count; i++) {
+            if (free_list->segments[i].proc.pid == -1) {
+                if (increase) {
+                    segment = (seg_segment_t) {
+                        .base = i * MAX_SEGMENT_SIZE,
+                        .proc = proc,
+                        .increase = increase,
+                        .offset = 0,
+                        .free_list = init_free_list(),
+                        .store_count = 0
+                    };
+                } else {
+                    segment = (seg_segment_t) {
+                        .base = (i + 1) * MAX_SEGMENT_SIZE,
+                        .proc = proc,
+                        .increase = increase,
+                        .offset = 0,
+                        .free_list = init_free_list(),
+                        .store_count = 0
+                    };
+                }
+                
+                free_list->segments[i] = segment;
+                free_list->count++;
+
+                return &free_list->segments[i];
+            }
+        }
+    }
+
+    return NULL;
+}
+
+void seg_unallocate_segment(seg_free_list_t *free_list, int pid) {
+    int count = 0;
+    for (int i = 0; i < free_list->max_count; i++) {
+        if (free_list->segments[i].proc.pid == pid) {
+            free_list->segments = NULL;
+        }
+        count++;
+
+        if (count == free_list->count) return;
+    }
+}
