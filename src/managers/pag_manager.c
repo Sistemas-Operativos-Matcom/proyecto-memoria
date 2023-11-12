@@ -29,6 +29,7 @@ void m_pag_init(int argc, char **argv)
   {
     pag_free_list[i] = 0;
   }
+  m_bnb_init(argc, argv);
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al

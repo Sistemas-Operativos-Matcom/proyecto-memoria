@@ -52,6 +52,7 @@ int m_bnb_malloc(size_t size, ptr_t *out)
   if (bnb_heap[bnb_index_curr_pid] + size < bnb_stack[bnb_index_curr_pid])
   {
     out->addr = bnb_heap[bnb_index_curr_pid];
+    out->size = size;
 
     for (addr_t i = bnb_base[bnb_index_curr_pid] + bnb_heap[bnb_index_curr_pid]; i < bnb_base[bnb_index_curr_pid] + bnb_heap[bnb_index_curr_pid] + size; i++)
     {
@@ -86,6 +87,7 @@ int m_bnb_push(byte val, ptr_t *out)
   m_write(bnb_pa(bnb_stack[bnb_index_curr_pid]), val);
   bnb_free_list[bnb_pa(bnb_stack[bnb_index_curr_pid])] = 1;
   out->addr = bnb_stack[bnb_index_curr_pid];
+  out->size = 1;
   bnb_stack[bnb_index_curr_pid]--;
   return 0;
 }
@@ -131,6 +133,7 @@ void m_bnb_on_ctx_switch(process_t process)
     if (bnb_pids[i] == process.pid)
     {
       bnb_index_curr_pid = i;
+      set_curr_owner(process.pid);
       return;
     }
   }
@@ -140,10 +143,11 @@ void m_bnb_on_ctx_switch(process_t process)
     {
       bnb_index_curr_pid = i;
       bnb_pids[i] = process.pid;
-      m_set_owner(bnb_base[bnb_index_curr_pid], bnb_base[bnb_index_curr_pid] + bnb_bound);
+      m_set_owner(bnb_base[bnb_index_curr_pid], bnb_base[bnb_index_curr_pid] + bnb_bound - 1);
       return;
     }
   }
+  return;
 }
 
 // Notifica que un proceso ya terminó su ejecución
