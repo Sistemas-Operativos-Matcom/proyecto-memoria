@@ -54,3 +54,7 @@ dkms.conf
 mem_logs/
 sim_logs/
 build/
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/settings.json
+.vscode/extensions.json

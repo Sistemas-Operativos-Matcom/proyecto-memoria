@@ -4,6 +4,15 @@
 #include "../memory.h"
 #include "../utils.h"
 
+#include "../memory.h"
+#include "../utils.h"
+#include "stack.h"
+#include "process_pag.h"
+#include "list.h"
+
+#include "process_list.h"
+#define BNB_PAGE_SIZE 512
+
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv);
 

@@ -3,6 +3,12 @@
 
 #include "../memory.h"
 #include "../utils.h"
+#include "stack.h"
+#include "process_pag.h"
+#include "list.h"
+
+#include "process_list.h"
+#define PAGE_SIZE 128
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv);
