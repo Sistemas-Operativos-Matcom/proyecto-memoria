@@ -15,7 +15,7 @@ void setup_sim(size_t mem_size, const char *log_file, int argc, char **argv) {
 }
 
 void mem_store(addr_t addr, byte val) {
-  if (m_store(addr, val)) {
+  if (!m_store(addr, val)) {
     printf("[ERROR] (pid: %d) Storing %d at 0x%zx failed\n", g_cpid, val, addr);
     exit(1);
   }
@@ -38,7 +38,7 @@ void mem_store_assert(addr_t addr, byte val, int result) {
 
 byte mem_load(addr_t addr) {
   byte out;
-  if (m_load(addr, &out)) {
+  if (!m_load(addr, &out)) {
     printf("[ERROR] (pid: %d) Loading at 0x%zx failed\n", g_cpid, addr);
     exit(1);
   }
@@ -60,7 +60,7 @@ byte mem_load_assert(addr_t addr, byte val) {
 
 ptr_t mem_malloc(size_t size) {
   ptr_t ptr;
-  if (m_malloc(size, &ptr)) {
+  if (!m_malloc(size, &ptr)) {
     printf("[ERROR] (pid: %d) Allocating %zu bytes\n", g_cpid, size);
     exit(1);
   }
@@ -70,7 +70,7 @@ ptr_t mem_malloc(size_t size) {
 }
 
 void mem_free(ptr_t ptr) {
-  if (m_free(ptr)) {
+  if (!m_free(ptr)) {
     printf("[ERROR] (pid: %d) Call free at ptr 0x%zx\n", g_cpid, at(ptr));
     exit(1);
   }
@@ -79,7 +79,7 @@ void mem_free(ptr_t ptr) {
 
 ptr_t mem_push(byte val) {
   ptr_t ptr;
-  if (m_push(val, &ptr)) {
+  if (!m_push(val, &ptr)) {
     printf("[ERROR] (pid: %d) Pushing %d into stack\n", g_cpid, val);
     exit(1);
   }
@@ -90,7 +90,7 @@ ptr_t mem_push(byte val) {
 
 byte mem_pop() {
   byte out;
-  if (m_pop(&out)) {
+  if (!m_pop(&out)) {
     printf("[ERROR] (pid: %d) Poping from stack\n", g_cpid);
     exit(1);
   }
