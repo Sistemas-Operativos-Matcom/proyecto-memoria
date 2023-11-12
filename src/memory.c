@@ -116,13 +116,16 @@ static void validate_ownership(int owner, size_t from_addr, size_t to_addr) {
   }
 }
 void m_unset_owner(size_t from_addr, size_t to_addr) {
+  
   validate_ownership(NO_ONWER, from_addr, to_addr);
   for (size_t i = from_addr; i <= to_addr; i++) {
     g_ownership[i] = NO_ONWER;
     g_free_mem++;
   }
+  
   fprintf(g_log_file, "o %d %lu %lu %lu\n", NO_ONWER, from_addr, to_addr,
           g_free_mem);
+  printf("[INFO] Unsetting ownership %d from addr 0x%zx to addr 0x%zx\n",     g_curr_owner, from_addr, to_addr);
 }
 
 void m_set_owner(size_t from_addr, size_t to_addr) {
