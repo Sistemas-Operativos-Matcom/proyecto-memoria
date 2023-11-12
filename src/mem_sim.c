@@ -119,6 +119,7 @@ void ctx_switch(process_t process) {
 void end_process(process_t process) { m_on_end_process(process); }
 
 void end_sim() {
+
   mem_end();
   printf("Finish simulation\n\n");
 }

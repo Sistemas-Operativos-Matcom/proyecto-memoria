@@ -32,4 +32,6 @@ void m_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_on_end_process(process_t process);
 
+void reset_values();
+
 #endif
