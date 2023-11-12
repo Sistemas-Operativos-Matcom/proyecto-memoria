@@ -8,7 +8,7 @@
 
 process_pag_t *init_process_pag(process_t process)
 {
-    process_pag_t *new_process_pag = (process_pag_t *)malloc(sizeof(process_pag_t));
+    process_pag_t *new_process_pag = malloc(sizeof(process_pag_t));
 
     virtual_mem_t *v_memory = init_virtual_mem(process);
     sizeList_t *new_pages_table = init();
@@ -31,11 +31,11 @@ process_pag_t *init_process_pag(process_t process)
 // Constructor for virtual_mem_t
 virtual_mem_t *init_virtual_mem(process_t process)
 {
-    virtual_mem_t *new_virtual_mem = (virtual_mem_t *)malloc(sizeof(virtual_mem_t));
+    virtual_mem_t *new_virtual_mem = malloc(sizeof(virtual_mem_t));
     heap_t *new_heap = init_heap();
     new_heap->list->size = PAGE_SIZE;
 
-    stack_t *stack = init_stack(m_size() / 10, process.program->size); // tamano de stack = 10% de tamano de pag frames
+    stack_t *stack = init_stack((int)m_size() * 5 / 100, process.program->size); // tamano de stack = 5% de tamano de pag frames
 
     new_virtual_mem->stack = stack;
 

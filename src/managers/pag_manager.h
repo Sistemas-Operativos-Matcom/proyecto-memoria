@@ -1,10 +1,13 @@
 #ifndef PAG_MANAGER_H
 #define PAG_MANAGER_H
 
-#include "list.h"
 #include "../memory.h"
 #include "../utils.h"
-#include <stddef.h>
+#include "stack.h"
+#include "process_pag.h"
+#include "list.h"
+
+#include "process_list.h"
 #define PAGE_SIZE 128
 
 // Esta función se llama cuando se inicializa un caso de prueba

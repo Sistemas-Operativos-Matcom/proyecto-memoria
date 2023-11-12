@@ -22,9 +22,9 @@ typedef struct process_pag
 } process_pag_t;
 
 // Constructor for process_pag_t
-process_pag_t *init_process_pag(process_t process);
+ process_pag_t *init_process_pag(process_t process);
 
 // Constructor for virtual_mem_t
-virtual_mem_t *init_virtual_mem(process_t process);
+ virtual_mem_t *init_virtual_mem(process_t process);
 
 #endif

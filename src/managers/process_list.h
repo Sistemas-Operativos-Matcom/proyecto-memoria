@@ -14,22 +14,22 @@
 
 typedef struct process_List
 {
-    size_t len;           // current size of the array
-    process_pag_t **data; // posize_ter to the array of process
-    size_t size;          // maximum size that can be stored
+    int len;           // current size of the array
+    process_pag_t **data; // pointer to the array of process
+    int size;          // maximum size that can be stored
 } process_List_t;
 
-// Initializes the process_List_t structure and returns a posize_ter to it
+// Initializes the process_List_t structure and returns a pointer to it
 process_List_t *p_init();
 
 // resetea la lista
 void p_reset(process_List_t *l);
 
 // Returns the element at index i in the list
-process_pag_t *p_get(process_List_t *l, size_t i);
+process_pag_t *p_get(process_List_t *l, int i);
 
 // Sets the value c at index i in the list
-void p_set(process_List_t *l, size_t i, process_pag_t *c);
+void p_set(process_List_t *l, int i, process_pag_t *c);
 
 // Increases the size of the list if necessary
 void p_increaseSize(process_List_t *l);
@@ -41,6 +41,6 @@ void p_push(process_List_t *l, process_pag_t *c);
 process_pag_t *p_pop(process_List_t *l);
 
 // Deletes the element at index i from the list
-void p_deleteAt(process_List_t *l, size_t i);
+void p_deleteAt(process_List_t *l, int i);
 
 #endif

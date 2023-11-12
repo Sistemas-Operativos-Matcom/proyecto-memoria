@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "You must give a memory manager: bnb, seg or pag\n");
     exit(1);
   }
+  
   run_tests(argc, argv);
   return 0;
 }
