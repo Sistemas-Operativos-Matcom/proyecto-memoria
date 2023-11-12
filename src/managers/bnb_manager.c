@@ -23,12 +23,11 @@ size_t *bnb_heap;
 size_t *bnb_stack;
 size_t bnb_default_bound;
 
-addr_t *bnb_bases;
 
 // functions
 addr_t bnb_pa(addr_t va)
 {
-  return bnb_bases[bnb_cur_ipid] + va;
+  return bnb_default_bound*bnb_cur_ipid + va;
 }
 
 int bnb_find_pid(int pid)
@@ -149,7 +148,6 @@ void m_bnb_init(int argc, char **argv)
   bnb_pids = malloc(sizeof(int) * BNB_MAX_PROC_COUNT);
   bnb_heap = malloc(sizeof(size_t) * BNB_MAX_PROC_COUNT);
   bnb_stack = malloc(sizeof(size_t) * BNB_MAX_PROC_COUNT);
-  bnb_bases = malloc(sizeof(addr_t) * BNB_MAX_PROC_COUNT);
 
   printf("MAX PROC COUNT: %d\n", BNB_MAX_PROC_COUNT);
   printf("DEFAULT BOUND FOR Process: %ld\n", bnb_default_bound);
@@ -159,8 +157,6 @@ void m_bnb_init(int argc, char **argv)
     bnb_pids[i] = -1;
     bnb_heap[i] = 0;
     bnb_stack[i] = bnb_default_bound;
-    bnb_bases[i] = bnb_default_bound * i;
-    // printf("BASE of i:%ld is %ld\n", i, bnb_bases[i]);
   }
 
   bnb_free_list = malloc(sizeof(int) * m_size());
