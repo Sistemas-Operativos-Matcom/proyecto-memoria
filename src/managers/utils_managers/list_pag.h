@@ -11,8 +11,8 @@ typedef struct List
 
 list *Init_list_of_pages();
 int pag_Push(list *l, process_pag proc_to_insert);
-int pag_RemovePos(list *l, size_t p);
 int pag_Contains(list *l, int pid);
-int pag_Free(list *l);
+int bnb_RemovePos(list *, size_t);
+int bnb_Free(list *);
 
 #endif

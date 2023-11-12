@@ -9,12 +9,19 @@ list *Init_list()
     l->data = (process_bnb *)malloc(sizeof(process_bnb) * l->size);
     return l;
 }
-int bnb_Free(list *l)
+int bnb_Is_Process_New(list *l, int pid)
 {
-    free(l->data);
-    free(l);
-    return 1;
+    for (size_t i = 0; i < l->length; i++)
+    {
+        process_bnb proces = l->data[i];
+        if (proces.pid == pid)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
+
 int bnb_Push(list *l, process_bnb proc_to_insert)
 {
     if (l->size == l->length + 1)
@@ -28,7 +35,6 @@ int bnb_Push(list *l, process_bnb proc_to_insert)
 }
 int bnb_RemovePos(list *l, size_t pos)
 {
-    // elimino el valor en la posicion pos y corro una pos a la izquierda el resto de los elementos
     if (l->length <= pos)
         return -1;
     for (size_t i = pos; i < l->length; i++)
@@ -38,15 +44,9 @@ int bnb_RemovePos(list *l, size_t pos)
     l->length = l->length - 1;
     return 1;
 }
-int bnb_Contains(list *l, int pid)
+int bnb_Free(list *l)
 {
-    for (size_t i = 0; i < l->length; i++)
-    {
-        process_bnb proces = l->data[i];
-        if (proces.pid == pid)
-        {
-            return i;
-        }
-    }
-    return -1;
+    free(l->data);
+    free(l);
+    return 1;
 }

@@ -11,8 +11,8 @@ typedef struct List
 
 list *Init_list();
 int bnb_Push(list *l, process_bnb v);
-int bnb_RemovePos(list *l, size_t p);
-int bnb_Contains(list *l, int pid);
-int bnb_Free(list *l);
+int bnb_Is_Process_New(list *l, int pid);
+int bnb_RemovePos(list *, size_t);
+int bnb_Free(list *);
 
 #endif

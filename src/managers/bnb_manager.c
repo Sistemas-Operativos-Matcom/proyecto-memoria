@@ -4,7 +4,7 @@
 #include "../utils.h"
 
 
-static addr_t heap_start_ptr;//es donde termina code y empieza heap
+static addr_t heap_start_ptr = 0;//es donde termina code y empieza heap
 static process_bnb *curr_process;
 static list *procs_list;
 static size_t *mem_pages_bnb;//cada posicion es una pagina o bloque, que le corresponde a lo suno a un unico proceso
@@ -14,42 +14,40 @@ static size_t process_bound = 512;//todos tienen igual bound
 void m_bnb_init(int argc, char **argv)
 {
   size_t mem_size = m_size();
+    procs_list = Init_list();
   pages_amount = mem_size / process_bound;
   mem_pages_bnb = (size_t *)malloc(pages_amount * sizeof(size_t));
-  procs_list = Init_list();
-  heap_start_ptr = 0;
 }
 
 int m_bnb_malloc(size_t size, ptr_t *out)
 {
-  if (heap_start_ptr + size >= process_bound)
+  if (heap_start_ptr + size>= process_bound)
   {
-    // no hay memoria suficiente
-    fprintf(stderr, "No se dispone de ese tamaño de memoria.");
+    fprintf(stderr, "No hay suficiente espacio");
     return 1;
   }
   for (size_t i = heap_start_ptr; i < process_bound; i++)
   {
     if (curr_process->memory[i] != 1)
-    {
-      size_t j = 0;
-      for (; j < size && ((i + j) < process_bound); j++)
+    {//encontre un espacio libre
+       size_t count = 0;
+      while ((count+i) < process_bound-1)
       {
-        if (curr_process->memory[i + j] == 1)
+         if (curr_process->memory[i + count] == 1)
+         {
           break;
+         }
+          count ++;
+          if (count == size)
+        {
+          out->addr = i;
+          out->size = size;
+          for (size_t count = 0; count < size; count++)
+            curr_process->memory[i + count] = 1;
+          return 0;
+        }
       }
-      if (j == size)
-      {
-        // devuelvo como addr a la dirección de mi memoria virtual.
-        out->addr = i;
-        out->size = size;
-        for (size_t j = 0; j < size; j++)
-          curr_process->memory[i + j] = 1;
-        return 0;
-        break;
-      }
-      else
-        i += j;
+        i += count;
     }
   }
   return 1;
@@ -59,7 +57,7 @@ int m_bnb_free(ptr_t ptr)
 {
   if (ptr.addr > process_bound)
   {
-    fprintf(stderr, "Dirección incorrecta.");
+    fprintf(stderr, "No se puede borrar algo fuera del bound del proceso.");
     return 1;
   }
   for (size_t i = 0; i < ptr.size; i++)
@@ -101,7 +99,7 @@ int m_bnb_load(addr_t addr, byte *out)
 {
   if(addr > process_bound-1)
   {
-    return -1;
+    return 1;
   }
   *out = m_read(addr + curr_process->base);//se guarda en out valor que corresponde al addr en memoria del proceso
   return 0;
@@ -111,7 +109,7 @@ int m_bnb_store(addr_t addr, byte val)
 {
   if(addr > process_bound-1 || addr <= heap_start_ptr - 1)
   {
-    return -1;
+    return 1;
   }
   m_write(addr + curr_process->base, val);
   return 0;
@@ -120,10 +118,10 @@ int m_bnb_store(addr_t addr, byte val)
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process)
 {
-  int pos = bnb_Contains(procs_list, process.pid);
-  if (pos != -1)
+  int active = bnb_Is_Process_New(procs_list, process.pid);
+  if (active != -1)
   {//si llegas aqui proceso ya estaba activo en procs_list
-    *curr_process = procs_list->data[pos];
+    *curr_process = procs_list->data[active];
     heap_start_ptr = process.program->size;
     set_curr_owner(process.pid);
   }
@@ -139,12 +137,11 @@ void m_bnb_on_ctx_switch(process_t process)
         m_set_owner(curr_process->base, curr_process->base + process_bound);
         if (process.program->size > process_bound)
         {
-          fprintf(stderr, "El size del codigo del programa es mayor que el valor del bound.");
+          fprintf(stderr, "El espacio requerido para el codigo es mayor que el bound de cada programa\n");
           exit(1);
         }
         for (size_t i = 0; i < process.program->size; i++)
           curr_process->memory[i] = 1;
-        // el valor del puntero representa a partir de donde empieza el heap
         heap_start_ptr = process.program->size;
         break;
       }
@@ -156,16 +153,16 @@ void m_bnb_on_ctx_switch(process_t process)
 
 void m_bnb_on_end_process(process_t process)
 {
-  int pos = bnb_Contains(procs_list, process.pid);
-  if (pos == -1)
+  int active = bnb_Is_Process_New(procs_list, process.pid);
+  if (active == -1)
   {
     fprintf(stderr, "No se puede eliminar un proceso que no se esta ejecutando.");
     exit(1);
   }
-  size_t temp = procs_list->data[pos].base;
+  size_t temp = procs_list->data[active].base;
   mem_pages_bnb[temp / process_bound] = 0;
   m_unset_owner(temp, temp + process_bound);
-  bnb_RemovePos(procs_list, pos);
+  bnb_RemovePos(procs_list, active);
     if (curr_process->pid == process.pid)
     Free_p_bnb(curr_process);
 }

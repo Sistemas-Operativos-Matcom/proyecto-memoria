@@ -9,12 +9,6 @@ list *Init_list_of_pages()
     l->data = (process_pag *)malloc(sizeof(process_pag) * l->size);
     return l;
 }
-int pag_Free(list *l)
-{
-    free(l->data);
-    free(l);
-    return 1;
-}
 int pag_Push(list *l, process_pag proc_to_insert)
 {
     if (l->size == l->length + 1)
@@ -26,9 +20,20 @@ int pag_Push(list *l, process_pag proc_to_insert)
     l->length = l->length + 1;
     return 1;
 }
+int pag_Contains(list *l, int pid)
+{
+    for (size_t i = 0; i < l->length; i++)
+    {
+        process_pag process = l->data[i];
+        if (process.pid == pid)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
 int pag_RemovePos(list *l, size_t pos)
 {
-    // elimino el valor en la posicion pos y corro una pos a la izquierda el resto de los elementos
     if (l->length <= pos)
         return -1;
     for (size_t i = pos; i < l->length; i++)
@@ -38,15 +43,9 @@ int pag_RemovePos(list *l, size_t pos)
     l->length = l->length - 1;
     return 1;
 }
-int pag_Contains(list *l, int pid)
+int pag_Free(list *l)
 {
-    for (size_t i = 0; i < l->length; i++)
-    {
-        process_pag proces = l->data[i];
-        if (proces.pid == pid)
-        {
-            return i;
-        }
-    }
-    return -1;
+    free(l->data);
+    free(l);
+    return 1;
 }
