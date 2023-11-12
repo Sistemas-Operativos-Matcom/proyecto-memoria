@@ -5,8 +5,12 @@
 #include "utils.h"
 #include <stdio.h>
 
+static FILE *debug;
 static int run_argc;
 static char **run_argv;
+
+
+
 
 static size_t curr_pid = 0;
 
@@ -40,32 +44,39 @@ void test_case_001() {
       PROCESS_FROM(0),
       PROCESS_FROM(1),
   };
-
+  
   ctx_switch(processes[0]);     // Cambia de contexto al proceso 0
   ptr_t p0_x = mem_malloc(4);   // Reserva memoria para 4 bytes
+ 
+  
   mem_store(at(p0_x), 10);      // Guarda el valor 10 en la posición 0
   mem_store(at(p0_x) + 1, 20);  // Guarda el valor 20 en la posición 1
   mem_push(70);                 // Añade al stack el valor 70
-
+  
+  
   ctx_switch(processes[1]);     // Cambia de contexto al proceso 1
   ptr_t p1_x = mem_malloc(2);   // Reserva 2 bytes de memoria
   mem_store(at(p1_x), 30);      // Guarda el valor 30 en la posición 0
   mem_store(at(p1_x) + 1, 40);  // Guarda el valor 40 en la posición 1
   mem_push(80);                 // Añade al stack el valor 80
 
+    
   ctx_switch(processes[0]);           // Cambia de contexto al proceso 0
   mem_load_assert(at(p0_x), 10);      // Comprueba que el valor en p0_x == 10
   mem_load_assert(at(p0_x) + 1, 20);  // Comprueba que el valor p0_x + 1 == 20
   mem_pop_assert(70);  // Comprueba que el ultimo valor de la pila es 70
 
+  
   ctx_switch(processes[1]);           // Cambia de contexto al proceso 1
   mem_load_assert(at(p1_x), 30);      // Comprueba que el valor en p1_x == 30
   mem_load_assert(at(p1_x) + 1, 40);  // Comprueba que el valor en p1_x == 40
   mem_pop_assert(80);  // Comprueba que el ultimo valor de la pila es 80
 
+  
   end_process(processes[0]);
   end_process(processes[1]);
   end_sim();  // Termina la simulación
+  
 }
 
 // ======================================================================
@@ -119,10 +130,14 @@ void test_case_002() {
   mem_load_assert(at(p2_x) + 2, 90);
   mem_pop_assert(90);
 
+  
+
   end_process(processes[0]);
   end_process(processes[1]);
   end_process(processes[2]);
   end_sim();
+
+  
 }
 
 // ======================================================================
@@ -136,21 +151,34 @@ void test_case_003() {
       PROCESS_FROM(3),
   };
 
+  
   ctx_switch(processes[0]);
   ptr_t p0_x = mem_malloc(6);
+  /*debug=fopen("debug.txt","a+");
+  fprintf(debug,"x");
+  fclose(debug);
+  */
+ 
+  
+
   mem_store(at(p0_x), 10);
   mem_store(at(p0_x) + 1, 20);
   mem_store(at(p0_x) + 2, 30);
   mem_push(70);
   mem_push(90);
 
+  
+
   ctx_switch(processes[1]);
+
   ptr_t p1_x = mem_malloc(8);
   mem_store(at(p1_x), 40);
   mem_store(at(p1_x) + 1, 50);
   mem_store(at(p1_x) + 2, 60);
   mem_push(80);
   mem_push(100);
+
+  
 
   ctx_switch(processes[2]);
   ptr_t p2_x = mem_malloc(4);
@@ -194,11 +222,22 @@ void test_case_003() {
   mem_pop_assert(140);
   mem_pop_assert(120);
 
+ 
   end_process(processes[0]);
+   
+
   end_process(processes[1]);
+  
   end_process(processes[2]);
+  
   end_process(processes[3]);
+  /*debug=fopen("debug.txt","a+");
+
+        fprintf(debug,"x");
+        fclose(debug);*/
   end_sim();
+  
+
 }
 
 void run_tests(int argc, char **argv) {
