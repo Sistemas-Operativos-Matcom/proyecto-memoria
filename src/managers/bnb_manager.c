@@ -66,13 +66,13 @@ void bnb_new_procs()
   m_set_owner(bnb_pa(0), bnb_pa(bnb_default_bound - 1));
 }
 
-void bnb_delete_procs(int index)
+void bnb_delete_procs()
 {
   fori(bnb_pa(0), bnb_default_bound)
       bnb_free_list[i] = -1;
   m_unset_owner(bnb_pa(0), bnb_pa(bnb_default_bound - 1));
-  bnb_heap[index] = 0;
-  bnb_stack[index] = bnb_default_bound;
+  bnb_heap[bnb_cur_ipid] = 0;
+  bnb_stack[bnb_cur_ipid] = bnb_default_bound;
 }
 
 // 0 <= x < ls
@@ -142,7 +142,7 @@ void bnb_update_heap()
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv)
 {
-  bnb_default_bound =  m_size() / 20;
+  bnb_default_bound = m_size() / 20;
   BNB_MAX_PROC_COUNT = m_size() / bnb_default_bound;
 
   bnb_cur_ipid = -1;
@@ -279,7 +279,7 @@ void m_bnb_on_ctx_switch(process_t process)
       set_curr_owner(bnb_pids[bnb_cur_ipid]);
       return;
     }
-    
+
     bnb_pids[index] = process.pid;
     bnb_cur_ipid = index;
     bnb_new_procs();
@@ -289,12 +289,17 @@ void m_bnb_on_ctx_switch(process_t process)
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process)
 {
-  int index = bnb_find_pid(process.pid);
-  if (index < 0)
+  int temp = bnb_cur_ipid;
+
+  bnb_cur_ipid = bnb_find_pid(process.pid);
+
+  if (bnb_cur_ipid < 0)
   {
+    bnb_cur_ipid = temp;
     printf("END: (pid: %d) No existe el proceso\n", process.pid);
     return;
   }
-  bnb_delete_procs(index);
-  bnb_pids[index] = -1;
+  bnb_delete_procs();
+  bnb_pids[bnb_cur_ipid] = -1;
+  bnb_cur_ipid = temp;
 }
