@@ -5,7 +5,8 @@
 #include "../memory.h"
 
 #define MAX_PROC_COUNT 20
-#define forn(a, b) for (addr_t i = a; i < b; i++)
+#define forn(a, b) for(addr_t i = (addr_t)a; i < (addr_t)b; i++)
+#define min(a, b) (a < b) ? a : b;
 
 int **pag_table;
 
@@ -34,6 +35,14 @@ int page_is_valid(int vpn)
   return pag_table[pag_ind][vpn] >= 0;
 }
 
+int pag_find_pid(int _pid)
+{
+  forn(0, MAX_PROC_COUNT)
+  {
+    if(_pid == pag_pid[i]) return i;
+  }
+  return pag_find_pid(-1);
+}
 
 
 addr_t get_free_adress()
@@ -52,16 +61,16 @@ addr_t get_free_adress()
   return -1;
 }
 
-int find_continuous_spaces(int size, addr_t start)
+int find_continuous_spaces(int size, addr_t *start)
 {
   int ind = pag_ind;
   int c_size = size;
 
-  for(int vpn = 0; vpn < pag_stack[ind]; vpn++)
+  for(addr_t vpn = 0; vpn < pag_stack[ind]; vpn++)
   {
     if(page_is_valid(vpn))
     {
-      start = vpn + 1;
+      *start = vpn + 1;
       c_size = size;
       continue;
     }
@@ -90,7 +99,9 @@ addr_t try_alloc(int size)
   forn(start, start + size)
   {
     pag_table[pag_ind][i] = get_free_adress();
-  }  
+  }
+
+  return start;
 }
 
 // Esta función se llama cuando se inicializa un caso de prueba
@@ -177,13 +188,8 @@ int m_pag_store(addr_t addr, byte val)
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_pag_on_ctx_switch(process_t process)
 {
-
-  // Buscar Pid y su lugar
-  // Hacer current owner
-  // Agregar pid
-
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  pag_ind = pag_find_pid(process.pid);
+  pag_pid[pag_ind] = process.pid;
 }
 
 // Notifica que un proceso ya terminó su ejecución
