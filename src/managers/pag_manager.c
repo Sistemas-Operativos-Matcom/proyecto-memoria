@@ -44,8 +44,14 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented free\n");
-  exit(1);
+  for(int i = ptr.addr; i < ptr.size; i++)
+  {
+    if(memory[ptr.addr] == 0) return 1;
+  }
+  for(int i = ptr.addr; i < ptr.size; i++)
+  {
+    memory[ptr.addr] == 0
+  }
 }
 
 // Agrega un elemento al stack
