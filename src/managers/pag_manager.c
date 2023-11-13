@@ -92,7 +92,7 @@ int find_continuous_spaces(int size, addr_t *start)
 
 addr_t try_alloc(int size)
 {
-  addr_t start;
+  addr_t start = 0;
 
   if(find_continuous_spaces(size, &start))
   {
@@ -113,14 +113,18 @@ addr_t try_alloc(int size)
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv)
 {
+  
 
   pag_ind = -1;
   pag_pid = (int *)malloc(sizeof(int) * MAX_PROC_COUNT);
   pag_stack = (addr_t *)malloc(sizeof(addr_t) * MAX_PROC_COUNT);
 
+  pag_table = (int **)malloc(sizeof(int) * MAX_PROC_COUNT);
   pag_page_size = min(m_size(), (size_t)(1 << pag_offset_bits));
   pag_pages_count = m_size() / pag_page_size;
   pag_free_memory = (int *)malloc(sizeof(int) * m_size());
+  pag_free_page = (int *)malloc(sizeof(int) * pag_pages_count);
+
 
   forn(0, MAX_PROC_COUNT)
   {
@@ -137,12 +141,14 @@ void m_pag_init(int argc, char **argv)
 
   forn(0, pag_pages_count) pag_free_page[i] = 1;
   forn(0, m_size()) pag_free_memory[i] = 0;
+
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_pag_malloc(size_t size, ptr_t *out)
 {
+
   int addr = try_alloc(size);
   if(addr < 0)
   {
@@ -159,14 +165,26 @@ int m_pag_malloc(size_t size, ptr_t *out)
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  
+  int start = pag_get_vpn(ptr.addr);
+  int end = pag_get_vpn(ptr.addr + ptr.size);
+
+  forn(start, end + 1)
+  {
+    if(pag_table[pag_ind][i] < 0)
+    {
+      return 1;
+    }
+    pag_free_page[pag_table[pag_ind][i]] = 1;
+    pag_table[pag_ind][i] = -1;
+  }
+
+  return 0;
 }
 
 // Agrega un elemento al stack
 int m_pag_push(byte val, ptr_t *out)
 {
-  exit(0);
 
   int vpn = pag_get_vpn(pag_stack[pag_ind]);
 
@@ -193,8 +211,6 @@ int m_pag_push(byte val, ptr_t *out)
 // Quita un elemento del stack
 int m_pag_pop(byte *out)
 {
-  exit(0);
-
   if(pag_stack[pag_ind] + 1 > pag_pages_count * pag_page_size)
   {
     return 1;
@@ -220,8 +236,6 @@ int m_pag_pop(byte *out)
 // Carga el valor en una dirección determinada
 int m_pag_load(addr_t addr, byte *out)
 {
-  exit(0);
-
   if(!page_is_valid(pag_get_vpn(addr)))
   {
     return 1;
@@ -236,8 +250,6 @@ int m_pag_load(addr_t addr, byte *out)
 // Almacena un valor en una dirección determinada
 int m_pag_store(addr_t addr, byte val)
 {
-  exit(0);
-
   if(page_is_valid(pag_get_vpn(addr)))
   {
     return -1;
@@ -272,7 +284,6 @@ void m_pag_on_end_process(process_t process)
   {
     if(page_is_valid(i))
     {
-      pag_free_page[pag_table[pag_ind][i]] = 1;
       ptr.addr = i * pag_page_size;
       ptr.size = pag_page_size;
       m_pag_free(ptr);
