@@ -77,12 +77,6 @@ addr_t pag_get_vpn(addr_t addr)
 addr_t pag_get_pa(addr_t addr)
 {
   int pp = pag_pages_table[pag_cur_ipid][pag_get_vpn(addr)];
-  // if(pp<0)
-  // {
-  //   printf("va: %ld vpn: %ld\n", addr, pag_get_vpn(addr));
-  //   printf("page size: %ld   Offset bits : %ld  Offset: %ld\n", pag_page_size, pag_offset_bits, pag_get_offset(addr));
-  //   exit(0);
-  // }
   return pag_get_base_page(pp) + pag_get_offset(addr);
 }
 
