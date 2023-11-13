@@ -32,4 +32,23 @@ void m_bnb_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process);
 
+
+typedef struct Block
+{
+    size_t heap;
+    size_t stack;
+    size_t size;
+    size_t s_addr;
+    size_t e_addr;
+
+    int owner;
+    int in_use;
+} Block;
+
+typedef struct FreeBlock {
+  size_t start_addr;
+  size_t end_addr;
+  struct FreeBlock* next;
+} FreeBlock;
+
 #endif
