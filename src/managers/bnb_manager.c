@@ -186,7 +186,5 @@ void m_bnb_on_end_process(process_t process)
 {
   active_process[process.pid] = 0;
 
-  m_unset_owner(process_base[process.pid], process_base[process.pid] + bound - 1);
-
-  
+  m_unset_owner(process_base[process.pid], process_base[process.pid] + bound - 1);  
 }
