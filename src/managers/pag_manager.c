@@ -1,7 +1,6 @@
 #include "pag_manager.h"
 #include "../memory.h"
 
-#include "bnb_manager.h"
 #include "stdio.h"
 
 #define MAX_PROCS_COUNT 20
