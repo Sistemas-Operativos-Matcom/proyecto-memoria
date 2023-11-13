@@ -57,25 +57,37 @@ void m_pag_init(int argc, char **argv) {
 int m_pag_malloc(size_t size, ptr_t *out) {
   // Reservar un conjunto de paginas contiguas suficientemente grande
   size = size / PAGE_SIZE + (size_t) (size % PAGE_SIZE ? 1 : 0);
-  size_t addr;
   
-  if (fl_get_memory(FREE_LIST, size, &addr))
-    return MEM_FAIL;
-  
-  m_set_owner(addr * PAGE_SIZE, addr * PAGE_SIZE + size * PAGE_SIZE);
-
   // Encontrar una posicion donde guardar los segmentos reservados
   size_t pos = find_space(&procs[curr_proc], size);
+  
+  // Si no existe dicha posicion, error
+  if (pos == ~0ul) {
+    return MEM_FAIL;
+  }
+
+  size_t i = pos;
+
+  // Por cada pagina necesaria, se reserva
+  while (size != 0) {
+    size_t addr;
+
+    if (fl_get_memory(FREE_LIST, 1, &addr))
+      return MEM_FAIL;
+    
+    m_set_owner(addr * PAGE_SIZE, addr * PAGE_SIZE + 1 * PAGE_SIZE);
+    
+    procs[curr_proc].vpn[i] = (addr + i);
+    procs[curr_proc].valid[i] = true;
+
+    i ++;
+    size --;
+  }
 
   // Guardar en out la direccion virtual donde estara la memoria
   out->addr = pos * PAGE_SIZE;
   out->size = size * PAGE_SIZE;
 
-  // Guardar las paginas que se reservaron
-  for (size_t i = pos; size; i++, size--) {
-    procs[curr_proc].vpn[i] = (addr + i);
-    procs[curr_proc].valid[i] = true;
-  }
   // Retornar con exito
   return MEM_SUCCESS;
 }
