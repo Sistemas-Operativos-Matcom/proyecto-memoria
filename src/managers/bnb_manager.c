@@ -218,7 +218,7 @@ void m_bnb_on_ctx_switch(process_t process) {
     if(owners[i].pid == -1){
       owners[i].pid = curr_pid;
       owners[i].base = i*1024;
-      owners[i].bounds = 1024;
+      owners[i].bounds = 1023;
 
       // actualizar el espacio de memoria virtual para el nuevo proceso
       spaces[i].heap_base = (int)process.program->size;
