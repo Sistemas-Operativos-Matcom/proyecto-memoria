@@ -2,10 +2,10 @@
 
 #include "stdio.h"
 
-static int curr_pid;            // ID del proceso actual
-static addr_t curr_addr;        // Dirección actual
-static addr_t *procs_addr;     // direcciones de procesos
-static mem_block_t *v_mem;    // bloques de memoria
+static int curr_pid;       // ID del proceso actual
+static addr_t curr_addr;   // Dirección actual
+static addr_t *procs_addr; // direcciones de procesos
+static mem_block_t *v_mem; // bloques de memoria
 
 #define block_sz 1024
 #define code_sz 1
@@ -26,7 +26,7 @@ void m_bnb_init(int argc, char **argv)
     procs_addr = NULL;
   }
 
-  size_t block_count = Kb(m_size());
+  size_t block_count = kb(m_size());
 
   v_mem = (mem_block_t *)malloc(sizeof(mem_block_t) * block_count);
   procs_addr = (size_t *)malloc(sizeof(size_t) * block_count);
@@ -49,7 +49,7 @@ void m_bnb_init(int argc, char **argv)
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out)
 {
-  for (size_t i = 0; i < Kb(m_size()); i++)
+  for (size_t i = 0; i < kb(m_size()); i++)
   {
     if (!v_mem[i].on_use)
     {
@@ -77,27 +77,29 @@ int m_bnb_free(ptr_t ptr)
   size_t start = v_mem[curr_addr].st;
   size_t end = v_mem[curr_addr].end;
 
-  if (ptr.addr >= start && ptr.addr + ptr.size < end) {  // Comprueba si la dirección pertenece al bloque actual.
-    m_unset_owner(ptr.addr, ptr.addr + ptr.size - 1);  
-    v_mem[curr_addr].sz -= ptr.size;  
-    return 0; 
+  if (ptr.addr >= start && ptr.addr + ptr.size < end)
+  { // Comprueba si la dirección pertenece al bloque actual.
+    m_unset_owner(ptr.addr, ptr.addr + ptr.size - 1);
+    v_mem[curr_addr].sz -= ptr.size;
+    return 0;
   }
 
-  return 1;  
+  return 1;
 }
 
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out)
 {
-  if (v_mem[curr_addr].stack - 1 <= v_mem[curr_addr].heap) {
-    return 1;  //pila llena
+  if (v_mem[curr_addr].stack - 1 <= v_mem[curr_addr].heap)
+  {
+    return 1; // pila llena
   }
 
-  //agrega el dato a la pila y cambia la direccion
-  m_write(v_mem[curr_addr].stack, val);  
-  v_mem[curr_addr].stack--;  
-  out->addr = v_mem[curr_addr].stack;  
-  return 0; 
+  // agrega el dato a la pila y cambia la direccion
+  m_write(v_mem[curr_addr].stack, val);
+  v_mem[curr_addr].stack--;
+  out->addr = v_mem[curr_addr].stack;
+  return 0;
 }
 
 // Quita un elemento del stack
@@ -107,13 +109,14 @@ int m_bnb_pop(byte *out)
   addr_t ini_bloque = v_mem[curr_addr].st;
   addr_t fin_bloque = v_mem[curr_addr].end;
 
-  if (ini_bloque + fin_bloque <= stack_top) {
-    return 1; 
+  if (ini_bloque + fin_bloque <= stack_top)
+  {
+    return 1;
   }
 
-  *out = m_read(stack_top);  // Lee el valor en la cima de la pila
-  v_mem[curr_addr].stack++;  // Actualiza la posición de la pila
-  return 0; 
+  *out = m_read(stack_top); // Lee el valor en la cima de la pila
+  v_mem[curr_addr].stack++; // Actualiza la posición de la pila
+  return 0;
 }
 
 // Carga el valor en una dirección determinada
@@ -122,9 +125,10 @@ int m_bnb_load(addr_t addr, byte *out)
   addr_t start = v_mem[curr_addr].st;
   addr_t end = v_mem[curr_addr].end;
 
-  if (addr >= start && addr < end) {  // Comprueba si la dirección pertenece al bloque actual.
-    *out = m_read(addr);  
-    return 0;  
+  if (addr >= start && addr < end)
+  { // Comprueba si la dirección pertenece al bloque actual.
+    *out = m_read(addr);
+    return 0;
   }
 
   return 1;
@@ -136,29 +140,30 @@ int m_bnb_store(addr_t addr, byte val)
   addr_t star_addr = v_mem[curr_addr].st;
   addr_t curr_sz = v_mem[curr_addr].sz;
 
-  if (addr >= star_addr && addr < star_addr + curr_sz) {  // Comprueba si la dirección pertenece al bloque actual.
-    m_write(addr, val);  
-    return 0;  
+  if (addr >= star_addr && addr < star_addr + curr_sz)
+  { // Comprueba si la dirección pertenece al bloque actual.
+    m_write(addr, val);
+    return 0;
   }
 
-  return 1;  
+  return 1;
 }
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process)
 {
-  curr_pid = process.pid;  // Actualiza el pid del proceso actual.
+  curr_pid = process.pid; // Actualiza el pid del proceso actual.
   curr_addr = procs_addr[process.pid];
 }
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process)
 {
-  addr_t addr = procs_addr[process.pid];  // Obtiene la dirección del proceso.
-  m_unset_owner(v_mem[addr].st, v_mem[addr].end); 
-  v_mem[addr].on_use = 0;  
-  v_mem[addr].user = NO_ONWER;  
-  v_mem[addr].sz = 0;  
-  v_mem[addr].heap = v_mem[addr].st; 
-  v_mem[addr].stack = v_mem[addr].end; 
+  addr_t addr = procs_addr[process.pid]; // Obtiene la dirección del proceso.
+  m_unset_owner(v_mem[addr].st, v_mem[addr].end);
+  v_mem[addr].on_use = 0;
+  v_mem[addr].user = NO_ONWER;
+  v_mem[addr].sz = 0;
+  v_mem[addr].heap = v_mem[addr].st;
+  v_mem[addr].stack = v_mem[addr].end;
 }
