@@ -23,7 +23,7 @@ void insert(FreeList* freeList, int value, int size) {
 void print(FreeList* freeList) {
     struct Node* temp = freeList->head;
     while (temp != NULL) {
-        fprintf(stderr,"Bloque de memoria disponible de tamaño %d\n", temp->size);
+        printf("Bloque de memoria en %d\n", temp->value);
         temp = temp->next;
     }
 }
@@ -41,6 +41,11 @@ struct Node* search(FreeList* freeList, int size) {
 
 struct Node* searchL(FreeList* freeList) {
     struct Node* temp = freeList->head;
+
+    if(temp == NULL)
+        return temp;
+    
+
     while (temp->next != NULL) {
         temp = temp->next;
     }
@@ -66,12 +71,12 @@ void deleteLast(FreeList* freeList) {
 
     if(temp2 == NULL)
     {
-        temp->next = NULL;
+        freeList->head = NULL;
         return;
     }
 
     while (temp2->next != NULL) {
-        temp = temp2->next;
+        temp = temp2;
         temp2 = temp2->next;
     }
 

@@ -28,6 +28,7 @@ void m_pag_init(int argc, char **argv) {
     pages[i].addr = i*sizePage;
     pages[i].ocupado = 0;
     pages[i].size = 0;
+    pages[i].process.pid = -1;
   }
 
   for (int i = 0; i < maxProc; i++)
@@ -81,6 +82,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
     for (int i = 0; i < countPages; i++)
     {
+      pages[i].process.pid = currentP;
       pages[free + i].ocupado = 1;
       pages[free +i].size = sizePage;
       insert(&spacesP[currentP].freeList, free+i, 0);
@@ -109,18 +111,23 @@ int m_pag_push(byte val, ptr_t *out) {
   //Revisa los page frame
   for (size_t i = 0; i < m_size()/sizePage; i++)
   {
-    if(pages[i].ocupado == 0 && (int)pages[i].size < sizePage)
+    
+    if(pages[i].process.pid == currentP || pages[i].process.pid == -1)
     {
-      pages[i].ocupado = 1;
-      pages[i].size++;
-      free = i;
-      break;
+      if((int)pages[i].size < sizePage)
+      {
+        pages[i].process.pid = currentP;
+        pages[i].ocupado = 1;
+        pages[i].size++;
+        free = i;
+        break;
+      }
     }
   }
 
   if(free != -1)
   {
-    m_set_owner(pages[free].addr + pages[free].size, pages[free].addr + pages[free].size + 1);
+    m_set_owner(pages[free].addr, pages[free].addr + sizePage);
     insert(&spacesP[currentP].Stack, pages[free].addr + pages[free].size, 1);
   }
   else
@@ -228,7 +235,17 @@ void m_pag_on_end_process(process_t process) {
   {
     if(spacesP[i].ocupado && spacesP[i].process.pid == process.pid){
       spacesP[i].ocupado = 0;
-      return;
+      break;
+    }
+  }
+
+  for (size_t i = 0; i < m_size()/sizePage; i++)
+  {
+    if(pages[i].ocupado && pages[i].process.pid == process.pid){
+      pages[i].ocupado = 0;
+      pages[i].size = 0;
+      m_unset_owner(pages[i].addr, pages[i].addr + sizePage);
+      pages[i].process.pid = -1;
     }
   }
 }
