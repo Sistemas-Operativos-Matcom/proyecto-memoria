@@ -195,6 +195,22 @@ void m_pag_on_ctx_switch(process_t process)
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  int i = pag_ind;
+  pag_ind = pag_find_pid(process.pid);
+
+  ptr_t ptr;
+  forn(0, pag_pages_count)
+  {
+    if(page_is_valid(i))
+    {
+      ptr.addr = i * pag_page_size;
+      ptr.size = pag_page_size;
+      m_pag_free(ptr);
+    }
+  }
+
+  pag_pid[i] = -1;
+  pag_stack[i] = pag_pages_count * pag_page_size - 1;
+
+  pag_ind = i;
 }
