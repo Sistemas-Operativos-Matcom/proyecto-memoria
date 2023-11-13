@@ -147,39 +147,37 @@ int pag_res_free_m(addr_t virtual_addr, int x, int amount)
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv)
 {
-  pag_page_table = (int **)malloc(MAX_PROCS_COUNT * sizeof(int));
-  pag_pids = (int *)malloc(MAX_PROCS_COUNT * sizeof(int));
-  pag_heap = (addr_t *)malloc(MAX_PROCS_COUNT * sizeof(addr_t));
-  pag_stack = (addr_t *)malloc(MAX_PROCS_COUNT * sizeof(addr_t));
-  pag_virtual_m = (addr_t *)malloc(MAX_PROCS_COUNT * sizeof(addr_t));
+  pag_pids = (int *)malloc(sizeof(int) * MAX_PROCS_COUNT);
+  pag_stack = (addr_t *)malloc(sizeof(int) * MAX_PROCS_COUNT);
+  pag_heap = (addr_t *)malloc(sizeof(addr_t) * MAX_PROCS_COUNT);
+  pag_page_table = (int **)malloc(sizeof(int) * MAX_PROCS_COUNT);
+  pag_page_size = (m_size() < (addr_t)(1 << pag_offset)) ? m_size() : (size_t)(1 << pag_offset);
+  pag_pages_count = m_size() / pag_page_size;
+  pag_free_list = (int *)malloc(sizeof(int) * pag_pages_count);
 
   pag_index_curr_pid = -1;
-  pag_offset = 6;
-  pag_page_size = (m_size() < (size_t)(1 << pag_offset)) ? m_size() : (size_t)(1 << pag_offset);
-  pag_pages_count = m_size() / pag_page_size;
-
-  pag_free_list = (int *)malloc(pag_pages_count * sizeof(int));
-
   for (int i = 0; i < MAX_PROCS_COUNT; i++)
   {
     pag_pids[i] = -1;
     pag_stack[i] = pag_page_size * pag_pages_count - 1;
     pag_heap[i] = 0;
-    pag_page_table[i] = (int *)malloc(pag_pages_count * sizeof(int));
+    pag_page_table[i] = (int *)malloc(sizeof(int) * pag_pages_count);
 
-    for (int j = 0; j < pag_pages_count; j++)
+    for (int vpn = 0; vpn < pag_pages_count; vpn++)
     {
-      pag_page_table[i][j] = -1;
+      pag_page_table[i][vpn] = -1;
     }
   }
   for (int i = 0; i < pag_pages_count; i++)
   {
     pag_free_list[i] = 1;
   }
+  pag_virtual_m = (addr_t *)malloc(sizeof(addr_t) * m_size());
   for (addr_t i = 0; i < m_size(); i++)
   {
     pag_virtual_m[i] = 0;
   }
+  pag_offset = 6;
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
@@ -337,7 +335,7 @@ int m_pag_load(addr_t addr, byte *out)
 // Almacena un valor en una dirección determinada
 int m_pag_store(addr_t addr, byte val)
 {
-  if(pag_page_table[pag_index_curr_pid][pag_get_vpn(addr)] < 0)
+  if (pag_page_table[pag_index_curr_pid][pag_get_vpn(addr)] < 0)
   {
     return 1;
   }
