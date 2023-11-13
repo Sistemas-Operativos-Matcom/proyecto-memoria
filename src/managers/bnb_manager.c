@@ -151,7 +151,6 @@ int m_bnb_load(addr_t addr, byte *out)
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val)
 {
-  printf("freelist %d\n", bnb_free_list[bnb_pa(addr)]);
   if (addr < bnb_bound && bnb_free_list[bnb_pa(addr)] >= 0)
   {
     m_write(bnb_pa(addr), val);
