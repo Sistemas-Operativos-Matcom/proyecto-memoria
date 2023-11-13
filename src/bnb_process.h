@@ -6,5 +6,6 @@ typedef struct bnb_process
     int bound;
     int stack_pointer;
     int code_size;
-    int heap [512];
+    int heap [1024];
+    int inst_pointer;
 }bnb_process_t;

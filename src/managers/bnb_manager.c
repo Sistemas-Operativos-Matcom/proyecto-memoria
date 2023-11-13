@@ -4,8 +4,8 @@
 
 // definir variables globales
 bnb_process_t *bnb_process;
-int current_position = -1;
-int slice = 512;
+int curr_position = -1;
+int slice = 1024;
 int ammount = -1;
 
 // Esta función se llama cuando se inicializa un caso de prueba
@@ -33,14 +33,14 @@ void m_bnb_init(int argc, char **argv)
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out)
 {
-  int start_address = bnb_process[current_position].code_size;
+  int start_address = bnb_process[curr_position].code_size;
   int from = 0;
   // recorro el heap para ver si es posible reservar.
-  for (int i = 0; i < bnb_process[current_position].stack_pointer; i++)
+  for (int i = 0; i < bnb_process[curr_position].stack_pointer; i++)
   {
-    if (start_address + i < bnb_process[current_position].stack_pointer) // comprueba que el heap y el stack no se crucen.
+    if (start_address + i < bnb_process[curr_position].stack_pointer) // comprueba que el heap y el stack no se crucen.
     {
-      if (bnb_process[current_position].heap[i] == 0) // espacio disponible en el heap
+      if (bnb_process[curr_position].heap[i] == 0) // espacio disponible en el heap
       {
           from = i;
           break;
@@ -49,11 +49,11 @@ int m_bnb_malloc(size_t size, ptr_t *out)
     return 1;
   }
   // reservo en el heap el espacio solicitado.
-  for (int k = from; k < from + size ; k++)
+  for (int k = from; k < from + (int)size ; k++)
   {
-    bnb_process[current_position].heap[k] = 1;
+    bnb_process[curr_position].heap[k] = 1;
   }
-  out->addr = bnb_process[current_position].code_size + from; // guarda la direccion correspondiente al proceso.
+  out->addr = bnb_process[curr_position].code_size + from; // guarda la direccion correspondiente al proceso.
   return 0;
 }
 
@@ -62,7 +62,7 @@ int m_bnb_free(ptr_t ptr)
 {
   for (int i = ptr.addr; i < (int)(ptr.addr + ptr.size); i++)
   {
-    bnb_process[current_position].heap[i] = 0;
+    bnb_process[curr_position].heap[i] = 0;
   }
   return 0; 
 }
@@ -70,26 +70,26 @@ int m_bnb_free(ptr_t ptr)
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out)
 {
-  if ((bnb_process[current_position].stack_pointer - 1) >= slice)
+  if ((bnb_process[curr_position].stack_pointer - 1) >= slice)
   {
     // ! Ajustar el ip para poner bien el error.
     return 1;
   }
-  m_write(bnb_process[current_position].stack_pointer + bnb_process[current_position].base, val);
-  bnb_process[current_position].stack_pointer --;
-  out->addr = bnb_process[current_position].stack_pointer; 
+  m_write(bnb_process[curr_position].stack_pointer + bnb_process[curr_position].base, val);
+  bnb_process[curr_position].stack_pointer --;
+  out->addr = bnb_process[curr_position].stack_pointer; 
   return 0;
 }
 
 // Quita un elemento del stack
 int m_bnb_pop(byte *out)
 {
-  if (bnb_process[current_position].stack_pointer >= slice - 1)
+  if (bnb_process[curr_position].stack_pointer >= slice - 1)
   {
     return 1;
   }
-  *out = m_read(bnb_process[current_position].base + bnb_process[current_position].stack_pointer + 1);
-  bnb_process[current_position].stack_pointer++;
+  *out = m_read(bnb_process[curr_position].base + bnb_process[curr_position].stack_pointer + 1);
+  bnb_process[curr_position].stack_pointer++;
   return 0;
 }
 
@@ -98,9 +98,9 @@ int m_bnb_load(addr_t addr, byte *out)
 {
   //? es probable que necesite hacer otro if antes para comprobar que la dirección sea válida.
   // compruebo que la direccion tenga algún valor .
-  if (bnb_process[current_position].heap[addr - bnb_process[current_position].code_size] == 1)
+  if (bnb_process[curr_position].heap[addr - bnb_process[curr_position].code_size] == 1)
   {
-    *out = m_read(addr + bnb_process[current_position].base);
+    *out = m_read(addr + bnb_process[curr_position].base);
     return 0;
   }
   return 1;
@@ -110,9 +110,9 @@ int m_bnb_load(addr_t addr, byte *out)
 int m_bnb_store(addr_t addr, byte val)
 {
   //? si la posicion del heap es válida pero está ocupada devuelvo error??
-  if (bnb_process[current_position].heap[addr - bnb_process[current_position].code_size] == 1)
+  if (bnb_process[curr_position].heap[addr - bnb_process[curr_position].code_size] == 1)
   {
-    m_write(addr + bnb_process[current_position].base, val);
+    m_write(addr + bnb_process[curr_position].base, val);
     return 0;
   }
   return 1;
@@ -126,7 +126,7 @@ void m_bnb_on_ctx_switch(process_t process)
   {
     if (bnb_process[i].pid == process.pid)
     {
-      current_position = i;
+      curr_position = i;
       return;
     }
   }
@@ -137,8 +137,8 @@ void m_bnb_on_ctx_switch(process_t process)
     {
       bnb_process[i].pid = process.pid;
       bnb_process[i].code_size = process.program->size;
-      current_position = i;
-      m_set_owner(bnb_process[current_position].base, bnb_process[current_position].base + slice - 1);
+      curr_position = i;
+      m_set_owner(bnb_process[curr_position].base, bnb_process[curr_position].base + slice - 1);
       break;
     }
   }

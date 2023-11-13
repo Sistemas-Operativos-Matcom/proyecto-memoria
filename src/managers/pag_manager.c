@@ -6,8 +6,8 @@
 
 int current_pid = -1;
 int current_position = -1;
-
 pag_process_t pag_process[32];
+// encuentra una página vacía.
 int find_page()
 {
   for (size_t i = 0; i < 32; i++)
@@ -40,7 +40,9 @@ void m_pag_init(int argc, char **argv)
 // inicio del espacio reservado.
 int m_pag_malloc(size_t size, ptr_t *out)
 {
-  if(current_pid==-1)return 1;
+  if (current_pid == -1)
+    return 1;
+  // si alcanza el espacio que queda en la página para reservar.
   if (current_process.page_ip + size <= current_process.page_start + 255)
   {
     for (size_t i = 0; i < size; i++)
@@ -48,7 +50,7 @@ int m_pag_malloc(size_t size, ptr_t *out)
       current_process.heap[current_process.page_ip + i] = 1;
     }
     current_process.page_ip += size;
-    out->addr = (current_position << 8 |current_process.page_ip ); //! revisar
+    out->addr = (current_position << 8 | current_process.page_ip); //! revisar
     current_process.page_ip += size;
     return 0;
   }
@@ -66,7 +68,7 @@ int m_pag_malloc(size_t size, ptr_t *out)
     {
       pag_process[new_page].pid = current_pid;
       pag_process[new_page].process_part = current_process.process_part + 1;
-      m_set_owner(pag_process[new_page].page_start +1, (pag_process[new_page].page_start + 255)-1);
+      m_set_owner(pag_process[new_page].page_start + 1, (pag_process[new_page].page_start + 255) - 1);
       for (int i = 0; i < second; i++)
       {
         pag_process[new_page].heap[i + pag_process[new_page].page_ip] = 1;
@@ -128,38 +130,54 @@ int m_pag_pop(byte *out)
 {
   if (current_process.page_ip != current_process.page_start)
   {
-    *out = m_read(current_process.page_ip-1);
-    current_process.page_ip --;
+    *out = m_read(current_process.page_ip - 1);
+    current_process.page_ip--;
     return 0;
   }
-  
+  else
+  {
+    for (size_t i = 0; i < 32; i++)
+    {
+      if (pag_process[i].pid == current_pid)
+      {
+        if (pag_process[i].process_part < current_process.process_part)
+        {
+          current_position = i; 
+          *out = m_read(current_process.page_ip - 1);
+          current_process.page_ip--;
+          return 0;
+        }
+      }
+    }
+    return 1;
+  }
+  return 1;
 }
 
 // Carga el valor en una dirección determinada
 int m_pag_load(addr_t addr, byte *out)
 {
-  if (pag_process[((addr & ~255)>>8)].page_ip< (addr & 255)) 
+  if (pag_process[((addr & ~255) >> 8)].page_ip < (addr & 255))
   {
     return 1;
   }
   else
   {
-    *out = m_read(pag_process[((addr & ~255)>>8)].page_start + (addr & 255));
+    *out = m_read(pag_process[((addr & ~255) >> 8)].page_start + (addr & 255));
     return 0;
   }
-  
 }
 
 // Almacena un valor en una dirección determinada
 int m_pag_store(addr_t addr, byte val)
 {
-  if (pag_process[((addr & ~255)>>8)].page_ip< (addr & 255)) 
+  if (pag_process[((addr & ~255) >> 8)].page_ip < (addr & 255))
   {
     return 1;
   }
   else
   {
-    m_write(pag_process[((addr & ~255)>>8)].page_start + (addr & 255),val);
+    m_write(pag_process[((addr & ~255) >> 8)].page_start + (addr & 255), val);
     return 0;
   }
 }
@@ -167,23 +185,22 @@ int m_pag_store(addr_t addr, byte val)
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_pag_on_ctx_switch(process_t process)
 {
-  current_pid  = process.pid;
+  current_pid = process.pid;
   for (size_t i = 0; i < 32; i++)
   {
-    if(pag_process[i].pid == current_pid)
+    if (pag_process[i].pid == current_pid)
     {
-      current_position= i;
+      current_position = i;
       return;
     }
   }
   current_position = find_page();
-  if(current_position != -1)
+  if (current_position != -1)
   {
-    pag_process[current_position].pid= current_pid;
-    m_set_owner(current_process.page_start,current_process.page_start + 255);
+    pag_process[current_position].pid = current_pid;
+    m_set_owner(current_process.page_start, current_process.page_start + 255);
     return;
   }
-  
 }
 
 // Notifica que un proceso ya terminó su ejecución
@@ -191,11 +208,10 @@ void m_pag_on_end_process(process_t process)
 {
   for (size_t i = 0; i < 32; i++)
   {
-    if(pag_process[i].pid == process.pid)
+    if (pag_process[i].pid == process.pid)
     {
-      m_unset_owner(pag_process[i].page_start,pag_process[i].page_start+255);
+      m_unset_owner(pag_process[i].page_start, pag_process[i].page_start + 255);
       return;
     }
   }
 }
-
