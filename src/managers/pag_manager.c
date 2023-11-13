@@ -30,6 +30,12 @@ addr_t pag_get_vpn(addr_t addr)
   return addr >> pag_offset_bits;
 }
 
+addr_t pag_get_address(addr_t addr)
+{
+  int pp = pag_table[pag_ind][pag_get_vpn(addr)];
+  return pp * pag_page_size + pag_get_offset(addr);
+}
+
 int page_is_valid(int vpn)
 {
   return pag_table[pag_ind][vpn] >= 0;
@@ -160,29 +166,92 @@ int m_pag_free(ptr_t ptr)
 // Agrega un elemento al stack
 int m_pag_push(byte val, ptr_t *out)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  exit(0);
+
+  int vpn = pag_get_vpn(pag_stack[pag_ind]);
+
+  if(page_is_valid(vpn))
+  {
+    return 1;
+  }
+
+  int pp = get_free_adress();
+
+  if(pp < 0)
+  {
+    return 1;
+  }
+
+  pag_table[pag_ind][vpn] = pp;
+
+  m_write(pag_get_address(pag_stack[pag_ind]), val);
+  out->addr = pag_stack[pag_ind];
+  pag_stack[pag_ind]--;
+  return 0;
 }
 
 // Quita un elemento del stack
 int m_pag_pop(byte *out)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  exit(0);
+
+  if(pag_stack[pag_ind] + 1 > pag_pages_count * pag_page_size)
+  {
+    return 1;
+  }
+
+  pag_stack[pag_ind]++;
+
+  *out = m_read(pag_get_address(pag_stack[pag_ind]));
+
+  size_t vpn = pag_get_vpn(pag_stack[pag_ind] - 1);
+
+  if(vpn != pag_get_vpn(pag_stack[pag_ind]))
+  {
+    pag_free_page[pag_table[pag_ind][vpn]] = 1;
+    pag_table[pag_ind][vpn] = -1;
+  }
+
+  m_unset_owner(pag_stack[pag_ind], pag_stack[pag_ind]);
+
+  return 0;  
 }
 
 // Carga el valor en una dirección determinada
 int m_pag_load(addr_t addr, byte *out)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  exit(0);
+
+  if(!page_is_valid(pag_get_vpn(addr)))
+  {
+    return 1;
+  }
+
+  //Revisar elemento en particular
+
+  *out = m_read(pag_get_address(addr));
+  return 0;
 }
 
 // Almacena un valor en una dirección determinada
 int m_pag_store(addr_t addr, byte val)
 {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  exit(0);
+
+  if(page_is_valid(pag_get_vpn(addr)))
+  {
+    return -1;
+  }
+
+  if (addr > pag_stack[pag_ind])
+  {
+    return 1;
+  }
+
+  //Revisar elemento en particular
+
+  m_write(pag_get_address(addr), val);
+  return 0;
 }
 
 // Notifica un cambio de contexto al proceso 'next_pid'
@@ -195,7 +264,7 @@ void m_pag_on_ctx_switch(process_t process)
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process)
 {
-  int i = pag_ind;
+  int k = pag_ind;
   pag_ind = pag_find_pid(process.pid);
 
   ptr_t ptr;
@@ -203,14 +272,15 @@ void m_pag_on_end_process(process_t process)
   {
     if(page_is_valid(i))
     {
+      pag_free_page[pag_table[pag_ind][i]] = 1;
       ptr.addr = i * pag_page_size;
       ptr.size = pag_page_size;
       m_pag_free(ptr);
     }
   }
 
-  pag_pid[i] = -1;
-  pag_stack[i] = pag_pages_count * pag_page_size - 1;
+  pag_pid[k] = -1;
+  pag_stack[k] = pag_pages_count * pag_page_size - 1;
 
-  pag_ind = i;
+  pag_ind = k;
 }
