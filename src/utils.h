@@ -22,6 +22,20 @@ typedef struct process {
   program_t *program;
 } process_t;
 
+typedef struct space{
+  addr_t heap;
+  addr_t stack;
+  programSpaceData_t program;
+  int is_used;
+} space_t;
+
+typedef struct programSpaceData{
+  int pid;
+  size_t size;
+  addr_t base;
+  addr_t bound;
+} programSpaceData_t;
+
 program_t new_program(char *name, size_t size);
 process_t new_process(int pid, program_t *program);
 
