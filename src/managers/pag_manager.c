@@ -21,7 +21,12 @@ int page_size = 512; // tamano de pagina
 int page_cant = 4; // cantidad de paginas por proceso
 int page_frame_size = -1; // cantidad de paginas en la memoria real
 int *page_frame; // el mapeo de el page frame de la memoria real a que proceso le pertenece
-
+void freeC() {
+  for (int i = 0; i < page_frame_size; i++) {
+    free(context[i].stack);
+  }
+  free(context);
+}
 // busca si ese proceso ya existe y devuelve su posicion e el array de contextos
 int search_context(int pid) {
   for (int i = 0; i < page_frame_size; i++) {
@@ -75,7 +80,7 @@ int fill_heap(int a, int size, int value) {
     {
       if (take == size) return 0;
       current.data[i][j] = value;
-      printf("%i %i \n", i, j);
+      // printf("%i %i \n", i, j);
       take++;
       j++;
     }
@@ -88,7 +93,7 @@ int fill_heap(int a, int size, int value) {
 int is_free(int page) {
   for (int i = 0; i < 512; i++) {
     if (current.data[page][i] != 0) {
-      printf("i %i", i);
+      // printf("i %i", i);
       return 0;
     }
   }
@@ -104,7 +109,7 @@ void m_pag_init(int argc, char **argv) {
     page_frame[i] = -1; // esta vacia la memoria
     context[i].pid = -1;  
     context[i].stack = new_stack(10000);
-    for (size_t j = 0; j < 3; j++) {
+    for (size_t j = 0; j < 4; j++) {
       context[i].pages[j] = -1;
     }
   }
@@ -122,6 +127,28 @@ int m_pag_malloc(size_t size, ptr_t *out) {
   int init = -1;
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 512; j++){
+      if (current.pages[i] != -1 && current.data[i][j] == 0) {
+        take++;
+        if (init == -1) {
+          init = (i + 1) * j;
+        }
+      } else {
+        take = 0;
+        init = -1;
+      }
+      if (take == size) { 
+        out->addr = init; // guarda la direccion relativa a la memoria del proceso
+        out->size = size;
+        fill_heap(init, size, 1);
+        return 0;
+      }
+      init = -1;
+    }
+  }
+  
+  // si no pudo encontrar ningun lugar en las paginas actuales pide una nueva
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 512; j++){
       // si necesito un nuevo page
       if (current.pages[i] == -1) {
         int frame = empty_page_frame();
@@ -134,7 +161,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
           return 1;
         }
       }
-      if (current.data[i][j] == 0) {
+      if (current.pages[i] != -1 && current.data[i][j] == 0) {
         take++;
         if (init == -1) {
           init = (i + 1) * j;
@@ -169,6 +196,7 @@ int m_pag_push(byte val, ptr_t *out) {
       if (current.pages[i] == -1) {
         int frame = empty_page_frame();
         // busca si hay 
+          printf("%i framee \n", frame);
         if (frame != -1) {
           page_frame[frame] = current.pid;
           current.pages[i] = frame;
@@ -180,12 +208,12 @@ int m_pag_push(byte val, ptr_t *out) {
       if (current.data[i][j] == 0) {
         int p = i * 512 + j;
         int pos = current.pages[i] * 512 + j;
-        printf("%i\n", current.pid);
+        // printf("%i\n", current.pid);
         m_write(pos, val); 
         enstack(current.stack, p);
         out = front(current.stack);
         current.data[i][j] = 2;
-        printf("front %i\n", p);
+        // printf("front %i\n", p);
         if (current.pid == 0 && p == 243) {
           // destack(current.stack);
           // printf("front 1 %i\n", size(current.stack));
@@ -212,7 +240,7 @@ int m_pag_pop(byte *out) {
     m_unset_owner((page_real+1) * 512, (page_real+1) * 512 + 512 - 1);
   }
   int p = current.pages[page] * 512 + local;
-  printf("%i ", current.data[page][0]);
+  // printf("%i ", current.data[page][0]);
   *out = m_read(p);
   return 0;
 }
@@ -221,7 +249,7 @@ int m_pag_pop(byte *out) {
 int m_pag_load(addr_t addr, byte *out) {
   int page = dir_page(addr);
   int local = dir_local(addr);
-  printf("%i ", current.pages[page] * 512 + local );
+  // printf("%i ", current.pages[page] * 512 + local );
   if (current.pages[page] != -1) {
     if (current.data[page][local] == 1) {
       *out = m_read(current.pages[page] * 512 + local);
@@ -283,6 +311,18 @@ void m_pag_on_ctx_switch(process_t process) {
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process) {
   int pid = search_context(process.pid);
-  
+  for (int i = 0; i < page_frame_size; i++) {
+    if (context[i].pid == pid) {
+      context[i].pid = -1;
+      for (int j = 0; j < 4; j++) {
+        int real = context[i].pages[j];
+        if (real != -1) m_unset_owner(real*512, real*512 + 512);
+        for (int k = 0; k < 512; k++) {
+          context[i].data[j][k] = 0;
+        }
+         
+      }
+    }
+  }
   return;
 }

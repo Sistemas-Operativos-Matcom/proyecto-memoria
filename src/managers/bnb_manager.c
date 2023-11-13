@@ -163,7 +163,11 @@ void m_bnb_on_ctx_switch(process_t process) {
 void m_bnb_on_end_process(process_t process) {
   int pid = process.pid;
   for (int i = 0; i < cant; i++) {
-    context[i].pid = context[i].pid == pid ? -1 : context[i].pid;
+    if (context[i].pid == pid) {
+      context[i].pid = -1;
+      m_unset_owner(context->base, context->base + h);
+    }
+    
   }
 } 
 

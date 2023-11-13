@@ -80,5 +80,5 @@ ido ejecutando en la simulación.
 Junto con el proyecto hay un script de python con el que pueden plotear una animación del uso de la memoria dado un archivo de log. Por ejemplo:
 
 ```python
-python ./mem_logs/bnb_case_001.log
+python ./mem_logs/bnb_case_002.log
 ```

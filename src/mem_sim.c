@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 #include "manager.h"
+#include "managers/pag_manager.h"
+#include "managers/pag_manager.h"
 #include "memory.h"
 #include "utils.h"
 
@@ -120,5 +122,6 @@ void end_process(process_t process) { m_on_end_process(process); }
 
 void end_sim() {
   mem_end();
+  
   printf("Finish simulation\n\n");
 }
