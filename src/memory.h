@@ -7,7 +7,7 @@
 #define MEM_SUCCESS 0
 
 #define KB_SIZE(size) size * 1024
-#define NO_ONWER -1
+#define NO_OWNER -1
 
 typedef unsigned char byte;
 typedef byte* memory_t;

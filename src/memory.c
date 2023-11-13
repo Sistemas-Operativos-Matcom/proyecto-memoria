@@ -6,7 +6,7 @@
 
 static memory_t g_mem = NULL;
 static int *g_ownership = NULL;
-static int g_curr_owner = NO_ONWER;
+static int g_curr_owner = NO_OWNER;
 static size_t g_mem_size;
 static FILE *g_log_file;
 static size_t g_free_mem;
@@ -39,7 +39,7 @@ void mem_init(size_t size, const char *log_file_path) {
   g_mem = (memory_t)malloc(g_mem_size);
   g_ownership = (int *)malloc(g_mem_size * sizeof(int));
   for (size_t i = 0; i < g_mem_size; i++) {
-    g_ownership[i] = NO_ONWER;
+    g_ownership[i] = NO_OWNER;
   }
 
   g_log_file = fopen(log_file_path, "w+");
@@ -110,25 +110,25 @@ static void validate_ownership(int owner, size_t from_addr, size_t to_addr) {
             to_addr, from_addr);
     error_exit();
   }
-  if (owner < 0 && owner != NO_ONWER) {
+  if (owner < 0 && owner != NO_OWNER) {
     fprintf(stderr, "[ERROR] Invalid owner %d\n", owner);
     error_exit();
   }
 }
 void m_unset_owner(size_t from_addr, size_t to_addr) {
-  validate_ownership(NO_ONWER, from_addr, to_addr);
+  validate_ownership(NO_OWNER, from_addr, to_addr);
   for (size_t i = from_addr; i <= to_addr; i++) {
-    g_ownership[i] = NO_ONWER;
+    g_ownership[i] = NO_OWNER;
     g_free_mem++;
   }
-  fprintf(g_log_file, "o %d %lu %lu %lu\n", NO_ONWER, from_addr, to_addr,
+  fprintf(g_log_file, "o %d %lu %lu %lu\n", NO_OWNER, from_addr, to_addr,
           g_free_mem);
 }
 
 void m_set_owner(size_t from_addr, size_t to_addr) {
   validate_ownership(g_curr_owner, from_addr, to_addr);
   for (size_t i = from_addr; i <= to_addr; i++) {
-    if (g_ownership[i] == NO_ONWER) {
+    if (g_ownership[i] == NO_OWNER) {
       g_free_mem--;
     }
     g_ownership[i] = g_curr_owner;
@@ -140,7 +140,7 @@ void m_set_owner(size_t from_addr, size_t to_addr) {
 }
 
 void set_curr_owner(int owner) {
-  assert(owner >= 0 || owner == NO_ONWER);
+  assert(owner >= 0 || owner == NO_OWNER);
   g_curr_owner = owner;
 }
 
