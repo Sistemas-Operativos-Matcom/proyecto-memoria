@@ -22,7 +22,21 @@ typedef struct process {
   program_t *program;
 } process_t;
 
+typedef struct Bloque{
+    addr_t heap;
+    addr_t stack;
+    size_t tam;
+    addr_t ini;
+    addr_t fin;
+
+    int usuario;
+    int en_uso;
+
+} Bloque_t;
+
 program_t new_program(char *name, size_t size);
 process_t new_process(int pid, program_t *program);
 
 #endif
+
+
