@@ -147,6 +147,7 @@ int pag_res_free_m(addr_t virtual_addr, int x, int amount)
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv)
 {
+  pag_offset = 6;
   pag_pids = (int *)malloc(sizeof(int) * MAX_PROCS_COUNT);
   pag_stack = (addr_t *)malloc(sizeof(int) * MAX_PROCS_COUNT);
   pag_heap = (addr_t *)malloc(sizeof(addr_t) * MAX_PROCS_COUNT);
@@ -177,7 +178,7 @@ void m_pag_init(int argc, char **argv)
   {
     pag_virtual_m[i] = 0;
   }
-  pag_offset = 6;
+  
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
@@ -185,6 +186,7 @@ void m_pag_init(int argc, char **argv)
 int m_pag_malloc(size_t size, ptr_t *out)
 {
   pag_heap[pag_index_curr_pid] = -1;
+
   for (addr_t i = 0; i < pag_get_vpn(pag_stack[pag_index_curr_pid]); i++)
   {
     if (pag_page_table[pag_index_curr_pid][i] >= 0)
@@ -192,13 +194,16 @@ int m_pag_malloc(size_t size, ptr_t *out)
       pag_heap[pag_index_curr_pid] = i;
     }
   }
+  
   pag_heap[pag_index_curr_pid]++;
 
   addr_t li;
+  
   if (pag_free_space(size, &li) < 0)
   {
     li = -1;
   }
+  
   else
   {
     size_t vpn = pag_get_vpn(li);
@@ -212,12 +217,15 @@ int m_pag_malloc(size_t size, ptr_t *out)
       }
       vpn++;
     }
+    printf("Memory va: %ld %ld pa: %ld  pa: %ld\n", li, li + size, pag_get_pa(li), pag_get_pa(li + size - 1));
     pag_res_free_m(li, size, 1);
   }
+
   if ((int)li < 0)
   {
     return 1;
   }
+
   out->addr = li;
   out->size = size;
   return 0;
