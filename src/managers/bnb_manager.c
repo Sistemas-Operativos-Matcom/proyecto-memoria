@@ -5,36 +5,34 @@
 #include "../memory.h"
 
 #define MAX_PROC_COUNT 20
-#define forn(a, b) for(addr_t i = a; i < b; i++) 
+#define forn(a, b) for (addr_t i = a; i < b; i++)
 
 int curr_ind = -1;
 
-int *pid; 
+int *pid;
 int *free_list;
 
 addr_t *heap;
 addr_t *stack;
 addr_t bound;
-addr_t base;
 
 int is_valid(addr_t addr)
 {
-  printf("FUERA DE RANGO");
   return addr > bound;
 }
 
 addr_t get_address(int i, addr_t offset)
 {
-  return base * i + offset;
+  return bound * i + offset;
 }
 
 int check_addr(addr_t addr)
 {
   if(is_valid(addr)) return 1;
-
+  
   if(free_list[get_address(curr_ind, addr)] < 0)
   {
-    printf("MEMORIA NO ASIGNADA");
+    printf("MEMORIA NO ASIGNADA\n");
     return 1;
   }
 
@@ -52,9 +50,8 @@ void alloc_mem(addr_t addr, int size, int set_pid)
 int set_owner(int i)
 {
   m_set_owner(get_address(i, 0), get_address(i, bound - 1));
-
   return i;
-}
+}//printf("Current index: %d and pid is: %d\n", curr_ind, pid[curr_ind]);
 
 int find_pid(int _pid)
 {
@@ -66,7 +63,7 @@ int find_pid(int _pid)
 }
 
 // Esta función se llama cuando se inicializa un caso de prueba
-void m_bnb_init(int argc, char **argv) 
+void m_bnb_init(int argc, char **argv)
 {
   bound = m_size() / MAX_PROC_COUNT;
 
@@ -80,7 +77,7 @@ void m_bnb_init(int argc, char **argv)
   {
     pid[i] = -1;
     heap[i] = 0;
-    stack[i] = bound;
+    stack[i] = bound - 1;
   }
 
   forn(0, m_size())
@@ -91,30 +88,31 @@ void m_bnb_init(int argc, char **argv)
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
-int m_bnb_malloc(addr_t size, ptr_t *out) 
+int m_bnb_malloc(addr_t size, ptr_t *out)
 {
   int i = curr_ind;
 
-  if(heap[i] + size > stack[i])
+  if (heap[i] + size > stack[i])
   {
     printf("MALLOC NOT ENOUGH SPACE");
     return 1;
   }
 
-  alloc_mem(get_address(i , heap[i]), size, pid[i]);
-  
+  printf("Se alloc memory 0x%zx to 0x%zx  pid: %d \n", heap[i], heap[i] + size, pid[i]);
+  alloc_mem(get_address(i, heap[i]), size, pid[i]);
+
   out->addr = heap[i];
   out->size = size;
 
   heap[i] += size;
 
-  return 0; 
+  return 0;
 }
 
 // Libera un espacio de memoria dado un puntero.
-int m_bnb_free(ptr_t ptr) 
+int m_bnb_free(ptr_t ptr)
 {
-  if(check_addr(ptr.addr))
+  if (check_addr(ptr.addr))
   {
     printf("FREE ERROR");
     return 1;
@@ -126,43 +124,45 @@ int m_bnb_free(ptr_t ptr)
 }
 
 // Agrega un elemento al stack
-int m_bnb_push(byte val, ptr_t *out) 
+int m_bnb_push(byte val, ptr_t *out)
 {
   int i = curr_ind;
-  
-  if(heap[i] >= stack[i])
+
+  if (heap[i] >= stack[i])
   {
     printf("STACK OVERFLOW");
     return 1;
   }
 
+  free_list[get_address(curr_ind, stack[i])] = pid[curr_ind];
+  m_write(get_address(i, stack[i]), val);
+
   stack[i] -= 1;
   out->addr = stack[i];
   out->size = 1;
-
-  m_write(get_address(i, stack[i]), val);
 
   return 0;
 }
 
 // Quita un elemento del stack
-int m_bnb_pop(byte *out) 
+int m_bnb_pop(byte *out)
 {
   int i = curr_ind;
-  if(check_addr(stack[i] + 1))
+  if (check_addr(stack[i] + 1))
   {
     printf("NO ITEM TO POP");
     return 1;
   }
 
   stack[i] += 1;
+  free_list[get_address(curr_ind, stack[i])] = -1;
   *out = m_read(get_address(i, stack[i]));
 
   return 0;
 }
 
 // Carga el valor en una dirección determinada
-int m_bnb_load(addr_t addr, byte *out) 
+int m_bnb_load(addr_t addr, byte *out)
 {
   if(check_addr(addr)) return 1;
 
@@ -171,24 +171,25 @@ int m_bnb_load(addr_t addr, byte *out)
 }
 
 // Almacena un valor en una dirección determinada
-int m_bnb_store(addr_t addr, byte val) 
+int m_bnb_store(addr_t addr, byte val)
 {
-  if(check_addr(addr)) return 1;
+if(check_addr(addr)) return 1;
 
   m_write(get_address(curr_ind, addr), val);
   return 0;
 }
 
 // Notifica un cambio de contexto al proceso 'next_pid'
-void m_bnb_on_ctx_switch(process_t process) 
-{  
+void m_bnb_on_ctx_switch(process_t process)
+{
   set_curr_owner(process.pid);
   curr_ind = find_pid(process.pid);
+  pid[curr_ind] = process.pid;
 }
 
 // Notifica que un proceso ya terminó su ejecución
-void m_bnb_on_end_process(process_t process) 
-{  
+void m_bnb_on_end_process(process_t process)
+{
   set_curr_owner(-1);
   set_owner(find_pid(process.pid));
 }
