@@ -216,7 +216,6 @@ int m_pag_malloc(size_t size, ptr_t *out)
       }
       vpn++;
     }
-    printf("Memory va: %ld %ld pa: %ld  pa: %ld\n", li, li + size, pag_get_pa(li), pag_get_pa(li + size - 1));
     pag_res_free_m(li, size, 1);
   }
 
