@@ -32,4 +32,24 @@ void m_pag_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process);
 
+//inserta en la free list
+void pag_free_insert(free_list_t** head, addr_t addr, int size);
+//elimina en la free list y devuelve el addr de donde ocupo espacio
+addr_t pag_free_delete(free_list_t** head, int size);
+
+//inserta un proceso en la linked list
+void pag_ins_procs (pag_procs_list_t ** head, pag_procs_t procs);
+//elimina un proceso en la linked list
+void pag_del_procs(pag_procs_list_t ** head, int pid);
+
+//insertar pagina
+void pag_ins_pag(page_list_t** head, page_t pag);
+//elimina pagina
+void pag_del_pag(page_list_t** head, int num);
+
+//inserta un entero
+void int_ins(int_l_t** head, int number);
+//elimina un entero
+void int_del(int_l_t** head, int number);
+
 #endif

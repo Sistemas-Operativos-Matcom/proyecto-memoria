@@ -135,7 +135,7 @@ void test_case_003() {
       PROCESS_FROM(2),
       PROCESS_FROM(3),
   };
-
+ 
   ctx_switch(processes[0]);
   ptr_t p0_x = mem_malloc(6);
   mem_store(at(p0_x), 10);
@@ -145,6 +145,7 @@ void test_case_003() {
   mem_push(90);
 
   ctx_switch(processes[1]);
+  
   ptr_t p1_x = mem_malloc(8);
   mem_store(at(p1_x), 40);
   mem_store(at(p1_x) + 1, 50);
@@ -183,6 +184,7 @@ void test_case_003() {
 
   ctx_switch(processes[2]);
   mem_load_assert(at(p2_x), 70);
+  
   mem_load_assert(at(p2_x) + 1, 80);
   mem_pop_assert(130);
   mem_pop_assert(110);

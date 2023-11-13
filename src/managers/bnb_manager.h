@@ -32,4 +32,16 @@ void m_bnb_on_ctx_switch(process_t process);
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process);
 
+//inserta en la free list
+void free_insert(free_list_t** head, addr_t addr, int size);
+//elimina en la free list y devuelve el addr de donde ocupo lugar
+addr_t free_delete(free_list_t** head, int size);
+//metodos auxiliares para el push y el pop
+int push_stack(free_list_t** head, addr_t* stack_pointer);
+int pop_stack(free_list_t** head, addr_t* stack_pointer, byte *out, procs_info_t curr_procs);
+//inserta en la linked list
+void linked_insert (linked_node_t** head, procs_info_t procs);
+//elimina en la linked list
+void linked_delete(linked_node_t** head, int pid);
+
 #endif
