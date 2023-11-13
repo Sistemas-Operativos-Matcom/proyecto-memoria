@@ -5,7 +5,6 @@
 #include "stack.h"
 #include "heap.h"
 
-size_t mem_size;
 process_t current_process;
 int current_index = 0;
 process_t *processes;
@@ -47,8 +46,31 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+  Heap_t *heap = &process_heap[current_index];
+  int addr = process_bound[current_index-1]+1 - (int)ptr.addr;
+
+  // Checking if free can be done
+  for(int i = addr+1; i < (int)ptr.size; i++)
+  {
+    if(heap->used_slots[i] != heap->used_slots[i-1])
+    {
+      return 1;
+    }
+  }
+
+  // Freeing
+  for(int i = addr+1; i < (int)ptr.size; i++)
+  {
+    heap->used_slots[i] = 0;
+  }
+
+  // Updating heap limit if needed
+  if(heap->from_addr == ptr.addr)
+  {
+    heap->from_addr = ptr.addr + ptr.size;
+  }
+
+  return 0;
 }
 
 // Agrega un elemento al stack

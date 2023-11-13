@@ -1,7 +1,6 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include "heap.h"
 #include "stdio.h"
 #include "../memory.h"
 #include "../utils.h"
