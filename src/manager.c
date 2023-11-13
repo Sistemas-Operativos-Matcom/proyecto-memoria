@@ -18,6 +18,7 @@
 static int g_manager;
 
 void m_init(int argc, char **argv) {
+ 
   if (strcmp(argv[1], "bnb") == 0) {
     g_manager = BNB_MANAGER;
     m_bnb_init(argc, argv);

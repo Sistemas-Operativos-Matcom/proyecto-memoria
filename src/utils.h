@@ -5,6 +5,9 @@
 
 #include "memory.h"
 
+enum mem {FREE,USED};
+
+
 // Esta estructura representa un puntero. No puedes cambiar el nombre ni
 // eliminar la estructura. Puedes agregar campos nuevos si es necesario.
 typedef struct ptr {
@@ -20,6 +23,7 @@ typedef struct program {
 typedef struct process {
   int pid;
   program_t *program;
+  
 } process_t;
 
 program_t new_program(char *name, size_t size);

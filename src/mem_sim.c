@@ -60,12 +60,15 @@ byte mem_load_assert(addr_t addr, byte val) {
 
 ptr_t mem_malloc(size_t size) {
   ptr_t ptr;
+  
   if (m_malloc(size, &ptr)) {
     printf("[ERROR] (pid: %d) Allocating %zu bytes\n", g_cpid, size);
     exit(1);
   }
+  
   printf("[INFO] (pid: %d) Allocate %zu bytes. Result ptr: 0x%zx\n", g_cpid,
          size, at(ptr));
+         
   return ptr;
 }
 

@@ -7,5 +7,7 @@ program_t new_program(char *name, size_t size) {
 }
 
 process_t new_process(int pid, program_t *program) {
+
+  
   return (process_t){pid, program};
 }
