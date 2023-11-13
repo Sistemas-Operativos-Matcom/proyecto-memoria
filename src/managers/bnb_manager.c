@@ -6,7 +6,7 @@
 #define Kb(size) ((size)/blockSize)
 
 static addr_t *procsAddr;
-static Bloque_t *virtualMem;
+static block_t *virtualMem;
 static addr_t curAddr;
 static int curPID;
 
@@ -25,7 +25,7 @@ void m_bnb_init(int argc, char **argv){
   }
 
   size_t nBlocks = Kb(m_size());
-  virtualMem = (Bloque_t *)malloc(sizeof(Bloque_t) * nBlocks);
+  virtualMem = (block_t *)malloc(sizeof(block_t) * nBlocks);
   procsAddr = (size_t *)malloc(sizeof(size_t) * nBlocks);
   curAddr = 0;
 
