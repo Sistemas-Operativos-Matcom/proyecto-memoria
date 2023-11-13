@@ -5,6 +5,12 @@
 
 #include "memory.h"
 
+#define max_mem 1000000  
+#define max_pro 1000  
+#define max_pag 100  
+#define pag_size 1000
+#define stack_size 1000  
+
 // Esta estructura representa un puntero. No puedes cambiar el nombre ni
 // eliminar la estructura. Puedes agregar campos nuevos si es necesario.
 typedef struct ptr {
@@ -43,6 +49,12 @@ typedef struct Block{
     int usuario;
     int en_uso;
 } Block_t;
+
+struct page_table{
+    int page_f[max_pag];
+    int used[max_pag];
+    int mk[max_pag][pag_size];
+}table[max_pro];
 
 
 program_t new_program(char *name, size_t size);
