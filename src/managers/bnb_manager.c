@@ -18,7 +18,7 @@ static addr_t curr_addr;          // Dirección actual
 static addr_t *procs_addr;        // Direcciones de procesos
 static curr_process_t *blocks; // Bloques de memoria
 
-#define proc_size 1028             // Tamaño de bloque en bytes
+#define proc_size 1024             // Tamaño de bloque en bytes
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
