@@ -7,7 +7,7 @@ int pages_qtt;
 int pag_bound;
 int *process_page_table[20];
 int pag_proc_sp[20];
-int *proc_heap_fl[20]; // como es el size de esto
+int *proc_heap_fl[20]; 
 
 int *pag_mem_fl;
 
@@ -23,8 +23,6 @@ void m_pag_init(int argc, char **argv) {
   
   pag_mem_fl = (int *)malloc(pages_qtt * (sizeof(int)));
   
-  //fprintf(stderr,"pagesqtt: %d, pag_bound: %d\n", pages_qtt,pag_bound);
-
   for (int i = 0; i < pages_qtt; i++)
   {
     pag_mem_fl[i] = -1;  
@@ -41,11 +39,6 @@ void m_pag_init(int argc, char **argv) {
 int m_pag_malloc(size_t size, ptr_t *out) {
   
   int c = size;
-  
- 
-
-
-  //fprintf(stderr,"malloc");
 
   for (int i = 0; i < pag_bound / 2; i++)
   {
@@ -78,7 +71,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
               f=j;
               process_page_table[pag_current_proc_pid][addr_page(addr_actual)] = j;
               pag_mem_fl[j] = pag_current_proc_pid;
-              //fprintf(stderr,"malloc1: %d, %d, actual_addr: %d \n", j*page_size, (j+1)*page_size - 1, addr_actual);
+            
               m_set_owner(j*page_size, (j+1)*page_size - 1);
               break;
             }
@@ -87,7 +80,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
           {
             return 1;
           }
-          //fprintf(stderr,"%d", addr_actual);
+          
         }
           addr_actual += page_size;
       }
@@ -111,7 +104,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
               f=j;
               process_page_table[pag_current_proc_pid][addr_page(addr_actual)] = j;
               pag_mem_fl[j] = pag_current_proc_pid;
-              //fprintf(stderr,"malloc2: %d, %d, actual_addr: %d \n", j*page_size, (j+1)*page_size-1, addr_actual);
+              
               m_set_owner(j*page_size, (j+1)*page_size - 1);
               break;
             }
@@ -152,7 +145,7 @@ int m_pag_free(ptr_t ptr) {
       }
     }
     
-    for (int i = 0; i < ptr.size; i++)      //es linea por linea??
+    for (int i = 0; i < ptr.size; i++)    
     {
       if(process_page_table[pag_current_proc_pid][addr_page(ptr.addr+i)] == -1 )
       {
@@ -239,7 +232,7 @@ int m_pag_push(byte val, ptr_t *out) {
   
     if(process_page_table[pag_current_proc_pid][addr_page(pag_proc_sp[pag_current_proc_pid])] == -1)
     {
-     //fprintf(stderr,"push: %d\n", addr_page(pag_proc_sp[pag_current_proc_pid]));
+     
       int f = -1;
       for(int i = 0 ;i < pages_qtt; i++)
       {
@@ -256,16 +249,9 @@ int m_pag_push(byte val, ptr_t *out) {
       if(f == -1) return 1;
     }
 
-  
-    //printf("dir: %d, val: %d",process_page_table[pag_current_proc_pid][addr_page(pag_proc_sp[pag_current_proc_pid])]*page_size + addr_line(pag_proc_sp[pag_current_proc_pid]), val);
-      
     m_write(process_page_table[pag_current_proc_pid][addr_page(pag_proc_sp[pag_current_proc_pid])]*page_size + addr_line(pag_proc_sp[pag_current_proc_pid]), val);
     out->addr = process_page_table[pag_current_proc_pid][addr_page(pag_proc_sp[pag_current_proc_pid])]*page_size + addr_line(pag_proc_sp[pag_current_proc_pid]);
     out->size = 1;
-
-   
-
-
 
     return 0;
   
@@ -283,8 +269,6 @@ int m_pag_pop(byte *out) {
   { 
     int prev_page = addr_page(pag_proc_sp[pag_current_proc_pid]);
     
-    //printf("SP: %d\n", pag_proc_sp[pag_current_proc_pid]);
-    //printf("mread: %d\n", m_read(process_page_table[pag_current_proc_pid][addr_page(pag_proc_sp[pag_current_proc_pid])]*page_size + addr_line(pag_proc_sp[pag_current_proc_pid])));
     *out = m_read(process_page_table[pag_current_proc_pid][addr_page(pag_proc_sp[pag_current_proc_pid])]*page_size + addr_line(pag_proc_sp[pag_current_proc_pid]));
     pag_proc_sp[pag_current_proc_pid]++;
     
@@ -322,8 +306,7 @@ int m_pag_load(addr_t addr, byte *out) {
     {
       if(process_page_table[pag_current_proc_pid][addr_page(addr)] != -1 && pag_mem_fl[process_page_table[pag_current_proc_pid][addr_page(addr)]] != -1)
       {
-        //fprintf(stderr, "%d /", m_read(process_page_table[pag_current_proc_pid][addr_page(addr)]*32 + addr_line(addr)));
-
+       
         *out = m_read(process_page_table[pag_current_proc_pid][addr_page(addr)]*32 + addr_line(addr));
          return 0;
       }
@@ -335,38 +318,12 @@ int m_pag_load(addr_t addr, byte *out) {
 // Almacena un valor en una dirección determinada
 int m_pag_store(addr_t addr, byte val) {
   
-   /* if(pag_current_proc_pid==1)
-      {
-      for(int i = 0; i < 12; i++ )
-      {
-       fprintf(stderr,"%d /", process_page_table[1][i]);
-      }    
-      } */
-
-    //fprintf(stderr,"%d /",addr);
-
+   
   if (addr >= 0 && addr < pag_bound)
   {    
-     
-
     if (proc_heap_fl[pag_current_proc_pid][addr] == 1 && process_page_table[pag_current_proc_pid][addr_page(addr)] != -1)
     {
-      
-      //fprintf(stderr,"page table: %d",pag_mem_fl[process_page_table[pag_current_proc_pid][addr_page(addr)]]*32 + addr_line(addr));
-      
-      /*if(pag_current_proc_pid==1)
-      {
-      for(int i = 0; i < 12; i++ )
-      {
-       fprintf(stderr,"%d /", process_page_table[1][i]);
-      }    
-      }*/
-
-      //fprintf(stderr,"%d" ,pag_mem_fl[process_page_table[pag_current_proc_pid][addr_page(addr)]]*32);
-
-      m_write(process_page_table[pag_current_proc_pid][addr_page(addr)]*32 + addr_line(addr), val);
-
-//     
+      m_write(process_page_table[pag_current_proc_pid][addr_page(addr)]*32 + addr_line(addr), val);  
       return 0;
     }
   }
@@ -412,7 +369,6 @@ void m_pag_on_ctx_switch(process_t process) {
 void m_pag_on_end_process(process_t process) {
   pag_active_procs[process.pid] = 0;
 
-  fprintf(stderr, "end ");
  for (int i = 0; i < pages_qtt; i++)
   {
     if (process_page_table[process.pid][i] != -1)
