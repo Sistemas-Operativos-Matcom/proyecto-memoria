@@ -185,22 +185,17 @@ int m_pag_free(ptr_t ptr)
 // Agrega un elemento al stack
 int m_pag_push(byte val, ptr_t *out)
 {
-
   int vpn = pag_get_vpn(pag_stack[pag_ind]);
 
-  if(page_is_valid(vpn))
+  if(!page_is_valid(vpn))
   {
-    return 1;
+    int pp = get_free_adress();
+    if(pp < 0)
+    {
+      return 1;
+    }
+    pag_table[pag_ind][vpn] = pp;
   }
-
-  int pp = get_free_adress();
-
-  if(pp < 0)
-  {
-    return 1;
-  }
-
-  pag_table[pag_ind][vpn] = pp;
 
   m_write(pag_get_address(pag_stack[pag_ind]), val);
   out->addr = pag_stack[pag_ind];
@@ -217,6 +212,8 @@ int m_pag_pop(byte *out)
   }
 
   pag_stack[pag_ind]++;
+
+  printf("POP: address %ld\n", pag_get_address(pag_stack[pag_ind]));
 
   *out = m_read(pag_get_address(pag_stack[pag_ind]));
 
@@ -250,9 +247,9 @@ int m_pag_load(addr_t addr, byte *out)
 // Almacena un valor en una dirección determinada
 int m_pag_store(addr_t addr, byte val)
 {
-  if(page_is_valid(pag_get_vpn(addr)))
+  if(!page_is_valid(pag_get_vpn(addr)))
   {
-    return -1;
+    return 1;
   }
 
   if (addr > pag_stack[pag_ind])
