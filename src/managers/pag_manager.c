@@ -236,7 +236,7 @@ int pag_malloc_size(size_t size)
     }
     vpn++;
   }
-  
+
   pag_alloc_free_memory(li, size, 1);
   return li;
 }
@@ -341,7 +341,7 @@ int m_pag_push(byte val, ptr_t *out)
     pag_pages_table[pag_cur_ipid][vpn] = pp;
     pag_free_page[pp] = 0;
   }
-  
+
   pag_alloc_free_memory(pag_stack[pag_cur_ipid], 1, 1);
 
   m_write(pag_get_pa(pag_stack[pag_cur_ipid]), val);
@@ -461,16 +461,16 @@ void m_pag_on_end_process(process_t process)
   }
 
   set_messanges(0);
-  
+
   ptr_t aux;
   for (int vpn = 0; vpn < pag_pages_count; vpn++)
   {
     if (pag_is_page_valid(vpn))
     {
-
       aux.addr = vpn * pag_page_size;
       aux.size = pag_page_size;
       m_pag_free(aux);
+      pag_free_page[pag_pages_table[pag_cur_ipid][vpn]] = 1;
     }
   }
   set_messanges(1);
