@@ -32,10 +32,6 @@ typedef struct virtual_process
 //Inicializa la free list
 void Init_free_list(free_list_t *free_list, size_t size);
 void Reset_free_list(free_list_t* list, size_t size);
-//Conecta un nodo con su anterior y actualiza el tope de la pila en caso de ser necesario
-void Connect_previous(node_t *node, node_t *previous, free_list_t *free_list);
-//Conecta un nodo con su siguiente y actualiza el fondo de la pila en caso de ser necesario
-void Connect_next(node_t *node, node_t *next, free_list_t *free_list);
 //Obtiene de la lista el primer nodo con al menos size páginas libres y devuelve la primera página en addr
 int Get_from_memory(free_list_t *free_list, size_t size, size_t *addr);
 // Libera, de ser posible, un pedazo de memoria de tamaño size que se encuentre en la posicion addr

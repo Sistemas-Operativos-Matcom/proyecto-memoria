@@ -2,16 +2,14 @@
 #include "stdio.h"
 #include "free_list.h"
 
-#define ALL_ONES64 ((size_t)0xffffffffffffffff)
-
 static size_t MAX_PROC_COUNT = 8;
 static size_t const page_size = 64;
 static size_t const MAX_PAGES_IN_PROC = 32;
 static size_t const MAX_ADDR = page_size * MAX_PAGES_IN_PROC;
 
 static size_t memory_size;
-static size_t VPN_MASK; 
 static size_t VPN_SHIFT;
+static size_t offset_MASK;
 
 static free_list_t *free_page_frames;
 static virtual_process_t *procs;
@@ -25,8 +23,10 @@ void m_pag_init(int argc, char **argv)
 {
   memory_size = m_size();
 
+  //Guardar la cantidad de bits del offset
   VPN_SHIFT = Get_Log2(page_size);
-  VPN_MASK = ALL_ONES64 ^ ((1 << VPN_SHIFT) - 1);
+  //Crear una máscara para quedarse con los bits del offset
+  offset_MASK = (1 << VPN_SHIFT) - 1;
 
   if (is_init)
   {
@@ -52,19 +52,21 @@ void m_pag_init(int argc, char **argv)
   is_init = 1;
 }
 
-
+// Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
+// inicio del espacio reservado.
 int m_pag_malloc(size_t size, ptr_t *out)
 {
-  // Reservar las páginas necesarias para un espacio de tamaño size
+  // Guardar cuántas páginas son necesarias para reservar un espacio de tamaño size
   size = size / page_size + (size_t)(size % page_size ? 1 : 0);
   size_t addr;
 
+  //Guardar en addr el espacio la página de la memoria física a partir de la cual se va a reservar el espacio
   if (Get_from_memory(free_page_frames, size, &addr))
     return MEM_FAIL;
 
   m_set_owner(addr * page_size, addr * page_size + size * page_size);
 
-  // Encontrar una posicion en la memoria virtual donde guardar los segmentos reservados
+  // Encontrar un espacio en la meoria virtual donde guardar los segmentos reservados
   size_t first_virtual_page = Find_pages(&procs[curr_proc], size);
 
   // Guardar en out la direccion virtual donde estara la memoria
@@ -77,7 +79,6 @@ int m_pag_malloc(size_t size, ptr_t *out)
     procs[curr_proc].pfn[i] = (addr + i - first_virtual_page); 
     procs[curr_proc].page_valid[i] = 1;
   }
-
   return MEM_SUCCESS;
 }
 
@@ -85,17 +86,17 @@ int m_pag_malloc(size_t size, ptr_t *out)
 int m_pag_free(ptr_t ptr)
 {
   // Obtener el numero de pagina virtual
-  size_t first_page = (ptr.addr & VPN_MASK) >> VPN_SHIFT; //OJO
-  // Obtener cuantas paginas hay que liberar
+  size_t first_page = ptr.addr>> VPN_SHIFT;
+  // Obtener el número de páginas a liberar
   size_t page_count = ptr.size / page_size + (size_t)(ptr.size % page_size ? 1 : 0);
 
-  // Liberar la memoria
+  // Liberar la memoria física
   if (Free_memory(free_page_frames, page_count, procs[curr_proc].pfn[first_page]))
     return MEM_FAIL;
 
   m_unset_owner(procs[curr_proc].pfn[first_page] * page_size, procs[curr_proc].pfn[first_page] * page_size + page_count * page_size);
 
-  // Marcar las páginas de la memoria virtual como no válidas
+  // Marcar la memoria virtual como no valida
   for (size_t i = first_page; page_count; i++, page_count--)
   {
     procs[curr_proc].page_valid[i] = 0;
@@ -107,10 +108,12 @@ int m_pag_free(ptr_t ptr)
 // Agrega un elemento al stack
 int m_pag_push(byte val, ptr_t *out)
 {
+  // Encontrar el stack point fisico
   size_t sp = procs[curr_proc].stack_point;
   sp = sp >= MAX_ADDR ? MAX_ADDR - 1 : sp;
-  size_t page = (sp & VPN_MASK) >> VPN_SHIFT;
-  size_t offset = (sp & ~VPN_MASK)-1;
+  //size_t page = (sp & VPN_MASK) >> VPN_SHIFT;
+  size_t page = sp >> VPN_SHIFT;
+  size_t offset = (sp & offset_MASK)-1;
 
   if (!procs[curr_proc].page_valid[page])
   {
@@ -128,9 +131,10 @@ int m_pag_push(byte val, ptr_t *out)
   // Calcular la direccion fisica
   size_t addr = procs[curr_proc].pfn[page] * page_size + offset;
 
+  // Guardar el valor ahi
   m_write(addr, val);
 
-  // Calcular el nuevo sp
+  // Calcular el nuevo stack point
   sp = (page << VPN_SHIFT) | offset;
 
   // Devolver el valor en el puntero
@@ -140,6 +144,7 @@ int m_pag_push(byte val, ptr_t *out)
   // Actualizar el stack point
   procs[curr_proc].stack_point = sp;
 
+  // Retornar con exito
   return MEM_SUCCESS;
 }
 
@@ -148,22 +153,25 @@ int m_pag_pop(byte *out)
 {
   // Encontrar el stack point fisico
   size_t sp = procs[curr_proc].stack_point;
-  size_t page = (sp & VPN_MASK) >> VPN_SHIFT;
-  size_t offset = sp & ~VPN_MASK;
+  //size_t page = (sp & VPN_MASK) >> VPN_SHIFT;
+  size_t page = sp >> VPN_SHIFT;
+  size_t offset = sp & offset_MASK;
 
+  // Chequear si la accion es valida
   if (sp >= MAX_ADDR || !procs[curr_proc].page_valid[page])
     return MEM_FAIL;
 
   // Calcular la direccion fisica
   size_t addr = procs[curr_proc].pfn[page] * page_size + offset;
 
+  // Guardar en out el resultado
   *out = m_read(addr);
 
-  // Actualizar el sp
+  // Actualizar el stack point
   procs[curr_proc].stack_point = ++sp;
 
   // Si se sale de una pagina
-  if (page != (sp & VPN_MASK) >> VPN_SHIFT)
+  if (page != sp >> VPN_SHIFT)
   {
     addr = procs[curr_proc].pfn[page];
 
@@ -174,6 +182,7 @@ int m_pag_pop(byte *out)
     m_unset_owner(addr * page_size, (addr + 1) * page_size);
   }
 
+  // Retornar con exito
   return MEM_SUCCESS;
 }
 
@@ -181,9 +190,9 @@ int m_pag_pop(byte *out)
 int m_pag_load(addr_t addr, byte *out)
 {
   // Obtener el numero de pagina virtual
-  size_t page = (addr & VPN_MASK) >> VPN_SHIFT;
+  size_t page = addr>> VPN_SHIFT;
   // Obtener el offset
-  size_t offset = addr & ~VPN_MASK;
+  size_t offset = addr & offset_MASK;
 
   // Obtener la direccion fisica
   size_t _addr = procs[curr_proc].pfn[page] * page_size + offset;
@@ -201,9 +210,9 @@ int m_pag_load(addr_t addr, byte *out)
 int m_pag_store(addr_t addr, byte val)
 {
   // Obtener el numero de pagina virtual
-  size_t page = (addr & VPN_MASK) >> VPN_SHIFT;
+  size_t page = addr >> VPN_SHIFT;
   // Obtener el offset
-  size_t offset = ~VPN_MASK & (size_t) addr;
+  size_t offset = offset_MASK & (size_t) addr;
 
   // Obtener la direccion fisica
   size_t _addr = procs[curr_proc].pfn[page] * page_size + offset;
@@ -236,7 +245,8 @@ void m_pag_on_ctx_switch(process_t process)
     }
   }
 
-  // En caso de que el proceso sea nuevo, se añade en la primera posicion donde no haya proceso
+  // En caso de que el proceso sea nuevo, se añade en la primera
+  // posicion donde no halla ninguno
   int pos = last_free == -1 ? last_proc++ : last_free;
 
   Init_virtual_process(&procs[pos], process.pid, MAX_PAGES_IN_PROC);

@@ -2,19 +2,6 @@
 #include <stdio.h>
 #include "free_list.h"
 
-void connect_nodes(node_t *node, node_t *next, node_t *prev, free_list_t *list)
-{
-    node->next = next;
-    if (next != NULL)
-        next->previous = node;
-    else
-        list->bottom = node; // Si su siguiente es nulo, entonces es la cola
-    node->previous = prev;
-    if (prev != NULL)
-        prev->next = node;
-    else
-        list->top = node; // Si su anterior es nulo, entonces es la cabeza
-}
 
 void Init_free_list(free_list_t *free_list, size_t size)
 {
@@ -101,113 +88,85 @@ int Get_from_memory(free_list_t *free_list, size_t size, size_t *addr)
     return 1;
 }
 
-int Free_memory(free_list_t* list,size_t size, size_t addr) {
-    if (size > list->max_page_frame) return 1;
-
-    // Si la lista esta vacia significa que se reservo toda la
-    // memoria por lo que es valido liberarlo
-    if (list->size == 0) {
-        node_t* tmp = (node_t*) malloc(sizeof(node_t));
-
-        tmp->next = tmp->previous = NULL;
-        tmp->first_page_frame = addr;
-        tmp->num_pages = size;
-
+int Free_memory(free_list_t *free_list, size_t size, size_t addr)
+{
+    if (free_list->size == 0)
+    {
+        node_t *node = (node_t *)malloc(sizeof(node_t));
+        node->first_page_frame = addr;
+        node->num_pages = size;
+        Connect_previous(node, NULL, free_list);
+        Connect_next(node, NULL, free_list);
         return 0;
     }
 
-    int status = 1;
+    else
+    {
+        node_t *node = free_list->top;
+        while (node != NULL)
+        {
+            size_t prev_last_page_frame = node->first_page_frame + node->num_pages;
+            size_t next_first_page_frame = node->next != NULL ? node->next->first_page_frame : free_list->max_page_frame;
 
-    node_t* node = list->top;
-    while (node != NULL) {
-        size_t prv_idx = node->first_page_frame + node->num_pages;
-        //size_t nxt_idx = (node->next != NULL) ? node->next->pos + node->next->size : list->max_pos;
-        size_t nxt_idx = (node->next != NULL) ? node->next->first_page_frame: list->max_page_frame;
+            if ((prev_last_page_frame <= addr && addr + size <= next_first_page_frame) || addr + size <= node->first_page_frame)
+            {
+                node_t *new_node = (node_t *)malloc(sizeof(node_t));
+                free_list->size++;
+                new_node->first_page_frame = addr;
+                new_node->num_pages = size;
 
-        // Buscar el espacio que deberia ser liberado
-        if ((prv_idx <= addr && addr + size <= nxt_idx) || (addr + size  <= node->first_page_frame)) { //OJO
-            // Crear un nuevo nodo para la memoria liberada
-            node_t* tmp = (node_t*) malloc(sizeof(node_t));
-
-            // Asignarle una posicion y un tamaño
-            tmp->first_page_frame = addr;
-            tmp->num_pages = size;
-
-            node_t* prev = node->previous;
-            node_t* next = node->next;
-
-            //Actualizar el tamaño de la lista
-            list->size++;
-
-            // Caso corner: la memoria a liberar esta al inicio
-            if (addr + size  <= node->first_page_frame) {
-                list->top = tmp;
-
-                // Si los nodos colisionan, se unen
-                if (node->first_page_frame == addr + size ) {
-                    tmp->next = node->next;
-                    tmp->num_pages += node->num_pages;
-                    free(node);
+                if (addr + size <= node->first_page_frame)
+                {
+                    Connect_previous(new_node, NULL, free_list);
+                    if (addr + size == node->first_page_frame)
+                    {
+                        new_node->num_pages += (node->num_pages);
+                        Connect_next(new_node, node->next, free_list);
+                        free_list->size--;
+                        free(node);
+                    }
+                    else
+                    {
+                        
+                        Connect_next(new_node, node, free_list);
+                    }
                 }
-                // Sino, solo se conectan
-                else {
-                    tmp->next = node;
+                else
+                {
+                    node_t *new_node_next = node->next;
+                    if (prev_last_page_frame == addr)
+                    {
+                        new_node->num_pages += node->previous->num_pages;
+                        new_node->first_page_frame = node->first_page_frame;
+                        //new_node->first_page = node->first_page;
+                        Connect_previous(new_node, node->previous, free_list);
+                        free_list->size--;
+                        free(node);
+                    }
+                    else
+                    {
+                        Connect_previous(new_node, node, free_list);
+                    }
+                    if (next_first_page_frame == addr + size)
+                    {
+                        new_node->num_pages += new_node_next->num_pages;
+                        Connect_next(new_node, new_node_next->next, free_list);
+                        free_list->size--;
+                        free(new_node_next);
+                    }
+                    else
+                    {
+                        Connect_next(new_node, new_node_next, free_list);
+                    }
                 }
-
-                status = 0;
-                break;
+                return 0;
             }
 
-            // Si el nodo anterior colisiona con el actual, se fusionan
-            // if (prev != NULL && (size_t) prev->pos + prev->size == tmp->pos) {
-            //     fl_node_t* _prev = prev->prev;
-
-            //     // Actualizar el nodo actual
-            //     tmp->pos = prev->pos;
-            //     tmp->size += prev->size;
-
-            //     // Eliminar el nodo anterior ya que se fusiono con el actual
-            //     free(prev);
-            //     prev = _prev;
-
-            //     //Actualizar el tamaño de la lista
-            //     list->size--;
-            // }
-
-            // Si el nodo siguiente colisiona con el actial, se fusionan
-            if (next != NULL && (size_t) tmp->first_page_frame + tmp->num_pages == next->first_page_frame) {
-                node_t* _next = next->next;
-
-                // Actualizar el nodo actual, como la pos del actual es menor que
-                // la del siguiente, no es necesario actualizarlo
-                tmp->num_pages += next->num_pages;
-
-                // Eliminar el nodo siguiente
-                free(next);
-                next = _next;
-
-                //Actualizar el tamaño de la lista
-                list->size--;
-            }
-
-            // Conectar el nuevo nodo a sus vecinos
-            connect_nodes(tmp, next, prev, list);
-
-            // Terminar el ciclo y marcar el exito
-            status = 0;
-            break;
+            node = node->next;
         }
-        node = node->next;
+        return 1;
     }
-
-    // Si la lista se vacio, poner los punteros a null
-    if (list->size == 0) {
-        list->top = list->bottom = NULL;
-    }
-
-    return status;
 }
-
 
 
 
