@@ -1,5 +1,5 @@
 #include "seg_manager.h"
-
+#include "../memory.h"
 #include "stdio.h"
 
 // Esta función se llama cuando se inicializa un caso de prueba
