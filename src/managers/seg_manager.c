@@ -5,7 +5,7 @@ int size;
 int stackp;
 int instrp;
 int curr_pid;
-int heap_man[100000];
+int heap_man[2048];
 
 int find(int start, int end)
 {

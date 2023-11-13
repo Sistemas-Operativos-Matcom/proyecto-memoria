@@ -2,7 +2,7 @@
 typedef struct pag_process
 {
     int pid;
-    int heap[1000000];
+    int heap[2048];
     size_t page_start;
     size_t page_ip;
     int process_part;
