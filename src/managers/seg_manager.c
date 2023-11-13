@@ -1,6 +1,8 @@
 #include "seg_manager.h"
 #include "seg_structs.h"
 #include "free_list.h"
+#define EXITO 0
+#define ERROR 1
 
 #include "stdio.h"
 
@@ -23,11 +25,11 @@ int m_seg_malloc(size_t size, ptr_t *out)
     out->addr = seg_current->proc_mem_info.heap_pos ;
     out->size = size;
     seg_current->proc_mem_info.heap_pos += size + 1;  
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 
@@ -40,11 +42,11 @@ int m_seg_free(ptr_t ptr)
     {
       seg_current->proc_mem_info.heap_pos -= ptr.size;
     }
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 
@@ -57,11 +59,11 @@ int m_seg_push(byte val, ptr_t *out)
     m_write(seg_current->proc_mem_info.stack_pos + seg_current->proc_mem_info.stack_base, val);
     out->addr = seg_current->proc_mem_info.stack_pos;
     out->size = 1;
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 
@@ -72,11 +74,11 @@ int m_seg_pop(byte *out)
   {
     *out = m_read(seg_current->proc_mem_info.stack_base + seg_current->proc_mem_info.stack_pos);
     seg_current->proc_mem_info.stack_pos += 1;
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 
@@ -86,11 +88,11 @@ int m_seg_load(addr_t addr, byte *out)
   if (addr <= HEAP_SEG_SIZE)
   {
     *out = m_read(seg_current->proc_mem_info.heap_base + addr);
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 
@@ -100,11 +102,11 @@ int m_seg_store(addr_t addr, byte val)
   if (addr <= HEAP_SEG_SIZE)
   {
     m_write(seg_current->proc_mem_info.heap_base + addr, val);
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 

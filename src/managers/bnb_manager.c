@@ -1,5 +1,7 @@
 #include "bnb_manager.h"
 #include "bnb_structs.h"
+#define EXITO 0
+#define ERROR 1
 
 #include "stdio.h"
 
@@ -25,11 +27,11 @@ int m_bnb_malloc(size_t size, ptr_t *out)
     out->addr = current->proc_mem_info.heap_pos;
     out->size = size;
     current->proc_mem_info.heap_pos += size;  
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 
@@ -42,11 +44,11 @@ int m_bnb_free(ptr_t ptr)
     {
       current->proc_mem_info.heap_pos -= ptr.size;
     }
-    return 0;
+    return EXITO;
   }
   else
   {
-    return 1;
+    return ERROR;
   }
 }
 
@@ -58,11 +60,11 @@ int m_bnb_push(byte val, ptr_t *out)
     m_write( current->proc_mem_info.base + current->proc_mem_info.stack_pos, val);
     out->addr =  current->proc_mem_info.stack_pos;
     out->size = 1;
-    return 0;
+    return EXITO;
   }
   else
   {  
-    return 1;
+    return ERROR;
   }
 }
 
@@ -73,11 +75,11 @@ int m_bnb_pop(byte *out)
   {
     *out = m_read(current->proc_mem_info.base + current->proc_mem_info.stack_pos);
     current->proc_mem_info.stack_pos += 1;
-    return 0;
+    return EXITO;
   }
   else
   {  
-    return 1;
+    return ERROR;
   }
 }
 
@@ -87,11 +89,11 @@ int m_bnb_load(addr_t addr, byte *out)
   if ( current->proc_mem_info.base + current->proc_mem_info.cod_bounds+ addr <= current->proc_mem_info.base + current->proc_mem_info.bounds )
   {
     *out = m_read(current->proc_mem_info.base + addr);
-    return 0;
+    return EXITO;
   }
   else
   {  
-    return 1;
+    return ERROR;
   }
 }
 
@@ -101,11 +103,11 @@ int m_bnb_store(addr_t addr, byte val)
   if ( current->proc_mem_info.base + current->proc_mem_info.cod_bounds + addr <= current->proc_mem_info.base + current->proc_mem_info.bounds )
   {
     m_write(current->proc_mem_info.base + addr, val);
-    return 0;
+    return EXITO;
   }
   else
   {  
-    return 1;
+    return ERROR;
   }
 }
 

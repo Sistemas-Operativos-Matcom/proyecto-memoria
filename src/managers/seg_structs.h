@@ -24,12 +24,7 @@ typedef struct seg_node {
   struct seg_node *next;
 } seg_node_t;
 
-
 void seg_node_clean(seg_node_t *head);
-
 seg_node_t * seg_find_node(int pid,seg_node_t *head);
-
-seg_node_t * seg_init_node(process_t process);
-
 
 #endif
