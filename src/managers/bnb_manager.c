@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define Block_Size 1024
+#define Block_Size 512
 #define Code_Size 1
 #define kb(size) ((size) / Block_Size)
 static int current_pid;      
@@ -60,40 +60,35 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
   for (size_t i = 0; i < total_blocks; i++) {
     Block *currentBlock = &memory_v[i];
 
-    if (!currentBlock->in_use) {  // Encuentra un bloque no utilizado.
+    if (!currentBlock->in_use) {  // find an empty one
       size_t block_start = i * Block_Size + Code_Size;
       size_t block_end = i * Block_Size + Block_Size - 1;
 
-      // Establece el propietario y asigna la dirección del proceso.
       m_set_owner(block_start, block_end);
       process_addr[current_pid] = i;
       current_addr = i;
 
-      // Actualiza el bloque de memoria.
+      // update
       currentBlock->in_use = 1;
       currentBlock->owner = current_pid;
       currentBlock->size = size;
 
-      // Asigna la dirección de inicio del bloque a la salida.
-      out->addr = block_start;
-      out->size = 1;  // Tamaño de 1 bloque.
-
-      // Actualiza la lista de bloques libres:
       FreeBlock* current = free_blocks;
       FreeBlock* prev = NULL;
+      out->addr = block_start;
+      out->size = 1;
 
       while (current) {
         if (current->start_addr == block_start) {
           if (current->start_addr + current->end_addr == block_end) {
-            // El bloque libre coincide exactamente con el bloque asignado, eliminarlo.
             if (prev) {
               prev->next = current->next;
             } else {
               free_blocks = current->next;
             }
             free(current);
-          } else {
-            // El bloque libre es parte del bloque asignado, ajustar su dirección de inicio.
+          }
+          else{
             current->start_addr = block_start + size;
           }
           break;
@@ -117,7 +112,7 @@ int m_bnb_free(ptr_t ptr) {
 
   if (ptr.addr >= start && ptr.addr + ptr.size < end) {
     currentBlock->size -= ptr.size; 
-    // Agregar el bloque liberado a la lista de bloques libres:
+    // update
     FreeBlock* new_free_block = (FreeBlock*)malloc(sizeof(FreeBlock));
     new_free_block->start_addr = ptr.addr;
     new_free_block->end_addr = ptr.addr + ptr.size - 1;
