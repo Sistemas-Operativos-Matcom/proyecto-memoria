@@ -17,7 +17,7 @@ test_manager () {
         echo "❌ - $NAME";
     else
         ALL_GOOD=1
-        for MEM_LOG in $MEM_LOG_FOLDER/$NAME_*.log; do
+        for MEM_LOG in $MEM_LOG_FOLDER/$NAME*.log; do
             if [[ "$(tail -n 1 $MEM_LOG)" -ne "end" ]]; then
                 echo "⚠️ - $NAME"
                 ALL_GOOD=0

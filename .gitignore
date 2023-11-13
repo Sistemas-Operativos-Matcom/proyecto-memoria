@@ -51,6 +51,4 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-mem_logs/
-sim_logs/
 build/

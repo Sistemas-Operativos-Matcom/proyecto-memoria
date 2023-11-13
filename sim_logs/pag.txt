@@ -1,0 +1,128 @@
+Starting simulation. Memory size: 8192 bytes.
+[INFO] Setting ownership 0 from addr 0x0 to addr 0x40
+[INFO] Setting ownership 0 from addr 0x40 to addr 0x80
+[INFO] Setting ownership 0 from addr 0x80 to addr 0xc0
+[INFO] Setting ownership 0 from addr 0xc0 to addr 0x100
+[INFO] (pid: 0) Allocate 4 bytes. Result ptr: 0x0
+[INFO] (pid: 0) Stored 10 at 0x0
+[INFO] (pid: 0) Stored 20 at 0x1
+[INFO] Setting ownership 0 from addr 0x100 to addr 0x140
+[INFO] (pid: 0) Pushed 70 into stack. Result ptr: 0x100
+[INFO] Setting ownership 1 from addr 0x140 to addr 0x180
+[INFO] Setting ownership 1 from addr 0x180 to addr 0x1c0
+[INFO] Setting ownership 1 from addr 0x1c0 to addr 0x200
+[INFO] Setting ownership 1 from addr 0x200 to addr 0x240
+[INFO] (pid: 1) Allocate 2 bytes. Result ptr: 0x0
+[INFO] (pid: 1) Stored 30 at 0x0
+[INFO] (pid: 1) Stored 40 at 0x1
+[INFO] Setting ownership 1 from addr 0x240 to addr 0x280
+[INFO] (pid: 1) Pushed 80 into stack. Result ptr: 0x240
+[INFO] (pid: 0) Loaded 10 at 0x0
+[INFO] (pid: 0) Loaded 20 at 0x1
+[INFO] (pid: 0) Poped 70 from stack
+[INFO] (pid: 1) Loaded 30 at 0x0
+[INFO] (pid: 1) Loaded 40 at 0x1
+[INFO] (pid: 1) Poped 80 from stack
+Finish simulation
+
+Starting simulation. Memory size: 8192 bytes.
+[INFO] Setting ownership 0 from addr 0x0 to addr 0x40
+[INFO] Setting ownership 0 from addr 0x40 to addr 0x80
+[INFO] Setting ownership 0 from addr 0x80 to addr 0xc0
+[INFO] Setting ownership 0 from addr 0xc0 to addr 0x100
+[INFO] (pid: 0) Allocate 6 bytes. Result ptr: 0x0
+[INFO] (pid: 0) Stored 10 at 0x0
+[INFO] (pid: 0) Stored 20 at 0x1
+[INFO] (pid: 0) Stored 30 at 0x2
+[INFO] Setting ownership 0 from addr 0x100 to addr 0x140
+[INFO] (pid: 0) Pushed 70 into stack. Result ptr: 0x100
+[INFO] Setting ownership 1 from addr 0x140 to addr 0x180
+[INFO] Setting ownership 1 from addr 0x180 to addr 0x1c0
+[INFO] Setting ownership 1 from addr 0x1c0 to addr 0x200
+[INFO] Setting ownership 1 from addr 0x200 to addr 0x240
+[INFO] (pid: 1) Allocate 4 bytes. Result ptr: 0x0
+[INFO] (pid: 1) Stored 40 at 0x0
+[INFO] (pid: 1) Stored 50 at 0x1
+[INFO] (pid: 1) Stored 60 at 0x2
+[INFO] Setting ownership 1 from addr 0x240 to addr 0x280
+[INFO] (pid: 1) Pushed 80 into stack. Result ptr: 0x240
+[INFO] Setting ownership 2 from addr 0x280 to addr 0x2c0
+[INFO] (pid: 2) Allocate 8 bytes. Result ptr: 0x0
+[INFO] (pid: 2) Stored 70 at 0x0
+[INFO] (pid: 2) Stored 80 at 0x1
+[INFO] (pid: 2) Stored 90 at 0x2
+[INFO] Setting ownership 2 from addr 0x2c0 to addr 0x300
+[INFO] (pid: 2) Pushed 90 into stack. Result ptr: 0x2c0
+[INFO] (pid: 0) Loaded 10 at 0x0
+[INFO] (pid: 0) Loaded 20 at 0x1
+[INFO] (pid: 0) Loaded 30 at 0x2
+[INFO] (pid: 0) Poped 70 from stack
+[INFO] (pid: 1) Loaded 40 at 0x0
+[INFO] (pid: 1) Loaded 50 at 0x1
+[INFO] (pid: 1) Loaded 60 at 0x2
+[INFO] (pid: 1) Poped 80 from stack
+[INFO] (pid: 2) Loaded 70 at 0x0
+[INFO] (pid: 2) Loaded 80 at 0x1
+[INFO] (pid: 2) Loaded 90 at 0x2
+[INFO] (pid: 2) Poped 90 from stack
+Finish simulation
+
+Starting simulation. Memory size: 4096 bytes.
+[INFO] Setting ownership 0 from addr 0x0 to addr 0x40
+[INFO] Setting ownership 0 from addr 0x40 to addr 0x80
+[INFO] Setting ownership 0 from addr 0x80 to addr 0xc0
+[INFO] Setting ownership 0 from addr 0xc0 to addr 0x100
+[INFO] (pid: 0) Allocate 6 bytes. Result ptr: 0x0
+[INFO] (pid: 0) Stored 10 at 0x0
+[INFO] (pid: 0) Stored 20 at 0x1
+[INFO] (pid: 0) Stored 30 at 0x2
+[INFO] Setting ownership 0 from addr 0x100 to addr 0x140
+[INFO] (pid: 0) Pushed 70 into stack. Result ptr: 0x100
+[INFO] (pid: 0) Pushed 90 into stack. Result ptr: 0x101
+[INFO] Setting ownership 1 from addr 0x140 to addr 0x180
+[INFO] Setting ownership 1 from addr 0x180 to addr 0x1c0
+[INFO] Setting ownership 1 from addr 0x1c0 to addr 0x200
+[INFO] Setting ownership 1 from addr 0x200 to addr 0x240
+[INFO] (pid: 1) Allocate 8 bytes. Result ptr: 0x0
+[INFO] (pid: 1) Stored 40 at 0x0
+[INFO] (pid: 1) Stored 50 at 0x1
+[INFO] (pid: 1) Stored 60 at 0x2
+[INFO] Setting ownership 1 from addr 0x240 to addr 0x280
+[INFO] (pid: 1) Pushed 80 into stack. Result ptr: 0x240
+[INFO] (pid: 1) Pushed 100 into stack. Result ptr: 0x241
+[INFO] Setting ownership 2 from addr 0x280 to addr 0x2c0
+[INFO] (pid: 2) Allocate 4 bytes. Result ptr: 0x0
+[INFO] (pid: 2) Stored 70 at 0x0
+[INFO] (pid: 2) Stored 80 at 0x1
+[INFO] Setting ownership 2 from addr 0x2c0 to addr 0x300
+[INFO] (pid: 2) Pushed 110 into stack. Result ptr: 0x2c0
+[INFO] (pid: 2) Pushed 130 into stack. Result ptr: 0x2c1
+[INFO] Setting ownership 3 from addr 0x300 to addr 0x340
+[INFO] (pid: 3) Allocate 10 bytes. Result ptr: 0x0
+[INFO] (pid: 3) Stored 90 at 0x0
+[INFO] (pid: 3) Stored 100 at 0x1
+[INFO] (pid: 3) Stored 110 at 0x2
+[INFO] Setting ownership 3 from addr 0x340 to addr 0x380
+[INFO] (pid: 3) Pushed 120 into stack. Result ptr: 0x340
+[INFO] (pid: 3) Pushed 140 into stack. Result ptr: 0x341
+[INFO] (pid: 0) Loaded 10 at 0x0
+[INFO] (pid: 0) Loaded 20 at 0x1
+[INFO] (pid: 0) Loaded 30 at 0x2
+[INFO] (pid: 0) Poped 90 from stack
+[INFO] (pid: 0) Poped 70 from stack
+[INFO] (pid: 1) Loaded 40 at 0x0
+[INFO] (pid: 1) Loaded 50 at 0x1
+[INFO] (pid: 1) Loaded 60 at 0x2
+[INFO] (pid: 1) Poped 100 from stack
+[INFO] (pid: 1) Poped 80 from stack
+[INFO] (pid: 2) Loaded 70 at 0x0
+[INFO] (pid: 2) Loaded 80 at 0x1
+[INFO] (pid: 2) Poped 130 from stack
+[INFO] (pid: 2) Poped 110 from stack
+[INFO] (pid: 3) Loaded 90 at 0x0
+[INFO] (pid: 3) Loaded 100 at 0x1
+[INFO] (pid: 3) Loaded 110 at 0x2
+[INFO] (pid: 3) Poped 140 from stack
+[INFO] (pid: 3) Poped 120 from stack
+Finish simulation
+
