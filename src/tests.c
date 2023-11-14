@@ -40,7 +40,6 @@ void test_case_001() {
       PROCESS_FROM(0),
       PROCESS_FROM(1),
   };
-
   ctx_switch(processes[0]);     // Cambia de contexto al proceso 0
   ptr_t p0_x = mem_malloc(4);   // Reserva memoria para 4 bytes
   mem_store(at(p0_x), 10);      // Guarda el valor 10 en la posición 0

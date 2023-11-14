@@ -13,6 +13,7 @@ typedef unsigned char byte;
 typedef byte* memory_t;
 typedef size_t addr_t;
 
+
 // Inicializa la memoria
 void mem_init(size_t size, const char* log_file_path);
 
