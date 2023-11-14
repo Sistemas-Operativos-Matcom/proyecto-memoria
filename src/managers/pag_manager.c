@@ -2,16 +2,17 @@
 
 #include "stdio.h"
 
+
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv) {
-  fprintf(stderr, "Not Implemented\n");
+ fprintf(stderr, "Not Implemented\n");
   exit(1);
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_pag_malloc(size_t size, ptr_t *out) {
-  fprintf(stderr, "Not Implemented\n");
+ fprintf(stderr, "Not Implemented\n");
   exit(1);
 }
 
@@ -45,9 +46,11 @@ int m_pag_store(addr_t addr, byte val) {
   exit(1);
 }
 
+
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_pag_on_ctx_switch(process_t process) {
-  fprintf(stderr, "Not Implemented\n");
+
+ fprintf(stderr, "Not Implemented\n");
   exit(1);
 }
 

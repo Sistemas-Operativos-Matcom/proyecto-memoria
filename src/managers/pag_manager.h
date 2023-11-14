@@ -3,7 +3,6 @@
 
 #include "../memory.h"
 #include "../utils.h"
-
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv);
 

@@ -151,7 +151,7 @@ int m_bnb_pop(byte *out) {
 int m_bnb_load(addr_t addr, byte *out) {
   int return_value = m_read(address_translator(addr));
 
-  if(return_value == OUT_OF_LIMITS){
+  if(return_value == OUT_OF_LIMITS ){
 
     return 1;
 
@@ -213,19 +213,19 @@ void m_bnb_on_ctx_switch(process_t process) {
   UL section = search_free_section(process.pid);
 
     curr_section = section;
-
+    ptr_t *code = {0ul,0ul};
+    m_bnb_malloc(process.program->size,&code);
     m_set_owner(curr_section * vmem_size ,( curr_section + 1ul ) * vmem_size - 1ul);
-
-       
+    
 
 }
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
 
-  sections[curr_section] = -1;
+  sections[search_free_section(process.pid)] = -1;
 
-  m_unset_owner(curr_section * vmem_size,( curr_section + 1ul )* vmem_size - 1ul);
+  m_unset_owner(search_free_section(process.pid) * vmem_size,( search_free_section(process.pid) + 1ul )* vmem_size - 1ul);
 
 
 }
