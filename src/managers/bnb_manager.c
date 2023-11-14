@@ -1,7 +1,7 @@
 #include <malloc.h>
 #include "bnb_manager.h"
 #include "stdio.h"
-#include <freelist.h>
+#include "../freelist.h"
 
 #define bool int
 #define true 1
@@ -32,16 +32,17 @@ void m_bnb_init(int argc, char **argv)
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out)
 {
+
   int result = memory_malloc(mem_slots[actual_ctx].heap, size, out);
   out->addr = out->addr + mem_slots[actual_ctx].heap_base;
-  return result;
+  return !result;
 }
 
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr)
 {
   ptr.addr = ptr.addr - mem_slots[actual_ctx].heap_base;
-  return memory_free(mem_slots[actual_ctx].heap, ptr);
+  return !memory_free(mem_slots[actual_ctx].heap, ptr);
 }
 
 // Agrega un elemento al stack
@@ -54,10 +55,9 @@ int m_bnb_push(byte val, ptr_t *out)
     out->addr = mem_slots[actual_ctx].stack_pointer - mem_slots[actual_ctx].base;
     out->size = 1;
 
-    return 1;
-  }
-  else
     return 0;
+  }
+  return 1;
 }
 
 // Quita un elemento del stack
@@ -69,32 +69,33 @@ int m_bnb_pop(byte *out)
     *out = m_read(mem_slots[actual_ctx].stack_pointer);
     mem_slots[actual_ctx].stack_pointer = mem_slots[actual_ctx].stack_pointer + 1;
     memory_expand(mem_slots[actual_ctx].heap);
-    return 1;
+    return 0;
   }
-  return 0;
+  return 1;
 }
 
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out)
 {
   *out = m_read(mem_slots[actual_ctx].base + addr);
-  return 1;
+  return 0;
 }
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val)
 {
   m_write(mem_slots[actual_ctx].base + addr, val);
-  return 1;
+  return 0;
 }
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process)
 {
+  set_curr_owner(process.pid);
   int free_slot_index = -1;
   for (int i = 0; i < memory_slots_count; i++)
   {
-    if (mem_slots[i].process_pid == process.pid)
+    if (mem_slots[i].used && mem_slots[i].process_pid == process.pid)
     {
       actual_ctx = i;
       return;
@@ -116,8 +117,7 @@ void m_bnb_on_ctx_switch(process_t process)
     mem_slots[free_slot_index].stack_pointer = bound * (free_slot_index + 1);
     mem_slots[free_slot_index].base = bound * free_slot_index;
     mem_slots[free_slot_index].heap = new_free_list(bound - process.program->size);
-    set_curr_owner(process.pid);
-    m_set_owner(mem_slots[free_slot_index].base, mem_slots[free_slot_index].stack_pointer);
+    m_set_owner(mem_slots[free_slot_index].base, mem_slots[free_slot_index].stack_pointer-1);
   }
 }
 
@@ -141,6 +141,6 @@ void m_bnb_on_end_process(process_t process)
   else
   {
     mem_slots[proces_memory_slots].used = false;
-    m_unset_owner(mem_slots[proces_memory_slots].base, mem_slots[proces_memory_slots].stack_pointer);
+    m_unset_owner(mem_slots[proces_memory_slots].base, mem_slots[proces_memory_slots].stack_pointer-1);
   }
 }

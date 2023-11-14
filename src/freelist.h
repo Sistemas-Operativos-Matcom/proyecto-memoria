@@ -11,7 +11,7 @@
 
 typedef struct node
 {
-  node *next;
+  struct node *next;
   bool used;
   size_t base;
   size_t bound;
@@ -21,8 +21,6 @@ typedef struct free_list
 {
   node *root;
   node *last_node;
-  int count;
-  int free_espace;
 } free_list;
 
 free_list *new_free_list(size_t espace);

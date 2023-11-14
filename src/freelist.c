@@ -1,6 +1,6 @@
 #include <malloc.h>
 #include "stdio.h"
-#include <utils.h>
+#include "utils.h"
 #include "freelist.h"
 
 #define bool int
@@ -10,14 +10,11 @@
 free_list *new_free_list(size_t espace)
 {
   free_list *list = malloc(sizeof(free_list));
-  list->count = 1;
   list->root = malloc(sizeof(node));
   list->root->base = 0;
   list->root->bound = espace;
   list->root->used = false;
   list->last_node = list->root;
-  list->count = 1;
-  list->free_espace = espace;
 
   return list;
 }
