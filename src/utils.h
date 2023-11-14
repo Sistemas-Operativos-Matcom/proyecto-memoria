@@ -30,7 +30,7 @@ typedef struct section{
 
   addr_t real_base;
   size_t size;
-  short heap[512];
+  short *heap[512];
   int stack_pointer;
 
 }section_t;

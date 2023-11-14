@@ -6,7 +6,7 @@
 #define UL unsigned long
 
 
-int heap_size = 512;
+int heap_size = 256;
 int stack_size = 256;
 int curr_proc = -1;
 section_t heaps[50];
@@ -68,7 +68,11 @@ int m_seg_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_seg_free(ptr_t ptr) {
-  return 0;
+  
+  for(int c = 0;c<ptr.size;c++){
+    heaps[curr_proc].heap[ptr.addr + c] = FREE;
+  }
+
 }
 
 // Agrega un elemento al stack
@@ -146,7 +150,7 @@ void m_seg_on_ctx_switch(process_t process) {
       heap[c] = FREE;
 
     }
-    heaps[curr_proc] = (section_t){curr_proc * heap_size,heap_size ,heap,-1};
+    heaps[curr_proc] = (section_t){curr_proc * heap_size,heap_size ,&heap,-1};
     m_set_owner(curr_proc * heap_size,curr_proc * heap_size + heap_size);
     stacks[curr_proc] = (section_t){m_size() - curr_proc * stack_size - stack_size - 1,stack_size ,NULL,255};
     stacks[curr_proc].stack_pointer = 256;
