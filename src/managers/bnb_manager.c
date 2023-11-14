@@ -27,14 +27,19 @@ void m_bnb_init(int argc, char **argv)
 {
   memory_slots_count = m_size() / bound;
   mem_slots = malloc(memory_slots_count * sizeof(memory_slot));
+  for (int i = 0; i < memory_slots_count; i++)
+  {
+    mem_slots[i].used = 0;
+  }
+  actual_ctx = 0;
 }
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
 int m_bnb_malloc(size_t size, ptr_t *out)
 {
-
   int result = memory_malloc(mem_slots[actual_ctx].heap, size, out);
-  out->addr = out->addr + mem_slots[actual_ctx].heap_base;
+  int program_size = mem_slots[actual_ctx].heap_base - mem_slots[actual_ctx].base;
+  out->addr = out->addr + program_size;
   return !result;
 }
 
@@ -63,7 +68,6 @@ int m_bnb_push(byte val, ptr_t *out)
 // Quita un elemento del stack
 int m_bnb_pop(byte *out)
 {
-
   if (mem_slots[actual_ctx].stack_pointer < mem_slots[actual_ctx].base + bound)
   {
     *out = m_read(mem_slots[actual_ctx].stack_pointer);
@@ -111,26 +115,27 @@ void m_bnb_on_ctx_switch(process_t process)
   }
   else
   {
+    actual_ctx = free_slot_index;
     mem_slots[free_slot_index].used = true;
     mem_slots[free_slot_index].process_pid = process.pid;
     mem_slots[free_slot_index].heap_base = bound * free_slot_index + process.program->size;
     mem_slots[free_slot_index].stack_pointer = bound * (free_slot_index + 1);
     mem_slots[free_slot_index].base = bound * free_slot_index;
     mem_slots[free_slot_index].heap = new_free_list(bound - process.program->size);
-    m_set_owner(mem_slots[free_slot_index].base, mem_slots[free_slot_index].stack_pointer-1);
+    m_set_owner(mem_slots[free_slot_index].base, mem_slots[free_slot_index].stack_pointer - 1);
   }
 }
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process)
 {
-
   int proces_memory_slots = -1;
   for (int i = 0; i < memory_slots_count; i++)
   {
-    if (mem_slots[i].process_pid == process.pid)
+    if (mem_slots[i].used && mem_slots[i].process_pid == process.pid)
     {
       proces_memory_slots = i;
+      break;
     }
   }
   if (proces_memory_slots == -1)
@@ -141,6 +146,6 @@ void m_bnb_on_end_process(process_t process)
   else
   {
     mem_slots[proces_memory_slots].used = false;
-    m_unset_owner(mem_slots[proces_memory_slots].base, mem_slots[proces_memory_slots].stack_pointer-1);
+    m_unset_owner(mem_slots[proces_memory_slots].base, mem_slots[proces_memory_slots].stack_pointer - 1);
   }
 }

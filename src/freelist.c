@@ -14,6 +14,7 @@ free_list *new_free_list(size_t espace)
   list->root->base = 0;
   list->root->bound = espace;
   list->root->used = false;
+  list->root->next = NULL;
   list->last_node = list->root;
 
   return list;
