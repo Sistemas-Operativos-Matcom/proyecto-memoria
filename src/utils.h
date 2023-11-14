@@ -26,6 +26,15 @@ typedef struct process {
   
 } process_t;
 
+typedef struct section{
+
+  addr_t real_base;
+  size_t size;
+  short heap[512];
+  int stack_pointer;
+
+}section_t;
+
 program_t new_program(char *name, size_t size);
 process_t new_process(int pid, program_t *program);
 
