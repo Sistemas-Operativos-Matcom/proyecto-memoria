@@ -4,6 +4,8 @@
 #include "../memory.h"
 #include "../utils.h"
 
+
+
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv);
 
@@ -31,5 +33,10 @@ void m_bnb_on_ctx_switch(process_t process);
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process);
+
+
+
+
+
 
 #endif
