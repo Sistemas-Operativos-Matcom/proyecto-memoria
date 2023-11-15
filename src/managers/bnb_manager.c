@@ -9,10 +9,12 @@ static process_bnb *curr_process;
 static list *procs_list;
 static size_t *mem_pages_bnb;//cada posicion es una pagina o bloque, que le corresponde a lo suno a un unico proceso
 static size_t pages_amount;
-static size_t process_bound = 512;//todos tienen igual bound
+static size_t process_bound = 256;//todos tienen igual bound
 
 void m_bnb_init(int argc, char **argv)
 {
+    free(procs_list);      // Libera la memoria
+    free(mem_pages_bnb);     // Libera las direcciones de procesos
   size_t mem_size = m_size();
     procs_list = Init_list();
   pages_amount = mem_size / process_bound;
@@ -42,6 +44,9 @@ int m_bnb_malloc(size_t size, ptr_t *out)
         {
           out->addr = i;
           out->size = size;
+          printf("Address to store data on is: %d\n", out->addr);
+          printf("%d\n", heap_start_ptr);
+          fflush(NULL);
           for (size_t count = 0; count < size; count++)
             curr_process->memory[i + count] = 1;
           return 0;
@@ -107,7 +112,11 @@ int m_bnb_load(addr_t addr, byte *out)
 
 int m_bnb_store(addr_t addr, byte val)
 {
-  if(addr > process_bound-1 || addr <= heap_start_ptr - 1)
+  printf("%d\n", heap_start_ptr);
+   printf("Address received is: %d\n", addr);
+    printf("%d\n", process_bound);
+  fflush(NULL);
+  if(addr > (process_bound-1) || addr < heap_start_ptr)
   {
     return 1;
   }

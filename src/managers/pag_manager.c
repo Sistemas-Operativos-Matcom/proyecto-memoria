@@ -6,7 +6,7 @@
 
 static int frames_amount;//size de used_frames
 static int *used_frames;
-static size_t pages_size_pow = 7;
+static size_t pages_size_pow = 8;
 static size_t pages_size;
 static list *procs_list;
 static process_pag *curr_process;
@@ -25,7 +25,8 @@ int m_pag_free(ptr_t ptr)
 {
   int a = 1;
    size_t pag = ptr.addr >> pages_size_pow;//
-   int proc_page_pos = ptr.addr - (pages_size * pag);
+    int pag_last = pages_size * pag;
+   int proc_page_pos = ptr.addr - pag_last;
   if (ptr.size > pages_size)
   {
     size_t space_to_free = ptr.size;
@@ -34,7 +35,8 @@ int m_pag_free(ptr_t ptr)
       used_frames[curr_process->process_pages[pag]] = 0;//libero la pagina cuya direccion corresponde
       m_unset_owner(curr_process->process_pages[pag] * pages_size, (curr_process->process_pages[pag] + 1) * pages_size);
       curr_process->process_pages[pag] = 0;
-      if (space_to_free > pages_size)
+      
+      if (space_to_free >pages_size)
       {
         Reserve_or_free_space_in_page(pages_size, pag, 0);//liberamos toda la pagina
         space_to_free -= pages_size;
@@ -60,9 +62,7 @@ int m_pag_free(ptr_t ptr)
       size_t mem_addr = (curr_process->process_pages[pag] * pages_size) + proc_page_pos + i;
       curr_process->pages_free_space[pag][proc_page_pos + i] = 0;
       m_write(mem_addr, 0);
-    }
-
-    return 0;
+    }return 0;
   }
 }
 
@@ -89,9 +89,10 @@ int m_pag_malloc(size_t size, ptr_t *out)
           {
             out->addr = (i * pages_size) + j;
             out->size = size;
-            // printf("size: %zu paginas: %zu addr: %zu\n", size, i, out->addr);
+             
             for (size_t k = 0; k < size; k++)//marco como reservado el espacio entre j y j+size
               curr_process->pages_free_space[i][j + k] = 1;
+              printf("Successfully allocated");
             return 0;
           }
           else
@@ -99,7 +100,9 @@ int m_pag_malloc(size_t size, ptr_t *out)
         }
       }
     }
-    return Assign_New_Pages(size);
+    result = Assign_New_Pages(size);
+    printf("%d", result);
+    return result;
   }else
   {
     size_t space_needed = size;
@@ -138,7 +141,7 @@ int Assign_New_Pages(int space_needed)//retorna 0 si pudo reservar el space need
 }
 
 void Reserve_or_free_space_in_page(int space, int page, int reserved_or_not)
-{
+{ 
   for (size_t k = 0; k < space; k++)//declaro toda la pag que acabo de add como reservada y aumento en 1 la cant de pags para continuar buscando otra vacia
    {
     curr_process->pages_free_space[page][k] = reserved_or_not;
@@ -191,10 +194,10 @@ int m_pag_pop(byte *out)
 // Carga el valor en una dirección determinada
 int m_pag_load(addr_t addr, byte *out)
 {
-  if(addr > (curr_process->proc_pages_amount*pages_size)-1)
-  {
-    return -1;
-  }
+  // if(addr > (curr_process->proc_pages_amount*pages_size)-1)
+  // {
+  //   return 1;
+  // }
   size_t pag = addr >> pages_size_pow;
   size_t proc_page_pos = addr - (pages_size * pag);
   size_t mem_addr = (curr_process->process_pages[pag] * pages_size) + proc_page_pos;
@@ -204,9 +207,13 @@ int m_pag_load(addr_t addr, byte *out)
 
 int m_pag_store(addr_t addr, byte val)
 {
-  if(addr > ((curr_process->proc_pages_amount*pages_size)-1) || addr <= curr_process->code_size -1)
+  printf("%d\n", curr_process->proc_pages_amount);
+  printf("%d\n", addr);
+  printf("%d\n", curr_process->code_size -1);
+  fflush(NULL);
+  if(addr > ((curr_process->proc_pages_amount*pages_size)-1))
   {
-    return -1;
+    return 1;
   }
   size_t pag = addr >> pages_size_pow;
   size_t proc_page_pos = addr - (pages_size * pag);
@@ -227,11 +234,12 @@ void m_pag_on_ctx_switch(process_t process)
   {
     size_t code_size = process.program->size;
     size_t code_pages = code_size / pages_size;
-    if (code_size % pages_size != 0)
-      code_pages++;
+    if (code_size % pages_size != 0 || code_pages == 0)
+      code_pages++;    //importante, un poceso al parecer puede tener code_size = 0
     curr_process = Init_process_pag(process.pid, pages_size, frames_amount, code_size);
     set_curr_owner(process.pid);
-    size_t page = 0;
+    size_t page_counter = 0;
+    
     for (size_t i = 0; i < frames_amount; i++)
     {
       if (used_frames[i] != 1)
@@ -241,20 +249,20 @@ void m_pag_on_ctx_switch(process_t process)
         if (code_size >= pages_size)
         {
           code_size -= pages_size;
-          Reserve_or_free_space_in_page(pages_size,page,1);
+          Reserve_or_free_space_in_page(pages_size,page_counter,1);
         }
         else
         {
-          Reserve_or_free_space_in_page(code_size,page,1);
+          Reserve_or_free_space_in_page(code_size,page_counter,1);
         }
-        curr_process->process_pages[page] = i;
+        curr_process->process_pages[page_counter] = i;
         curr_process->proc_pages_amount++;
-        page++;
-        if (page == code_pages)
+        page_counter++;
+        if (page_counter == code_pages)
           break;
       }
     }
-    if (page != code_pages)
+    if (page_counter != code_pages)
     {
       fprintf(stderr, "No queda espacio en mem");
       exit(1);

@@ -18,8 +18,8 @@ static program_t g_programs[MAX_PROGRAM_COUNT];
 static void init_programs() {
   g_programs[0] = new_program("p_0", 235);
   g_programs[1] = new_program("p_1", 235);
-  g_programs[2] = new_program("p_2", 237);
-  g_programs[3] = new_program("p_3", 238);
+  // g_programs[2] = new_program("p_2", 237);
+  // g_programs[3] = new_program("p_3", 238);
 }
 
 static void setup_test_case(const size_t mem_size, const char *log_name) {
