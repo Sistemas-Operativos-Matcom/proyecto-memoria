@@ -3,6 +3,7 @@
         "bitset": "c",
         "string_view": "c",
         "algorithm": "c",
-        "format": "c"
+        "format": "c",
+        "type_traits": "c"
     }
 }

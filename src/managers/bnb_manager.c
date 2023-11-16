@@ -1,7 +1,7 @@
 #include "bnb_manager.h"
 #include "../memory.h"
-
 #include "stdio.h"
+
 #define __PROCESS_MAX__ 100
 
 int proc_active;
@@ -96,7 +96,7 @@ int m_bnb_pop(byte *out)
 
   stacks_pointers[proc_active]++;
   *out = m_read(bases[proc_active] + stacks_pointers[proc_active]);
-  free_list[bases[proc_active + stacks_pointers[proc_active]]] = 0;   
+  free_list[bases[proc_active] + stacks_pointers[proc_active]] = 0;   
   return 0;  
 }
 
