@@ -38,6 +38,17 @@ typedef struct segment
   int in_use;
 } segment_t;
 
+typedef struct process_pag {
+  
+  int in_use;
+  int pid;
+
+  addr_t stack_pointer;
+  addr_t heap_pointer;
+
+  size_t *page_table;
+} process_pag_t;
+
 
 
 program_t new_program(char *name, size_t size);

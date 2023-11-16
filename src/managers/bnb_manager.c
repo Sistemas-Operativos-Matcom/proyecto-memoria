@@ -27,14 +27,14 @@ void m_bnb_init(int argc, char **argv) {
     segments = NULL;
   }}
 
-  if(processes_addres =! NULL){
+  if(processes_addres != NULL){
     free(processes_addres);
     processes_addres = NULL;
   }
 
   //inicializamos los valores por defecto
   segments = (segment_t *)malloc(sizeof(segment_t) * segments_amount);
-  processes_addres = (addr_t *)malloc(sizeof(addr_t) * segment_size);
+  processes_addres = (addr_t *)malloc(sizeof(addr_t) * segments_amount);
 
 
   for(size_t i = 0; i < segments_amount; i++){
@@ -75,10 +75,15 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
       processes_addres[current_pid] = i;
       current_segment = i;
 
+      //por ultimo actualizamos el puntero
+      out->addr = i*segment_size + 1;
+      out->size = 1;
+
       return 0;
     }
-    return 1;
   }
+  return 1;
+  
 }
 
 // Libera un espacio de memoria dado un puntero.
