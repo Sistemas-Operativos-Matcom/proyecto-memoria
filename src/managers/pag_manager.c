@@ -1,6 +1,25 @@
+#include <malloc.h>
 #include "pag_manager.h"
-
 #include "stdio.h"
+#include "../freelist.h"
+#include "../list.h"
+
+#define bool int
+#define true 1
+#define false 0
+
+//const size_t bound = 64;
+
+
+typedef struct procces
+{
+  List heap_pages;
+  List stack_pages;
+  size_t stack_pointer;
+  int process_pid;
+  free_list *heap;
+} procces;
+
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv) {

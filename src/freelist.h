@@ -31,6 +31,6 @@ int memory_free(free_list *list, ptr_t ptr);
 
 bool memory_reduce(free_list *list);
 
-void memory_expand(free_list *list);
+void memory_expand(free_list *list, size_t size);
 
 #endif

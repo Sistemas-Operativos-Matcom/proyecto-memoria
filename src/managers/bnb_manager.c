@@ -6,7 +6,7 @@
 #define bool int
 #define true 1
 #define false 0
-#define bound 512
+const size_t bound = 512;
 
 typedef struct memory_slot
 {
@@ -72,7 +72,7 @@ int m_bnb_pop(byte *out)
   {
     *out = m_read(mem_slots[actual_ctx].stack_pointer);
     mem_slots[actual_ctx].stack_pointer = mem_slots[actual_ctx].stack_pointer + 1;
-    memory_expand(mem_slots[actual_ctx].heap);
+    memory_expand(mem_slots[actual_ctx].heap, 1);
     return 0;
   }
   return 1;

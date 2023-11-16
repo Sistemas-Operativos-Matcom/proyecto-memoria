@@ -110,17 +110,17 @@ bool memory_reduce(free_list *list)
     return false;
 }
 
-void memory_expand(free_list *list)
+void memory_expand(free_list *list, size_t size)
 {
   if (!list->last_node->used)
   {
-    list->last_node->bound = list->last_node->bound + 1;
+    list->last_node->bound = list->last_node->bound + size;
   }
   else
   {
     node *n = malloc(sizeof(node));
     n->base = list->last_node->base + list->last_node->bound;
-    n->bound = 1;
+    n->bound = size;
     n->used = false;
     list->last_node->next = n;
     list->last_node = n;
