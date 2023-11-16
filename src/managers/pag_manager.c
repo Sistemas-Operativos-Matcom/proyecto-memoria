@@ -144,7 +144,6 @@ int m_pag_push(byte val, ptr_t *out)
   // Actualizar el stack point
   procs[curr_proc].stack_point = sp;
 
-  // Retornar con exito
   return MEM_SUCCESS;
 }
 
@@ -182,7 +181,6 @@ int m_pag_pop(byte *out)
     m_unset_owner(addr * page_size, (addr + 1) * page_size);
   }
 
-  // Retornar con exito
   return MEM_SUCCESS;
 }
 
@@ -201,7 +199,6 @@ int m_pag_load(addr_t addr, byte *out)
   if (_addr > MAX_ADDR || !procs[curr_proc].page_valid[page])
     return MEM_FAIL;
 
-  // Retornar con exito
   *out = m_read(_addr);
   return MEM_SUCCESS;
 }
@@ -223,7 +220,6 @@ int m_pag_store(addr_t addr, byte val)
 
   m_write(_addr, val);
 
-  // Retornar con exito
   return MEM_SUCCESS;
 }
 
@@ -245,8 +241,7 @@ void m_pag_on_ctx_switch(process_t process)
     }
   }
 
-  // En caso de que el proceso sea nuevo, se añade en la primera
-  // posicion donde no halla ninguno
+  // En caso de que el proceso sea nuevo, se añade en la primera posición donde no haya ningún proceso
   int pos = last_free == -1 ? last_proc++ : last_free;
 
   Init_virtual_process(&procs[pos], process.pid, MAX_PAGES_IN_PROC);

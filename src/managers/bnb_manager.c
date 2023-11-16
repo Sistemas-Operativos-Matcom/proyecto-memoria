@@ -2,276 +2,223 @@
 #include "../memory.h"
 
 #include "stdio.h"
+#include "free_list.h"
 
-//Estructura que representa un espacio reservado en el heap
-typedef struct Reserved_Space
+typedef struct bnb_virtual_process
 {
-  size_t initH;
-  size_t endH;
-  struct Reserved_Space *next;
-  struct Reserved_Space *previous;
-} Reserved_Space;
-
-//Estructura que representa a un proceso
-typedef struct process_bnb {
   int pid;
-  size_t size;
-  size_t base;
-  size_t start_heap;
-  size_t heap_pointer;
-  size_t stack_pointer;
-  size_t end_process;
-  Reserved_Space *root; 
-  Reserved_Space *final; 
-}process_bnb;
+  int base, bound;
+  int stack_ptr;
+  int heap_ptr;
+  free_list_t heap;
+} bnb_virtual_process_t;
+#define MAX_PROC_COUNT 5
 
-//Variables globales
-process_bnb* curr_process ;// Proceso actual
-size_t bounds_process = 1024;//Tamaño del bloque
-size_t cant_process; //Cantidad de bloques
-process_bnb *process_arr; //Array que contiene todos los bloques == Memoria virtual
-
-//Metodos para la lista enlazada
-//.Inserta un proceso a la cola especificada
-void Insert(process_bnb* proc, size_t initSpace, size_t endSpace)
-{
-  Reserved_Space *new = (Reserved_Space*)malloc(sizeof(Reserved_Space));
-  new -> initH = initSpace;
-  new -> endH = endSpace;
-  new->next = NULL;
-  new->previous = proc->final;
-
-  if (proc->root == NULL)//Si la lista esta vacia
-  {
-    proc->root = new; //Se iguala la raiz y el final de la lista al nodo creado
-    proc->final = new;
-  }
-  else //Si la lista tiene elementos se inserta el nodo al final de la lista
-  {
-    (proc->final)->next = new;
-    proc->final = new;
-  }
-}
-
-//Eliminar un espacio reservado
-int Delete(process_bnb* proc, size_t addrToDelete)
-{
-  Reserved_Space *curr_space = proc->root; //Inicializando el espacio actual como la raiz
-  
-  while (curr_space != NULL) 
-  {
-    if((curr_space -> initH) == addrToDelete) //Si el espacio reservado es igual al addr
-    {
-      break;
-    }
-    curr_space = curr_space->next;
-  }
-
-  // Si el espacio es NULL
-  if (curr_space == NULL)
-  {
-    return 0;
-  }
-
-  if (curr_space == proc->root) // Si el proceso es el principio de la lista
-  {
-    if (proc->root == proc->final) // Un solo elemento en la cola
-    {
-      proc->root = NULL;
-      proc->final = NULL;
-    }
-    else // Mas de un elemento en la cola
-    {
-      (curr_space->next)->previous = NULL;
-      proc->root = (proc->root)->next;
-    }
-  }
-  else if (curr_space == proc->final) // Si el proceso es el final de la cola
-  {
-    (curr_space->previous)->next = NULL;
-    proc->final = (proc->final)->previous;
-  }
-  else // Si el proceso esta en el medio de la cola
-  {
-    (curr_space->next)->previous = curr_space->previous;
-    (curr_space->previous)->next = curr_space->next;
-  }
-
-  free(curr_space);
-  return 1;
-}
-
+static bnb_virtual_process_t *virtual_memory;
+static unsigned char is_init = 0;
+static int last_assigned = -1;         // última posición en virtual_memory que tiene un proceso
+static size_t virtual_memory_size = 0; // tamano de la memoria virtual
+static int curr_process_pos = -1;      // posición en el virtual_memory del proceso actual
 
 // Esta función se llama cuando se inicializa un caso de prueba
-void m_bnb_init(int argc, char **argv) { //OK
-  cant_process = m_size()/bounds_process;
-  process_arr = (process_bnb*)malloc(sizeof(process_bnb)*cant_process); //Reservando el espacio de toda la memoria
-  for(int i=0; i<cant_process; i++) //Reservando espacio para cada una de las estructuras
-  {
-    process_bnb *proc = (process_bnb*) malloc(sizeof(process_bnb));
-    process_arr[i] = *proc;
-    (process_arr[i]).root = NULL;//Inicializando en NULL la raiz de la lista
-    (process_arr[i]).final = NULL;//Inicializando en NULL el final de la lista
-  }
-  
-  curr_process = (process_bnb*)malloc(sizeof(process_bnb)); //Reservando espacio el proceso actual
+void m_bnb_init(int argc, char **argv)
+{
 
-  process_bnb aux;
-  for(int i=0, init = 0; i<cant_process; i++, init+=bounds_process) //Iterando por cada uno de los bloques y asignandoles el espacio que le corresponde a cada uno
+  // Limpiar virtual_memory si fue asignada
+  if (is_init)
+    free(virtual_memory);
+
+  // A cada proceso le asigno una memoria virtual de igual tamaño
+  virtual_memory_size = m_size() / MAX_PROC_COUNT;
+  virtual_memory = malloc(MAX_PROC_COUNT * sizeof(bnb_virtual_process_t));
+
+  // Como al principio no hay procesos, su pid es -1
+  for (int i = 0; i < MAX_PROC_COUNT; i++)
   {
-    aux = process_arr[i]; 
-    aux.pid = NO_ONWER;
-    aux.base = init;
-    aux.stack_pointer = init+bounds_process-1;
-    aux.end_process = init+bounds_process-1;
-    m_set_owner(init, init+bounds_process);//Asignandole pid=-1 a todas las direcciones de la memoria 
+    virtual_memory[i].pid = -1;
   }
+
+  // Como no hay una última posición asignada
+  last_assigned = -1;
+  curr_process_pos = -1;
+  is_init = 1;
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
-int m_bnb_malloc(size_t size, ptr_t *out) {//OK
-  if((curr_process->stack_pointer) - (curr_process->heap_pointer) >= size) //Si el espacio libre es mayor o igual que el size
-  {
-    out->addr = curr_process->heap_pointer;
-    curr_process->heap_pointer += size; //Actualizar valor del heap_pointer
-    out->size = size;
-    m_set_owner(out->addr, curr_process->heap_pointer); //Asignandole el pid del proceso al espacio reservado
-    Insert(curr_process, out->addr, (curr_process->heap_pointer)-1);
+int m_bnb_malloc(size_t size, ptr_t *out)
+{
+  free_list_t *heap = &virtual_memory[curr_process_pos].heap;
+  size_t addr = -1;
 
-    return 0;
-  }
+  // Obtiene el primer espacio vacío en el heap para reservarlo
+  int status = Get_from_memory(heap, size, &addr);
 
-  return 1;
+  out->addr = (size_t)addr;
+  out->size = size;
+
+  return status;
 }
 
 // Libera un espacio de memoria dado un puntero.
-int m_bnb_free(ptr_t ptr) {//Falta arreglar lo de la lista de espcaios reservados en este metodo y en el malloc
-  size_t initH = curr_process->start_heap;
-  size_t endH = (curr_process->heap_pointer)-1;
-  size_t curr_addr = (curr_process->base)+ptr.addr;
+int m_bnb_free(ptr_t ptr)
+{
+  free_list_t *heap = &virtual_memory[curr_process_pos].heap;
 
-  if((curr_addr >= initH) && ((curr_addr <= endH)) && Delete(curr_process, curr_addr))
-  {
-    m_unset_owner(curr_addr, curr_addr+ptr.size);
-    if(curr_addr+ptr.size-1 == endH)
-    {
-      (curr_process->heap_pointer) -= ptr.size;  
-    }
-    return 0;
-  }
+  // En caso de estar ocupado el espacio en el heap, lo libera
+  int status = Get_from_memory(heap, ptr.size, ptr.addr);
 
-  return 1;
+  return status;
 }
 
 // Agrega un elemento al stack
-int m_bnb_push(byte val, ptr_t *out) {//OK
-  size_t endH = curr_process->heap_pointer;//Final del heap
-  size_t initS = curr_process->stack_pointer + 1;//Final del stack
+int m_bnb_push(byte val, ptr_t *out)
+{
+  size_t stack_ptr = virtual_memory[curr_process_pos].stack_ptr;
+  size_t heap_ptr = virtual_memory[curr_process_pos].heap_ptr;
 
-  if((initS-endH)>=1)//Si hay al menos un byte libre entre el heap y el stack
+  // No es posible hacer push si el stack está lleno
+  if (heap_ptr >= stack_ptr - 1)
   {
-    out->addr = curr_process->stack_pointer;//Asignandole el addr al puntero out
-    m_write(out->addr, val);//Escribiendo el valor en el stack
-    m_set_owner(out->addr, (out->addr)+1);//Asignandole el pid del proceso actual a la posicion del stack
-    out->size = 1;
-    (curr_process->stack_pointer)--;//Actualizando el puntero del stack
-
-    return 0;
+    return MEM_FAIL;
   }
 
-  return 1;
+  // Al pushear elementos, el stack pointer disminuye
+  stack_ptr--;
+  size_t p_stack_ptr = virtual_memory[curr_process_pos].base + stack_ptr;
+  virtual_memory[curr_process_pos].stack_ptr--;
+
+  // Guardar el valor en la memoria física
+  m_write(p_stack_ptr, val);
+
+  out->addr = stack_ptr;
+  out->size = 1;
+
+  return MEM_SUCCESS;
 }
 
-// Quita un elemento del stack        
-int m_bnb_pop(byte *out) {//OK
-  if((curr_process->stack_pointer) == (curr_process->end_process)) //Si el puntero que apunta al stack se encuentra al final del bloque, entonces
-  {                                                         // significa que el stack esta vacio y no se ha hecho push a ningun valor
-    return 1;
+// Quita un elemento del stack
+int m_bnb_pop(byte *out)
+{
+  int stack_ptr = virtual_memory[curr_process_pos].stack_ptr;
+
+  // Si el stack pointer se pasa del tamaño máximo no hay ningún elemento al que hacerle pop
+  if (stack_ptr + 1 > (int)virtual_memory_size)
+  {
+    return MEM_FAIL;
   }
 
-  *out = m_read((curr_process->stack_pointer)-1); // Almacenando en la variable out el valor al que le hice pop
-  m_unset_owner((curr_process->stack_pointer)-1, (curr_process->stack_pointer));
-  (curr_process->stack_pointer)++; //Disminuyendo el tamaño del stack (que se traduce en aumentar su dirección en memoria)
-  return 0;
+  // Obtiene la dirección física
+  int addr = stack_ptr + virtual_memory[curr_process_pos].base;
+
+  *out = m_read(addr);
+  // Al hacer pop, el stack pointer aumenta
+  virtual_memory[curr_process_pos].stack_ptr++;
+
+  return MEM_SUCCESS;
 }
 
-// Carga el valor en una dirección determinada   
-int m_bnb_load(addr_t addr, byte *out) {//OK
-  size_t initH = curr_process->start_heap;
-  size_t endH = (curr_process->heap_pointer)-1;
-  size_t initS = (curr_process->stack_pointer)-1;
-  size_t endS = curr_process->end_process;
-  size_t curr_addr = (curr_process->base)+addr;
-  
-  if((curr_addr >= initH && curr_addr <= endH) || (curr_addr >= initS && curr_addr <= endS)) //Si 'curr_addr' está en el heap o en el stack 
-  {
-    *out = m_read(curr_addr); //Almacenando en la variable out el valor que aparece en la direccion addr
-    return 0;
-  }
+// Carga el valor en una dirección determinada
+int m_bnb_load(addr_t addr, byte *out)
+{
+  // La dirección es mayor que bound
+  if (addr >= (addr_t)virtual_memory[curr_process_pos].bound)
+    return MEM_FAIL;
 
-  return 1;
+  // Obtener la direccion fisica de la cual se quiere cargar el valor
+  int p_addr = (int)addr + virtual_memory[curr_process_pos].base;
+
+  // Guardar el valor cargado en out
+  *out = m_read(p_addr);
+
+  return MEM_SUCCESS;
 }
 
 // Almacena un valor en una dirección determinada
-int m_bnb_store(addr_t addr, byte val) {//OK
-  size_t initH = curr_process->start_heap;
-  size_t endH = (curr_process->heap_pointer)-1;
-  size_t curr_addr = (curr_process->base)+addr;//Valor del addr en la memoria fisica
+int m_bnb_store(addr_t addr, byte val)
+{
+  // Si la direccion es mayor que bound
+  if (addr >= (addr_t)virtual_memory[curr_process_pos].heap_ptr)
+    return MEM_FAIL;
 
-  if(curr_addr >= initH && curr_addr <= endH) //Si 'curr_addr' esta dentro del heap
+  free_list_t heap = virtual_memory[curr_process_pos].heap;
+  node_t *node = heap.top;
+  size_t prev_last_page_frame = node->first_page_frame + node->num_pages;
+  size_t next_first_page_frame = node->next != NULL ? node->next->first_page_frame : heap.max_page_frame;
+  while (prev_last_page_frame <= (size_t)addr && addr + 1 <= next_first_page_frame)
   {
-    m_write(curr_addr, val);//Escribiendo dicho valor en el heap
-    return 0;
+    if ((prev_last_page_frame <= addr && addr + 1 <= next_first_page_frame) || addr + 1 <= node->first_page_frame)
+    {
+      // Obtener la direccion fisica  en la que se desea guardar el valor
+      int p_addr = (int)addr + virtual_memory[curr_process_pos].base;
+      m_write(p_addr, val);
+      return MEM_SUCCESS;
+    }
+    node = node->next;
   }
-
-  return 1;
 }
 
 // Notifica un cambio de contexto al proceso 'next_pid'
-void m_bnb_on_ctx_switch(process_t process) {//OK
-  int empty_space;//primer bloque vacío
-  int band = 0;//Si está en 1 entonces se encontró un bloque vacío, si está en cero entonces en todos los bloques hay un proceso
-  
-  process_bnb *aux;
-  for(int i=0; i<cant_process; i++)
+void m_bnb_on_ctx_switch(process_t process)
+{
+  int empty_space = -1;
+  // Buscar el proceso
+  for (int i = 0; i <= last_assigned; i++)
   {
-    aux = &process_arr[i];
-    if((aux->pid == NO_ONWER) && band==0) //Buscando el primer bloque de la memoria que esté vacío
+    // Si se encuentra se retorna
+    if (virtual_memory[i].pid == process.pid)
+    {
+      curr_process_pos = i;
+      return;
+    }
+    // Se guarda el primer espacio vacío
+    else if (virtual_memory[i].pid == -1 && empty_space == -1)
     {
       empty_space = i;
-      band = 1;
-    }
-    else
-    {
-      if(process.pid == aux->pid) //Si se encontró al proceso, actualizar el curr_process
-      {
-        curr_process = aux; //OJO
-        return;
-      }
     }
   }
 
-  if(band==1) //Si hay un espacio vacio, guardamos el proceso en dicho lugar
+  int pos = empty_space;
+
+  // Si hay un espacio vacio, se guarda el proceso en ese espacio
+  // Si no existe, se le asigna un espacio nuevo a ese proceso
+  if (empty_space == -1)
   {
-    process_arr[empty_space].pid = process.pid; //Actualizando las propiedades del proceso nuevo
-    process_arr[empty_space].size = (process.program)->size;
-    process_arr[empty_space].start_heap = process_arr[empty_space].base + process_arr[empty_space].size;
-    process_arr[empty_space].heap_pointer = process_arr[empty_space].base + process_arr[empty_space].size;
-    curr_process = &process_arr[empty_space];
-    m_set_owner(process_arr[empty_space].base, (process_arr[empty_space].start_heap));
+    last_assigned++;
+    pos = last_assigned;
+
+    // Inicializar el heap
+    Init_free_list(&virtual_memory[pos].heap, virtual_memory_size / 2);
   }
+  else
+  {
+    // Eliminar los valores en el heap del proceso anterior
+    Reset_free_list(&virtual_memory[pos].heap, virtual_memory_size / 2);
+  }
+
+  // Actualizar los valores
+  virtual_memory[pos].pid = process.pid;
+  virtual_memory[pos].base = last_assigned * virtual_memory_size;
+  virtual_memory[pos].bound = virtual_memory_size;
+  virtual_memory[pos].stack_ptr = virtual_memory_size;
+  virtual_memory[pos].heap_ptr = virtual_memory_size / 2;
+
+  // Guardar el proceso como proceso actual
+  curr_process_pos = pos;
+
+  m_set_owner(virtual_memory[pos].base, virtual_memory[pos].base + virtual_memory[pos].bound);
 }
 
 // Notifica que un proceso ya terminó su ejecución
-void m_bnb_on_end_process(process_t process) {//OK
-  process_bnb *aux;
-  
-  for (int i = 0; i < cant_process; i++) {
-    aux = &process_arr[i];
-    if (aux->pid == process.pid) {
-      m_unset_owner(aux->base, (aux->end_process)+1);
-      aux->pid = -1;
+void m_bnb_on_end_process(process_t process)
+{
+  // Buscamos el proceso en virtual_memory y y le asignamos pid -1, ya que terminó
+  for (int i = 0; i <= last_assigned; i++)
+  {
+    if (virtual_memory[i].pid == process.pid)
+    {
+      m_unset_owner(virtual_memory[i].base, virtual_memory[i].base + virtual_memory[i].bound);
+      virtual_memory[i].pid = -1;
       return;
     }
   }
