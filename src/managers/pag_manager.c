@@ -1,11 +1,22 @@
 #include "pag_manager.h"
 
 #include "stdio.h"
+#include "string.h"
+
+#define MaxProgCnt 32
+#define Max_Pid 500000
+#define HeapSize 4
+
+
+static char* FMem;
+int PagMemSlot[Max_Pid];
+int PagProg_Size;
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
+    FMem=(char *)malloc(KB_SIZE(m_size()));
+    int PagProg_Size=m_size()/MaxProgCnt;
+    memset(PagMemSlot,-1,sizeof(PagMemSlot));
 }
 
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
