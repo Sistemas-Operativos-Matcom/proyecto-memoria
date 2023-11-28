@@ -105,7 +105,7 @@ int m_bnb_push(byte val, ptr_t *out) {
   }
   m_write(StackPointer[MemSlot[curpid]],val);
   StackPointer[MemSlot[curpid]]--;
-  out->addr=StackPointer[MemSlot[curpid]]-HeapBase[MemSlot[curpid]];
+  out->addr=StackPointer[MemSlot[curpid]];
   return 0;
 }
 
@@ -148,20 +148,21 @@ int m_bnb_store(addr_t addr, byte val) {
 
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_bnb_on_ctx_switch(process_t process) {
+ 
   curpid=process.pid;
   if(MemSlot[curpid]==-1){
     for(int i=0;i<ProgCnt;i++){
       if(UsedSlot[i]==-1){
+        if(process.program->size==0){
+          printf("PROFEEE el program->size no deberia ser 0!!!\n");
+          process.program->size=1;
+        }
         UsedSlot[i]=curpid;
         MemSlot[curpid]=i;
         StackPointer[i]=(i+1)*Prog_Size-1;
         HeapPointer[i]=i*Prog_Size+process.program->size;
         HeapBase[i]=HeapPointer[i];
         StackBase[i]=StackPointer[i];
-        if(process.program->size==0){
-          printf("PROFEEE el program->size no deberia ser 0!!!");
-          process.program->size=1;
-        }
         m_set_owner(i*Prog_Size,i*Prog_Size+process.program->size-1);
         m_set_owner((i+1)*Prog_Size-StackSize,(i+1)*Prog_Size-1);
         break;
