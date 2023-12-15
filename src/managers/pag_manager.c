@@ -24,7 +24,7 @@ void m_pag_init(int argc, char **argv)
   pages = malloc(pages_count * sizeof(bool));
   for (int i = 0; i < pages_count; i++)
   {
-    pages = false;
+    pages[i] = false;
   }
   actual_ctx = 0;
 }
@@ -33,7 +33,7 @@ bool add_free_page(List_int *book)
   int free_page_index = -1;
   for (int i = 0; i < pages_count; i++)
   {
-    if (pages[i])
+    if (!pages[i])
     {
       free_page_index = i;
       break;
@@ -78,7 +78,7 @@ int m_pag_push(byte val, ptr_t *out)
     full = !add_free_page(process_list->list_start[actual_ctx].stack_pages);
   if (full)
     return 1;
-  m_pag_store(process_list->list_start[actual_ctx].stack_pointer, val);
+  m_pag_store(m_size() - process_list->list_start[actual_ctx].stack_pointer, val);
   process_list->list_start[actual_ctx].stack_pointer = process_list->list_start[actual_ctx].stack_pointer + 1;
   return 0;
 }
@@ -97,7 +97,7 @@ int m_pag_pop(byte *out)
     pages[last_page] = false;
     Delete(stack_size - 1, process_list->list_start[actual_ctx].stack_pages);
   }
-  m_pag_load(process_list->list_start[actual_ctx].stack_pointer, out);
+  m_pag_load(m_size() - process_list->list_start[actual_ctx].stack_pointer, out);
   return 0;
 }
 
@@ -155,11 +155,11 @@ void m_pag_on_ctx_switch(process_t process)
   Process value;
   value.process_pid = process.pid;
 
-  value.heap_pages = malloc(sizeof(List_int));
+  value.heap_pages = new_list_int();
   add_free_page(value.heap_pages);
   value.heap = new_free_list(page_size);
 
-  value.stack_pages = malloc(sizeof(List_int));
+  value.stack_pages = new_list_int();
   add_free_page(value.heap_pages);
   value.stack_pointer = 0;
 
@@ -177,7 +177,7 @@ void m_pag_on_end_process(process_t process)
   int process_index = -1;
   for (int i = 0; i < process_list->length; i++)
   {
-    if (Get_index_process(i, process_list).process_pid == process.pid)
+    if (process_list->list_start[i].process_pid == process.pid)
     {
       process_index = i;
       break;
