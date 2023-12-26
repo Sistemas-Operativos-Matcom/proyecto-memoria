@@ -3,7 +3,6 @@
 #include "memory.h"
 #include "data_structures.h"
 #define MAX_NUMBER_PAGES 10000
-#define MAX_NUMBER_PROGRAMS 1000
 #define PAGE_SIZE 6
 #define N_PAGES_PER_PROCESS 4
 static int pages_phyisical_owner[MAX_NUMBER_PAGES];
@@ -34,13 +33,13 @@ unsigned long translator(unsigned long v_address, int *page_table)
 
 void set_owner_page(int index_page)
 {
-    int offset = (1 << PAGE_SIZE) * index_page;
+    unsigned long offset = (1 << PAGE_SIZE) * index_page;
     m_set_owner(offset, offset + (1 << PAGE_SIZE) - 1);
 }
 
 void unset_owner_page(int index_page)
 {
-    int offset = (1 << PAGE_SIZE) * index_page;
+    unsigned long offset = (1 << PAGE_SIZE) * index_page;
     m_unset_owner(offset, offset + (1 << PAGE_SIZE) - 1);
 }
 
@@ -68,7 +67,8 @@ void pcb_paging_init(int *n_free, process_t process)
     set_curr_owner(process.pid);
     for (int i = 0; i < N_PAGES_PER_PROCESS; i++)
     {
-        set_owner_page(pages_phyisical_owner[n_free[i]]);
+        set_owner_page(n_free[i]);
+        pages_phyisical_owner[n_free[i]] = process.pid;
     }
 }
 
@@ -247,15 +247,12 @@ void m_pag_on_ctx_switch(process_t process)
 // Notifica que un proceso ya terminó su ejecución
 void m_pag_on_end_process(process_t process)
 {
+
     for (int i = 0; i < n_active_programs; i++)
     {
         if (my_arr_pag[i].pid == process.pid)
         {
             pcb_p *to_delete = &my_arr_pag[i];
-            for (int j = i + 1; j < n_active_programs; j++)
-            {
-                my_arr_pag[j - 1] = my_arr_pag[j];
-            }
             for (int j = 0; j < N_PAGES_PER_PROCESS; j++)
             {
                 unset_owner_page(to_delete->page_table[j]);
@@ -263,7 +260,10 @@ void m_pag_on_end_process(process_t process)
             }
             free(to_delete->page_table);
             free_list_free(to_delete->fl_heap);
-            free(to_delete);
+            for (int j = i + 1; j < n_active_programs; j++)
+            {
+                my_arr_pag[j - 1] = my_arr_pag[j];
+            }
             n_active_programs--;
             break;
         }

@@ -1,5 +1,4 @@
 #include "memory.h"
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,8 +107,8 @@ static void validate_ownership(int owner, size_t from_addr, size_t to_addr)
     if (!valid_addr(from_addr))
     {
         fprintf(stderr,
-                "[ERROR] Ownership starting address must be lower than 0x%zx\n",
-                g_mem_size);
+                "[ERROR] Ownership %d starting address %lu must be lower than 0x%zx\n",
+                owner, from_addr, g_mem_size);
         error_exit();
     }
     if (!valid_addr(to_addr))
