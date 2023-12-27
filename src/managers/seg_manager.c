@@ -3,12 +3,22 @@
 #include "./data_structures.h"
 
 static int ccurrent_owner_seg;
-static pcb my_arr_proc_seg[MAX_NUMBER_PROGRAMS];
+static pcb_seg my_arr_proc_seg[MAX_NUMBER_PROGRAMS];
 static int n_active_programs_seg;
 free_list *fl_memory_seg;
 
+unsigned long heap_translator(unsigned long addr, pcb_seg process)
+{
+    return addr + process.heap_start_paddress;
+}
+
+unsigned long stack_translator(unsigned long addr, pcb_seg process)
+{
+    return addr + process.stack_start_paddress;
+}
+
 void pcb_seg_init(
-    pcb *process, 
+    pcb_seg *process, 
     unsigned long code_start, unsigned long code_size,
     unsigned long heap_start, unsigned long heap_size,
     unsigned long stack_start, unsigned long stack_size, 
@@ -18,21 +28,21 @@ void pcb_seg_init(
     call this function passing address in physical memory and not viceversa.
     */
     process->pid = pid;
-    process->code_start = code_start;
-    process->code_end = code_start + code_size-1;
-    process->heap_start = heap_start;
-    process->heap_end = heap_start + heap_size - 1;
-    process->stack_end = stack_start;
-    process->stack_start = stack_start + stack_size -1;
-    process->stack_pointer = stack_start + stack_size -1;
-    process->fl_heap = create_fl(process->heap_end - process->heap_start + 1);
+    process->code_start_paddress = code_start;
+    process->code_size = code_size;
+    process->heap_start_paddress = heap_start;
+    process->heap_size = heap_size;
+    process->stack_start_paddress = stack_start;
+    process->stack_size = stack_size;
+    process->stack_pointer = stack_size;
+    process->fl_heap = create_fl(heap_size);
 }
 
-void free_seg_pcb(pcb *process)
+void free_seg_pcb(pcb_seg *process)
 {
-    m_unset_owner(process->code_start, process->code_end);
-    m_unset_owner(process->heap_start, process->heap_end);
-    m_unset_owner(process->stack_end, process->stack_start);
+    m_unset_owner(process->code_start_paddress, process->code_start_paddress + process->code_size-1);
+    m_unset_owner(process->heap_start_paddress, process->heap_start_paddress + process->heap_size-1);
+    m_unset_owner(process->stack_start_paddress, process->stack_start_paddress + process->stack_size-1);
     free_list_free(process->fl_heap);
 }
 
@@ -90,12 +100,12 @@ int m_seg_push(byte val, ptr_t *out)
     {
         if (my_arr_proc_seg[i].pid == ccurrent_owner_seg)
         {
-            if (my_arr_proc_seg[i].stack_pointer != my_arr_proc_seg[i].stack_end - 1)
+            if (my_arr_proc_seg[i].stack_pointer != 0)
             {
-                m_write(my_arr_proc_seg[i].stack_pointer, val);
+                my_arr_proc_seg[i].stack_pointer--;
+                m_write(stack_translator(my_arr_proc_seg[i].stack_pointer, my_arr_proc_seg[i]), val);
                 out->addr = my_arr_proc_seg[i].stack_pointer;
                 out->size = 1;
-                my_arr_proc_seg[i].stack_pointer--;
                 return 0;
             }
             break;
@@ -111,9 +121,9 @@ int m_seg_pop(byte *out)
     {
         if (my_arr_proc_seg[i].pid == ccurrent_owner_seg)
         {
-            if (my_arr_proc_seg[i].stack_pointer != my_arr_proc_seg[i].stack_start)
+            if (my_arr_proc_seg[i].stack_pointer !=  my_arr_proc_seg[i].stack_size)
             {
-                *out = m_read(my_arr_proc_seg[i].stack_pointer + 1);
+                *out = m_read(stack_translator(my_arr_proc_seg[i].stack_pointer, my_arr_proc_seg[i]));
                 my_arr_proc_seg[i].stack_pointer++;
                 return 0;
             }
@@ -132,7 +142,7 @@ int m_seg_load(addr_t addr, byte *out)
         {
             if (is_occupied(my_arr_proc_seg[i].fl_heap, addr))
             {
-                *out = m_read(my_arr_proc_seg[i].heap_start + addr);
+                *out = m_read(heap_translator(addr, my_arr_proc_seg[i]));
                 return 0;
             }
             break;
@@ -150,7 +160,7 @@ int m_seg_store(addr_t addr, byte val)
         {
             if (is_occupied(my_arr_proc_seg[i].fl_heap, addr))
             {
-                m_write(my_arr_proc_seg[i].heap_start + addr, val);
+                m_write(heap_translator(addr, my_arr_proc_seg[i]), val);
                 return 0;
             }
             break;
@@ -226,10 +236,10 @@ void m_seg_on_end_process(process_t process)
     {
         if (my_arr_proc_seg[i].pid == process.pid)
         {
-            pcb *to_delete = &my_arr_proc_seg[i];
-            recover_space(fl_memory_seg, to_delete->code_start, to_delete->code_end - to_delete->code_start + 1);
-            recover_space(fl_memory_seg, to_delete->heap_start, to_delete->heap_end - to_delete->heap_start + 1);
-            recover_space(fl_memory_seg, to_delete->stack_start, to_delete->stack_end - to_delete->stack_start + 1);
+            pcb_seg *to_delete = &my_arr_proc_seg[i];
+            recover_space(fl_memory_seg, to_delete->code_start_paddress, to_delete->code_size );
+            recover_space(fl_memory_seg, to_delete->heap_start_paddress, to_delete->heap_size);
+            recover_space(fl_memory_seg, to_delete->stack_start_paddress, to_delete->stack_size);
             free_seg_pcb(to_delete);
             for (int j = i + 1; j < n_active_programs_seg; j++)
             {

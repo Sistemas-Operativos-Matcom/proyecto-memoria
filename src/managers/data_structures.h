@@ -31,7 +31,21 @@ typedef struct pcb
     free_list *fl_heap;
 } pcb;
 
-void pcb_init(pcb *process, unsigned long start, unsigned long end, unsigned long code_size, int pid);
+typedef struct pcb_seg
+{
+    int pid;
+    unsigned long code_start_paddress;
+    unsigned long code_size;
+    unsigned long heap_start_paddress;
+    unsigned long heap_size;
+    unsigned long stack_start_paddress;
+    unsigned long stack_pointer;
+    unsigned long stack_size;
+    free_list *fl_heap;
+} pcb_seg;
+
+void
+pcb_init(pcb *process, unsigned long start, unsigned long end, unsigned long code_size, int pid);
 free_list *create_fl(unsigned long size);
 void free_list_free(free_list *f);
 int can_insert(free_list *l, unsigned long size);
