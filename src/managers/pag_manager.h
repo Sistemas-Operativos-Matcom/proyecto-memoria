@@ -4,6 +4,10 @@
 #include "../memory.h"
 #include "../utils.h"
 
+#define MAX_NUMBER_PAGES 10000
+#define PAGE_SIZE 6
+#define N_PAGES_PER_PROCESS 4
+
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv);
 

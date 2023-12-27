@@ -60,6 +60,19 @@ int is_recoverable(free_list *l, unsigned long start, unsigned long size)
     return doable;
 }
 
+void pcb_init(pcb *process, unsigned long start, unsigned long end, unsigned long code_size, int pid)
+{
+    process->pid = pid;
+    process->code_start = start;
+    process->code_end = start + code_size;
+    process->heap_start = start + code_size + 1;
+    process->heap_end = start + code_size + (end - start + 1 - code_size) / 2;
+    process->stack_end = process->heap_end + 1;
+    process->stack_start = end;
+    process->stack_pointer = end;
+    process->fl_heap = create_fl(process->heap_end - process->heap_start + 1);
+}
+
 void recover_space(free_list *l, unsigned long start, unsigned long size)
 {
     int done = 0;
