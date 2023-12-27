@@ -108,10 +108,10 @@ int m_pag_push(byte val, ptr_t *out)
         {
             if (my_arr_proc_pag[i].stack_pointer != my_arr_proc_pag[i].stack_end - 1)
             {
+                my_arr_proc_pag[i].stack_pointer--;
                 m_write(translator_pag(my_arr_proc_pag[i].stack_pointer, my_arr_proc_pag[i].page_table), val);
                 out->addr = my_arr_proc_pag[i].stack_pointer;
                 out->size = 1;
-                my_arr_proc_pag[i].stack_pointer--;
                 return 0;
             }
             break;
@@ -127,9 +127,9 @@ int m_pag_pop(byte *out)
     {
         if (my_arr_proc_pag[i].pid == ccurrent_owner_pag)
         {
-            if (my_arr_proc_pag[i].stack_pointer != my_arr_proc_pag[i].stack_start)
+            if (my_arr_proc_pag[i].stack_pointer != my_arr_proc_pag[i].stack_start+1)
             {
-                *out = m_read(translator_pag(my_arr_proc_pag[i].stack_pointer + 1, my_arr_proc_pag[i].page_table));
+                *out = m_read(translator_pag(my_arr_proc_pag[i].stack_pointer, my_arr_proc_pag[i].page_table));
                 my_arr_proc_pag[i].stack_pointer++;
                 return 0;
             }

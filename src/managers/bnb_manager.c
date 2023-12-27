@@ -76,10 +76,10 @@ int m_bnb_push(byte val, ptr_t *out)
         {
             if (my_arr_proc_bnb[i].stack_pointer != my_arr_proc_bnb[i].stack_end - 1)
             {
+                my_arr_proc_bnb[i].stack_pointer--;
                 m_write( translator_bb( my_arr_proc_bnb[i].stack_pointer, my_arr_proc_bnb[i]) , val);
                 out->addr = my_arr_proc_bnb[i].stack_pointer;
                 out->size = 1;
-                my_arr_proc_bnb[i].stack_pointer--;
                 return 0;
             }
             break;
@@ -95,9 +95,9 @@ int m_bnb_pop(byte *out)
     {
         if (my_arr_proc_bnb[i].pid == ccurrent_owner_bnb)
         {
-            if (my_arr_proc_bnb[i].stack_pointer != my_arr_proc_bnb[i].stack_start)
+            if (my_arr_proc_bnb[i].stack_pointer != my_arr_proc_bnb[i].stack_start+1)
             {
-                *out = m_read(translator_bb( my_arr_proc_bnb[i].stack_pointer + 1, my_arr_proc_bnb[i]));
+                *out = m_read(translator_bb( my_arr_proc_bnb[i].stack_pointer, my_arr_proc_bnb[i]));
                 my_arr_proc_bnb[i].stack_pointer++;
                 return 0;
                 

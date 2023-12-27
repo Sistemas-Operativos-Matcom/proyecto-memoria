@@ -69,7 +69,7 @@ void pcb_init(pcb *process, unsigned long start, unsigned long end, unsigned lon
     process->heap_end = start + code_size + (end - start + 1 - code_size) / 2;
     process->stack_end = process->heap_end + 1;
     process->stack_start = end;
-    process->stack_pointer = end;
+    process->stack_pointer = end+1;
     process->fl_heap = create_fl(process->heap_end - process->heap_start + 1);
 }
 
