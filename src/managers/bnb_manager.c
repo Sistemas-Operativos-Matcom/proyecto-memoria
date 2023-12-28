@@ -66,7 +66,7 @@ int m_bnb_free(ptr_t ptr)
   free_list_t *heap = &virtual_memory[curr_process_pos].heap;
 
   // En caso de estar ocupado el espacio en el heap, lo libera
-  int status = Get_from_memory(heap, ptr.size, ptr.addr);
+  int status = Free_memory(heap, ptr.size, ptr.addr);
 
   return status;
 }
@@ -143,10 +143,12 @@ int m_bnb_store(addr_t addr, byte val)
 
   free_list_t heap = virtual_memory[curr_process_pos].heap;
   node_t *node = heap.top;
-  size_t prev_last_page_frame = node->first_page_frame + node->num_pages;
-  size_t next_first_page_frame = node->next != NULL ? node->next->first_page_frame : heap.max_page_frame;
-  while (prev_last_page_frame <= (size_t)addr && addr + 1 <= next_first_page_frame)
+  
+  while (node != NULL)
   {
+    size_t prev_last_page_frame = node->first_page_frame + node->num_pages;
+    size_t next_first_page_frame = node->next != NULL ? node->next->first_page_frame : heap.max_page_frame;
+
     if ((prev_last_page_frame <= addr && addr + 1 <= next_first_page_frame) || addr + 1 <= node->first_page_frame)
     {
       // Obtener la direccion fisica  en la que se desea guardar el valor
@@ -156,6 +158,8 @@ int m_bnb_store(addr_t addr, byte val)
     }
     node = node->next;
   }
+
+  return MEM_FAIL;
 }
 
 // Notifica un cambio de contexto al proceso 'next_pid'
