@@ -41,7 +41,7 @@ void m_bnb_init(int argc, char **argv) {
     procc_addr = (size_t *)malloc(sizeof(size_t) * blocks_cnt);
     curr_addr = 0;
 
-    for (int i = 0, start = 0; i < blocks_cnt; i++, start += block_sz) {
+    for (size_t i = 0, start = 0; i < blocks_cnt; i++, start += block_sz) {
         Block_t* curr_block = &virt_mem[i];
         block_assign(curr_block, start);
     }
@@ -115,19 +115,16 @@ int m_bnb_pop(byte *out) {
     return 0;
 }
 
-int check_addr(addr_t addr) {
-    addr_t addr_start = virt_mem[curr_addr].start;
-    addr_t addr_end = virt_mem[curr_addr].end;
-
-    return addr >= addr_start && addr < addr_end;
-}
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
 
-    if (check_addr(addr ) != 1){
-        *out = m_read(addr);
-        return 0;
-    }
+    addr_t start = virt_mem[curr_addr].start;
+    addr_t end = virt_mem[curr_addr].end;
+
+  if (addr >= start && addr < end) {  // Comprueba si la dirección pertenece al bloque actual.
+    *out = m_read(addr);  
+    return 0;  
+  }
 
     return 1;
 }
@@ -135,10 +132,13 @@ int m_bnb_load(addr_t addr, byte *out) {
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
 
-    if (check_addr(addr)!= 1) {
-        m_write(addr, val);
-        return 0;
-    }
+  addr_t start_addr = virt_mem[curr_addr].start;
+  addr_t curr_sz = virt_mem[curr_addr].sz;
+
+  if (addr >= start_addr && addr < start_addr + curr_sz) {  // Comprueba si la dirección pertenece al bloque actual.
+    m_write(addr, val);  
+    return 0;  
+  }
 
     return 1;
 }
