@@ -60,7 +60,7 @@ int m_pag_malloc(size_t size, ptr_t *out) {
 
   for(size_t i = 0; i < num_mp; i++)
   {
-    if(pages[i] == 1)
+    if(pages[i] == -1)
     {
       tp = 0;
       pages[i] = current_proc_id;
@@ -140,7 +140,7 @@ int m_pag_push(byte val, ptr_t *out) {
   stack_size += 1;
   page = 4 - (size_t)(stack_size / pag_size) - 1;
 
-  procs[current_id].stack = -1;
+  procs[current_id].stack -= 1;
 
   size_t pf = procs[current_id].pag_table[page];
   size_t address = (pag_size * pf) + (stack_size % pag_size);
@@ -182,9 +182,7 @@ int m_pag_pop(byte *out) {
 
 // Carga el valor en una dirección determinada
 int m_pag_load(addr_t addr, byte *out) {
-  size_t current_page = (size_t)(addr / pag_size);
-
-  if(pages[current_page] == current_proc_id)
+  if(pages[current_id] == current_proc_id)
   {
     *out = m_read(addr);
     return 0;

@@ -2,9 +2,9 @@
 
 #include "stdio.h"
 
-static addr_t curr_addres;
+static addr_t curr_address;
 static int curr_proc_id;
-static addr_t *proc_addres;
+static addr_t *proc_address;
 
 #define process_size 1024
 
@@ -24,18 +24,22 @@ static current_process_t *blocks;
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_bnb_init(int argc, char **argv) {
-  free(proc_addres);
+  free(proc_address);
   free(blocks);
-  size_t t_blocks = m_size()/process_size;
+  size_t t_blocks = m_size() / process_size;
   
-  curr_addres = 0;
-  proc_addres = (size_t*)malloc(sizeof(size_t) * t_blocks);
-  blocks = (current_process_t*)malloc(sizeof(current_process_t) * t_blocks);
+  curr_address = 0;
+  proc_address = (size_t *)malloc(sizeof(size_t) * t_blocks);
+  blocks = (current_process_t *)malloc(sizeof(current_process_t) * t_blocks);
 
   size_t start = 0;
   for(size_t i = 0; i < t_blocks; i++)
   {
-    start += process_size;
+    if(i > 0)
+    {
+      start += process_size;
+    }
+    
     current_process_t *current_block = &blocks[i];
     current_block->base = start + 1;
     current_block->size = 0;
@@ -57,8 +61,8 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
       size_t tp = i * process_size;
       m_set_owner(tp + 1, tp + process_size - 1);
 
-      curr_addres = i;
-      proc_addres[curr_proc_id] = i;
+      curr_address = i;
+      proc_address[curr_proc_id] = i;
       blocks[i].size = size;
       blocks[i].exec = 1;
       blocks[i].id = curr_proc_id;
@@ -74,13 +78,13 @@ int m_bnb_malloc(size_t size, ptr_t *out) {
 
 // Libera un espacio de memoria dado un puntero.
 int m_bnb_free(ptr_t ptr) {
-  size_t base = blocks[curr_addres].base;
-  size_t bound = blocks[curr_addres].bound;
+  size_t base = blocks[curr_address].base;
+  size_t bound = blocks[curr_address].bound;
 
   if(ptr.addr >= base && ptr.addr + ptr.size < bound)
   {
     m_unset_owner(ptr.addr, ptr.addr + ptr.size - 1);
-    blocks[curr_addres].size -= ptr.size;
+    blocks[curr_address].size -= ptr.size;
     return 0;
   }
   return 1;
@@ -88,23 +92,23 @@ int m_bnb_free(ptr_t ptr) {
 
 // Agrega un elemento al stack
 int m_bnb_push(byte val, ptr_t *out) {
-  if(blocks[curr_addres].stack - 1 <= blocks[curr_addres].heap)
+  if(blocks[curr_address].stack - 1 <= blocks[curr_address].heap)
   {
     return 1;
   }
 
-  m_write(blocks[curr_addres].stack, val);
-  blocks[curr_addres].stack --;
-  out->addr = blocks[curr_addres].stack;
+  m_write(blocks[curr_address].stack, val);
+  blocks[curr_address].stack --;
+  out->addr = blocks[curr_address].stack;
 
   return 0;
 }
 
 // Quita un elemento del stack
 int m_bnb_pop(byte *out) {
-  addr_t base = blocks[curr_addres].base;
-  addr_t bound = blocks[curr_addres].bound;
-  addr_t stack_top = blocks[curr_addres].stack + 1;
+  addr_t base = blocks[curr_address].base;
+  addr_t bound = blocks[curr_address].bound;
+  addr_t stack_top = blocks[curr_address].stack + 1;
   
   if(base + bound <= stack_top)
   {
@@ -112,15 +116,15 @@ int m_bnb_pop(byte *out) {
   }
 
   *out = m_read(stack_top);
-  blocks[curr_addres].stack ++;
+  blocks[curr_address].stack ++;
   
   return 0;
 }
 
 // Carga el valor en una dirección determinada
 int m_bnb_load(addr_t addr, byte *out) {
-  addr_t base = blocks[curr_addres].base;
-  addr_t bound = blocks[curr_addres].bound;
+  addr_t base = blocks[curr_address].base;
+  addr_t bound = blocks[curr_address].bound;
 
   if(addr >= base && addr < bound)
   {
@@ -133,8 +137,8 @@ int m_bnb_load(addr_t addr, byte *out) {
 
 // Almacena un valor en una dirección determinada
 int m_bnb_store(addr_t addr, byte val) {
-  addr_t base = blocks[curr_addres].base;
-  addr_t size = blocks[curr_addres].size;
+  addr_t base = blocks[curr_address].base;
+  addr_t size = blocks[curr_address].size;
 
   if(addr >= base && addr < base + size)
   {
@@ -149,12 +153,12 @@ int m_bnb_store(addr_t addr, byte val) {
 void m_bnb_on_ctx_switch(process_t process) {
   curr_proc_id = process.pid;
 
-  curr_addres = proc_addres[process.pid];
+  curr_address = proc_address[process.pid];
 }
 
 // Notifica que un proceso ya terminó su ejecución
 void m_bnb_on_end_process(process_t process) {
-  addr_t address = proc_addres[process.pid];
+  addr_t address = proc_address[process.pid];
 
   m_unset_owner(blocks[address].base, blocks[address].bound);
 
