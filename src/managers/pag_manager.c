@@ -1,29 +1,15 @@
 #include "pag_manager.h"
 #include "../memory.h"
 #include "stdio.h"
+#include "stdlib.h"
 
 #define __MAX_COUNT_PAGES__ 100
 #define __PROCESS_MAX__ 20
 #define __PAGE_LENGTH__ 64
 #define __COUNT_INIT_PAGES__ 4
 
-
-//#define __PROCESS_MAX__ 100
-
-/*typedef struct
-{
-  int pid;
-  int heap[1024];
-  int num_page;
-  int IP;//Instruction pointer
-  int init_page;
-  }Pepe;*/
-
-
 int proc_active_;
-//int pid_proc_active;
 int stack_size_;
-//int bounds;
 int *pids_;
 int *count_pages_by_procs;
 int *free_pages;
@@ -32,12 +18,10 @@ addr_t *pages_frames;
 addr_t **heaps_;
 addr_t *stacks_pointers_;
 addr_t *free_list_;
-//Pepe pepito[4];//cant de pag en un espacio de dir
 
 // Esta función se llama cuando se inicializa un caso de prueba
 void m_pag_init(int argc, char **argv) 
 {
-  //bounds = m_size() / __PROCESS_MAX__;
   proc_active_ = -1;
   num_actual_page = -1;
   stack_size_ = __PAGE_LENGTH__;
@@ -45,7 +29,7 @@ void m_pag_init(int argc, char **argv)
   count_pages_by_procs = (int *)malloc(__PROCESS_MAX__ * sizeof(int));
   free_pages = (int*)malloc(__MAX_COUNT_PAGES__ * sizeof(int));
   pages_frames = (addr_t *)malloc(__MAX_COUNT_PAGES__* sizeof(addr_t));
-  *heaps_ = (addr_t *)malloc(__PROCESS_MAX__ * sizeof(addr_t));
+  heaps_ = (addr_t **)malloc(__PROCESS_MAX__ * sizeof(addr_t *));
   stacks_pointers_ = (addr_t *)malloc(__PROCESS_MAX__ * sizeof(addr_t));
   free_list_ = (addr_t *)malloc(m_size() * sizeof(addr_t));  
 
@@ -98,19 +82,7 @@ int m_pag_malloc(size_t size, ptr_t *out)
     num_actual_page = i;
     count_pages_by_procs[proc_active_] ++;
 
-    if(heaps_[proc_active_][num_actual_page] + size < __PAGE_LENGTH__)
-    {
-      out->addr = heaps_[proc_active_][num_actual_page];
-      out->size = size;
-
-      for (addr_t i = pages_frames[num_actual_page] + heaps_[proc_active_][num_actual_page]; i < pages_frames[proc_active_] + heaps_[proc_active_][num_actual_page] + size; i++)
-      {
-        free_list_[i] = 1;
-      }
-      heaps_[proc_active_][num_actual_page] += size;
-      return 0;
-    }
-    break;//en caso de que el size > PAGE_LENGTH se retorna 1    
+    return m_pag_malloc(size, out); 
   }
   
   return 1;
@@ -119,7 +91,6 @@ int m_pag_malloc(size_t size, ptr_t *out)
 // Libera un espacio de memoria dado un puntero.
 int m_pag_free(ptr_t ptr)
 {
-  int no_stack = 0;
   for (int i = 0; i < __MAX_COUNT_PAGES__; i++)
   {
     if(free_pages[i] == proc_active_)
@@ -198,8 +169,6 @@ int m_pag_store(addr_t addr, byte val)
     if(free_pages[i] == proc_active_)
     {
       if(addr > pages_frames[i] + __PAGE_LENGTH__) continue;
-      if(addr > pages_frames[i] + __PAGE_LENGTH__) continue; 
-      if(free_list_[pages_frames[i] + addr] == 0) return 1;
       free_list_[pages_frames[i] + addr] = 1;
       m_write(pages_frames[i] + addr, val);
       return 0;
@@ -211,26 +180,19 @@ int m_pag_store(addr_t addr, byte val)
 // Notifica un cambio de contexto al proceso 'next_pid'
 void m_pag_on_ctx_switch(process_t process)
 {
-  /*if(proc_active == -1)
-  {
-    proc_active = 0;
-    pids[0] = process.pid;
-    heaps[0] = process.program->size + 1;
-    return;
-  }*/
   for (int i = 0; i < __PROCESS_MAX__; i++)
   {
     if(pids_[i] == process.pid)
     {
       proc_active_ = i;
       int actual_count = count_pages_by_procs[proc_active_];
-      for (int j = 0; i < __MAX_COUNT_PAGES__; i++)
+      for (int j = 0; j < __MAX_COUNT_PAGES__; j++)
       {
-        if(free_pages[i] == proc_active_)
+        if(free_pages[j] == proc_active_)
         {
           if(actual_count == 1)
           {
-            num_actual_page = i;
+            num_actual_page = j;
             break;
           }
           actual_count --;
@@ -245,23 +207,23 @@ void m_pag_on_ctx_switch(process_t process)
   
       proc_active_ = i;
       pids_[i] = process.pid;
-      break;
-  }
-  for (int j = 0; j < __MAX_COUNT_PAGES__; j++)
-  {
-    if(count_pages_by_procs[proc_active_] == 2) break;
-    if(free_pages[j] == -1)
+    for (int j = 0; j < __MAX_COUNT_PAGES__; j++)
     {
-      free_pages[j] = proc_active_;
-      count_pages_by_procs ++;
-      num_actual_page = j;
-      m_set_owner(pages_frames[j], pages_frames[j] + __PAGE_LENGTH__);
-    }
-  }  
+      if(count_pages_by_procs[proc_active_] == 2) break;
+      if(free_pages[j] == -1)
+      {
+        free_pages[j] = proc_active_;
+        count_pages_by_procs[proc_active_] ++;
+        num_actual_page = j;
+        m_set_owner(pages_frames[j], pages_frames[j] + __PAGE_LENGTH__);
+      }
+    } 
+    break;
+  } 
 }
 
 // Notifica que un proceso ya terminó su ejecución
-void m_pag_on_end_process(process_t process) //m_set_owner...
+void m_pag_on_end_process(process_t process) 
 {
   for (int i = 0; i < __PROCESS_MAX__; i++)
   {
