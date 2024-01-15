@@ -17,6 +17,18 @@ typedef struct program {
   size_t size;
 } program_t;
 
+typedef struct Block{
+    addr_t heap;
+    addr_t stack;
+    size_t sz;
+    addr_t start;
+    addr_t end;
+
+    int user;
+    int in_use;
+
+} Block_t;
+
 typedef struct process {
   int pid;
   program_t *program;
