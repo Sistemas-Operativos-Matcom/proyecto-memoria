@@ -1,7 +1,6 @@
 #ifndef BNB_MANAGER_H
 #define BNB_MANAGER_H
 
-#include "../memory.h"
 #include "../utils.h"
 
 // Esta función se llama cuando se inicializa un caso de prueba

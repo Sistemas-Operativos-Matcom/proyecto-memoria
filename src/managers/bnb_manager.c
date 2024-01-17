@@ -1,97 +1,157 @@
 #include "bnb_manager.h"
-
 #include "stdio.h"
-#define bound 512
 
+#define bound 1024
 
-typedef struct Proceso {
-  process_t process;
+typedef struct Process_context
+{
+  int pid;
+  size_t heap_p;
   addr_t base;
-  addr_t heap_bottom;
-  addr_t stack_top;
-  
-  struct Proceso_t* prev;
-  struct Proceso_t* next;
-}Proceso_t;
+  free_list *heap;
+  addr_t SP;
+  byte used;
+} Process_context;
 
+/*
+ Para manejar los procesos uso "Procesos"
+*/
+static size_t process_index;
+static Process_context *Procesos;
+static size_t process_count;
 
 // Esta función se llama cuando se inicializa un caso de prueba
-void m_bnb_init(int argc, char **argv) {
-  fprintf(stderr, "Not Implemented\n");
-  //initialize list of proccess
-  byte x = bound;
-
-
-  //inicializar memoria virtual
+void m_bnb_init(int argc, char **argv)
+{
+  process_count = m_size() / bound;
+  Procesos = (Process_context *)malloc(sizeof(Process_context) * process_count);
+  
+  for (size_t i = 0; i < process_count; i++)
+  {
+    Procesos[i].used = 0;
+    Procesos[i].heap_p = NULL;
+    Procesos[i].base = i * bound;
+    Procesos->SP = (i + 1) * bound;
+  }
 }
-
 // Reserva un espacio en el heap de tamaño 'size' y establece un puntero al
 // inicio del espacio reservado.
-int m_bnb_malloc(size_t size, ptr_t *out) {
-  fprintf(stderr, "Not Implemented\n");
 
-  //buscar primer espacio libre que space.size > size, fraccionarlo y asignar al puntero un si puntero, si todo salio bien
-  
-  
-  //out->addr =  
-  out->size = size;
+/*
+memory malloc y memory free se los delego al manejador de espacios del heap
+*/
+int m_bnb_malloc(size_t size, ptr_t *out)
+{
+  int result = memory_malloc(Procesos[process_index].heap, size, out);
+  out->addr += Procesos[process_index].heap_p;
 
-  
-  //return ptr
-  exit(1);
+  return !result;
 }
 
 // Libera un espacio de memoria dado un puntero.
-int m_bnb_free(ptr_t ptr) {
-  fprintf(stderr, "Not Implemented\n");
+int m_bnb_free(ptr_t ptr)
+{
+  ptr.addr -= Procesos[process_index].heap_p;
+  int result = memory_free(Procesos[process_index].heap, ptr);
 
-  //si el addr pertenece al heap y está ocupado, liberar e intentar unir con pedazos adyacentes.
-  exit(1);
+  return !result;
 }
 
 // Agrega un elemento al stack
-int m_bnb_push(byte val, ptr_t *out) {
-  fprintf(stderr, "Not Implemented\n");
+int m_bnb_push(byte val, ptr_t *out)
+{
+  //el cuando crece el stack la ultima seccion de espacio libre del heap pierde 1 byte
+  int result = memory_reduce(Procesos[process_index].heap);
 
-  // si el stack_top + 1 <  heap bottom escribir en out.addrs el valor val y stack_top++
-  exit(1);
+  if (result)
+  {
+    Procesos[process_index].SP--;
+    m_write(out, val);
+    out->addr = Procesos[process_index].SP;
+
+    return !result;
+  }
+
+  return result;
 }
 
 // Quita un elemento del stack
-int m_bnb_pop(byte *out) {
-  fprintf(stderr, "Not Implemented\n");
-  //si el stack_top > 0 devolver el ultimo valor y stack_top--;
-  exit(1);
-}
+//similar al push
+int m_bnb_pop(byte *out)
+{
+  if (Procesos[process_index].SP >= Procesos[process_index].base + bound)
+    return 0;
 
-// Carga el valor en una dirección determinada
-int m_bnb_load(addr_t addr, byte *out) {
-  fprintf(stderr, "Not Implemented\n");
-  exit(1);
-}
+  *out = m_read(Procesos[process_index].SP);
+  //al final del heap hay mas espacio
+  memory_expand(Procesos[process_index].heap, 1);
+  Procesos[process_index].SP++;
 
-// Almacena un valor en una dirección determinada
-int m_bnb_store(addr_t addr, byte val) {
-  fprintf(stderr, "Not Implemented\n");
-  
-  //real addr = base + addr;
-  addr_t inMemory = addr;
   return 1;
 }
 
-// Notifica un cambio de contexto al proceso 'next_pid'
-void m_bnb_on_ctx_switch(process_t process) {
-  fprintf(stderr, "Not Implemented\n");
-  //cambiar el current process y si el process pid no existe en la lista de procesos, añadirlo
+// Carga el valor en una dirección determinada
+int m_bnb_load(addr_t addr, byte *out)
+{
+  *out = m_read(Procesos[process_index].base + addr);
+  return 0;
+}
 
-  exit(1);
+// Almacena un valor en una dirección determinada
+int m_bnb_store(addr_t addr, byte val)
+{
+  m_write(Procesos[process_index].base + addr, val);
+  return 0;
+}
+
+// Notifica un cambio de contexto al proceso 'next_pid'
+void m_bnb_on_ctx_switch(process_t process)
+{
+  // cambiar el current process y si el process pid no existe en la lista de procesos, añadirlo
+  int founded = 0;
+  set_curr_owner(process.pid);
+
+  for (size_t i = 0; i < process_count; i++)
+  {
+    if (Procesos[i].used == 1 && Procesos[i].pid == process.pid)
+    {
+      founded = 1;
+      process_index = i;
+    }
+  }
+
+  if (founded == 0)
+  {
+    for (size_t i = 0; i < process_count; i++)
+    {
+      if (Procesos[i].used == 0)
+      {
+        Procesos[i].heap = new_free_list(bound - process.program->size);
+        Procesos[i].heap_p = malloc(sizeof(process_t));
+        Procesos[i].pid = process.pid;
+        Procesos[i].heap_p = process.program->size;
+        Procesos[i].used = 1;
+        process_index = i;
+
+        m_set_owner(Procesos[i].base, Procesos[i].SP);
+      }
+    }
+  }
 }
 
 // Notifica que un proceso ya terminó su ejecución
-void m_bnb_on_end_process(process_t process) {
-  //process.program->size
-  fprintf(stderr, "Not Implemented\n");
+void m_bnb_on_end_process(process_t process)
+{
+  for (size_t i = 0; i < process_count; i++)
+  {
+    if (Procesos[i].pid == process.pid)
+    {
+      Procesos[i].used = 0;
+      free(Procesos[i].heap);
+      Procesos[i].SP = Procesos[process_index].base + bound;
 
-  // liberar el heap y el proceso. poner en 0 el slot del proceso
-  exit(1);
+      m_unset_owner(Procesos[i].base, Procesos[process_index].base + bound);
+      break;
+    }
+  }
 }
